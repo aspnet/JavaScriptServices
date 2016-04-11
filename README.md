@@ -80,7 +80,7 @@ Note that to run the React example, you'll also need to run `webpack` from the `
 
    ```
    cd NodeServices
-   dnu restore
+   dnu restore    (on MAC - sudo dnu restore)
    ```
 
 3. Change directory to whichever sample you want to run, then restore the Node dependencies. For example:
