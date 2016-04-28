@@ -233,3 +233,7 @@ _Pvt_Extensions
 
 # FAKE - F# Make
 .fake/
+
+# TS compilled files
+/**/*.js
+/**/*.js.map
