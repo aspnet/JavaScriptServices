@@ -15,10 +15,15 @@ const templates = {
     'react': '../../templates/ReactSpa/'
 };
 
+const folderReplacement: { from: RegExp, to: string }[] = [
+    { from: /\bClientApp\b/g, to: 'tokenreplace-clientFolder' }
+];
+
 const contentReplacements: { from: RegExp, to: string }[] = [
+    { from: /\bClientApp\b/g, to: '<%= clientFolder %>' },
     { from: /\bWebApplicationBasic\b/g, to: '<%= namePascalCase %>' },
     { from: /<ProjectGuid>[0-9a-f\-]{36}<\/ProjectGuid>/g, to: '<ProjectGuid><%= projectGuid %></ProjectGuid>' },
-    { from: /<RootNamespace>.*?<\/RootNamespace>/g, to: '<RootNamespace><%= namePascalCase %></RootNamespace>'},
+    { from: /<RootNamespace>.*?<\/RootNamespace>/g, to: '<RootNamespace><%= namePascalCase %></RootNamespace>' },
     { from: /\s*<BaseIntermediateOutputPath.*?<\/BaseIntermediateOutputPath>/g, to: '' },
     { from: /\s*<OutputPath.*?<\/OutputPath>/g, to: '' },
 ];
@@ -33,11 +38,16 @@ function isTextFile(filename: string): boolean {
 
 function writeFileEnsuringDirExists(root: string, filename: string, contents: string | Buffer) {
     let fullPath = path.join(root, filename);
-    mkdirp.sync(path.dirname(fullPath));    
+    // Also apply replacements in folders
+    folderReplacement.forEach(replacement => {
+        fullPath = fullPath.replace(replacement.from, replacement.to);
+    });
+
+    mkdirp.sync(path.dirname(fullPath));
     fs.writeFileSync(fullPath, contents);
 }
 
-function listFilesExcludingGitignored(root: string): string[] {    
+function listFilesExcludingGitignored(root: string): string[] {
     let gitIgnorePath = path.join(root, '.gitignore');
     let gitignoreEvaluator = fs.existsSync(gitIgnorePath)
         ? gitignore.compile(fs.readFileSync(gitIgnorePath, 'utf8'))
@@ -49,36 +59,36 @@ function listFilesExcludingGitignored(root: string): string[] {
 function writeTemplate(sourceRoot: string, destRoot: string) {
     listFilesExcludingGitignored(sourceRoot).forEach(fn => {
         let sourceContent = fs.readFileSync(path.join(sourceRoot, fn));
-        
+
         // For text files, replace hardcoded values with template tags
         if (isTextFile(fn)) {
             let sourceText = sourceContent.toString('utf8');
             contentReplacements.forEach(replacement => {
                 sourceText = sourceText.replace(replacement.from, replacement.to);
             });
-            
+
             sourceContent = new Buffer(sourceText, 'utf8');
         }
-        
+
         // Also apply replacements in filenames
         filenameReplacements.forEach(replacement => {
             fn = fn.replace(replacement.from, replacement.to);
         });
-        
+
         writeFileEnsuringDirExists(destRoot, fn, sourceContent);
-    });    
+    });
 }
 
 function copyRecursive(sourceRoot: string, destRoot: string, matchGlob: string) {
     glob.sync(matchGlob, { cwd: sourceRoot, dot: true, nodir: true })
         .forEach(fn => {
-            const sourceContent = fs.readFileSync(path.join(sourceRoot, fn));        
+            const sourceContent = fs.readFileSync(path.join(sourceRoot, fn));
             writeFileEnsuringDirExists(destRoot, fn, sourceContent);
         });
 }
 
 const outputRoot = './generator-aspnet-spa';
-const outputTemplatesRoot = path.join(outputRoot, 'app/templates'); 
+const outputTemplatesRoot = path.join(outputRoot, 'app/templates');
 rimraf.sync(outputTemplatesRoot);
 
 // Copy template files
