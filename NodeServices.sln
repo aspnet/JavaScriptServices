@@ -36,6 +36,8 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "WebApplicationBasic", "temp
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "AuthSample", "samples\AuthSample\AuthSample.xproj", "{3EB6A95A-6ADA-447C-B2C1-B7F2EDEF6838}"
 EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "ReactAuthSample", "samples\ReactAuthSample\ReactAuthSample.xproj", "{24173791-FBB7-459B-875E-9FA09C7795EF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -90,6 +92,10 @@ Global
 		{3EB6A95A-6ADA-447C-B2C1-B7F2EDEF6838}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3EB6A95A-6ADA-447C-B2C1-B7F2EDEF6838}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3EB6A95A-6ADA-447C-B2C1-B7F2EDEF6838}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24173791-FBB7-459B-875E-9FA09C7795EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24173791-FBB7-459B-875E-9FA09C7795EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24173791-FBB7-459B-875E-9FA09C7795EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24173791-FBB7-459B-875E-9FA09C7795EF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -103,5 +109,6 @@ Global
 		{E9D1A695-F0E6-46F2-B5E3-72F4AF805387} = {727E6D58-6830-4792-96C6-E138A33959FB}
 		{CB4398D6-B7F1-449A-AE02-828769679232} = {727E6D58-6830-4792-96C6-E138A33959FB}
 		{3EB6A95A-6ADA-447C-B2C1-B7F2EDEF6838} = {E6E88944-4800-40BA-8AF5-069EA3ADFEB8}
+		{24173791-FBB7-459B-875E-9FA09C7795EF} = {E6E88944-4800-40BA-8AF5-069EA3ADFEB8}
 	EndGlobalSection
 EndGlobal
