@@ -48,7 +48,7 @@ namespace Microsoft.AspNet.NodeServices {
         }
 
         protected override void OnOutputDataReceived(string outputData) {
-            if (this._currentInvocationResult != null) {
+            if (this._currentInvocationResult != null && outputData.Contains("html")) {
                 this._currentInvocationResult.SetResult(outputData);
             } else {
                 base.OnOutputDataReceived(outputData);
