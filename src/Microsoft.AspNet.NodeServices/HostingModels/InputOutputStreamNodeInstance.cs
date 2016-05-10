@@ -3,8 +3,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System;
 
-namespace Microsoft.AspNet.NodeServices {
+namespace Microsoft.AspNet.NodeServices
+{
     // This is just to demonstrate that other transports are possible. This implementation is extremely
     // dubious - if the Node-side code fails to conform to the expected protocol in any way (e.g., has an
     // error), then it will just hang forever. So don't use this.
@@ -20,37 +22,47 @@ namespace Microsoft.AspNet.NodeServices {
         private SemaphoreSlim _invocationSemaphore = new SemaphoreSlim(1);
         private TaskCompletionSource<string> _currentInvocationResult;
 
-        private readonly static JsonSerializerSettings jsonSerializerSettings =  new JsonSerializerSettings {
+        private readonly static JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
+        {
             ContractResolver = new CamelCasePropertyNamesContractResolver()
         };
 
-		public InputOutputStreamNodeInstance(string projectPath)
+        public InputOutputStreamNodeInstance(string projectPath)
             : base(EmbeddedResourceReader.Read(typeof(InputOutputStreamNodeInstance), "/Content/Node/entrypoint-stream.js"), projectPath)
         {
-		}
+        }
 
-        public override async Task<T> Invoke<T>(NodeInvocationInfo invocationInfo) {
+        public override async Task<T> Invoke<T>(NodeInvocationInfo invocationInfo)
+        {
             await this._invocationSemaphore.WaitAsync();
-            try {
+            try
+            {
                 await this.EnsureReady();
 
                 var payloadJson = JsonConvert.SerializeObject(invocationInfo, jsonSerializerSettings);
+                Console.WriteLine(payloadJson);
                 var nodeProcess = this.NodeProcess;
                 this._currentInvocationResult = new TaskCompletionSource<string>();
                 nodeProcess.StandardInput.Write("\ninvoke:");
                 nodeProcess.StandardInput.WriteLine(payloadJson); // WriteLineAsync isn't supported cross-platform
                 var resultString = await this._currentInvocationResult.Task;
                 return JsonConvert.DeserializeObject<T>(resultString);
-            } finally {
+            }
+            finally
+            {
                 this._invocationSemaphore.Release();
                 this._currentInvocationResult = null;
             }
         }
 
-        protected override void OnOutputDataReceived(string outputData) {
-            if (this._currentInvocationResult != null && outputData.Contains("html")) {
+        protected override void OnOutputDataReceived(string outputData)
+        {
+            if (this._currentInvocationResult != null && outputData.Contains("html"))
+            {
                 this._currentInvocationResult.SetResult(outputData);
-            } else {
+            }
+            else
+            {
                 base.OnOutputDataReceived(outputData);
             }
         }

@@ -2,10 +2,11 @@ import 'angular2-universal/polyfills';
 import * as ngCore from '@angular/core';
 import * as ngRouter from '@angular/router-deprecated';
 import * as ngUniversal from 'angular2-universal';
+import * as aspnet from 'aspnet-prerendering';
 import { BASE_URL, ORIGIN_URL, REQUEST_URL } from 'angular2-universal/common';
 import { App } from './components/app/app';
 
-export default function (params: any): Promise<{ html: string, globals?: any }> {
+export default function (params: aspnet.BootFuncParams): Promise<{ html: string, globals?: any }> {
   const serverBindings = [
     ngCore.provide(BASE_URL, { useValue: '/' }),
     ngCore.provide(ORIGIN_URL, { useValue: params.origin }),
@@ -15,6 +16,7 @@ export default function (params: any): Promise<{ html: string, globals?: any }> 
     ...ngUniversal.NODE_HTTP_PROVIDERS,
   ];
 
+  console.log(params);
   let boot = ngUniversal.bootloader({
     directives: [App],
     componentProviders: serverBindings,

@@ -1,6 +1,6 @@
 /node_modules/
 /wwwroot/lib/
-/wwwroot/ng-app/**/*.js
+/wwwroot/dist/**/*
 /project.lock.json
 /music-db.sqlite
 /Properties/launchSettings.json
