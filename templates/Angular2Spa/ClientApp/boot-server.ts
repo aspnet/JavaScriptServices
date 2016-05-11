@@ -16,7 +16,6 @@ export default function (params: aspnet.BootFuncParams): Promise<{ html: string,
     ...ngUniversal.NODE_HTTP_PROVIDERS,
   ];
 
-  console.log(params);
   let boot = ngUniversal.bootloader({
     directives: [App],
     componentProviders: serverBindings,

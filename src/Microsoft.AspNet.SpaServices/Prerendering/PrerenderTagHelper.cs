@@ -62,7 +62,7 @@ namespace Microsoft.AspNet.SpaServices.Prerendering
                 });
                 info.Args.Add(UriHelper.GetEncodedUrl(this.contextAccessor.HttpContext.Request));
                 info.Args.Add(this.contextAccessor.HttpContext.Request.Path + this.contextAccessor.HttpContext.Request.QueryString.Value);
-                info.Args.Add(this.contextAccessor.HttpContext.Request.Cookies.Keys);
+                info.Args.Add(this.contextAccessor.HttpContext.Request.Cookies);
             };
         }
 

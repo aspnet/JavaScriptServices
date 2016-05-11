@@ -14,6 +14,11 @@ export interface RenderToStringResult {
     globals: { [key: string]: any };
 }
 
+export interface Cookie {
+  key: string;
+  value: string;
+}
+
 export interface BootFunc {
     (params: BootFuncParams): Promise<RenderToStringResult>;
 }
@@ -24,7 +29,7 @@ export interface BootFuncParams {
     url: string;                // e.g., '/some/path'
     absoluteUrl: string;        // e.g., 'https://example.com:1234/some/path'
     domainTasks: Promise<any>;
-    cookie: string[];
+    cookie: Cookie[];
     payload: any[];
 }
 
@@ -40,7 +45,7 @@ export function renderToString(
   bootModule: BootModuleInfo,
   absoluteRequestUrl: string,
   requestPathAndQuery: string,
-  cookie: string,
+  cookie: Cookie[],
   payload: any[]) {
     findBootFunc(applicationBasePath, bootModule, (findBootFuncError, bootFunc) => {
         if (findBootFuncError) {

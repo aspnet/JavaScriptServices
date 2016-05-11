@@ -14,6 +14,7 @@ using AuthSample.Services;
 using Newtonsoft.Json.Serialization;
 using Microsoft.AspNet.SpaServices.Webpack;
 using Microsoft.AspNet.NodeServices;
+using Microsoft.AspNet.SpaServices;
 
 namespace AuthSample
 {
@@ -63,6 +64,7 @@ namespace AuthSample
             });
 
             // Add application services.
+            services.AddPrerender();
             services.AddTransient<IEmailSender, AuthMessageSender>();
             services.AddTransient<ISmsSender, AuthMessageSender>();
         }
