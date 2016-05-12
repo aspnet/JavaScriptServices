@@ -64,17 +64,7 @@ namespace AuthSample
             });
 
             // Add application services.
-            services.AddPrerender(
-                r => new PrerenderOptions
-                {
-                    PayloadAccessor = context => new object[]
-                    {
-                        "hello i'm payload from server",
-                        "my is also from server, but i'm, unicorn",
-                        new { name = "Pink", type = "Fluffy", race = "Unicorn" }
-                    }
-                });
-
+            services.AddPrerender();
             services.AddTransient<IEmailSender, AuthMessageSender>();
             services.AddTransient<ISmsSender, AuthMessageSender>();
         }

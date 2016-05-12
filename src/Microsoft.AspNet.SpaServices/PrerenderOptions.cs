@@ -8,7 +8,7 @@ namespace Microsoft.AspNet.SpaServices
 {
     public class PrerenderOptions
     {
-        public Func<HttpContext, object[]> PayloadAccessor { get; set; } = c => new object[0];
+        public Func<HttpContext, object[]> PayloadProvider { get; set; } = c => new object[0];
 
         public string FileName { get; set; }
 

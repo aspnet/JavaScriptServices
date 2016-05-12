@@ -48,9 +48,9 @@ namespace Microsoft.AspNet.SpaServices.Prerendering
                     UriHelper.GetEncodedUrl(_contextAccessor.HttpContext.Request),
                     _contextAccessor.HttpContext.Request.Path + _contextAccessor.HttpContext.Request.QueryString.Value,
                     _contextAccessor.HttpContext.Request.Cookies,
-                    _options.PayloadAccessor(_contextAccessor.HttpContext)
+                    _options.PayloadProvider(_contextAccessor.HttpContext)
                 },
-                Payload = _options.PayloadAccessor(_contextAccessor.HttpContext)
+                Payload = _options.PayloadProvider(_contextAccessor.HttpContext)
             });
     }
 }
