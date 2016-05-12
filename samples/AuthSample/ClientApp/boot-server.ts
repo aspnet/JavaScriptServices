@@ -1,0 +1,36 @@
+import 'angular2-universal/polyfills';
+import * as ngCore from '@angular/core';
+import * as ngRouter from '@angular/router-deprecated';
+import * as ngUniversal from 'angular2-universal';
+import * as aspnet from 'aspnet-prerendering';
+import { Cookie } from './components/shared/Cookie';
+import { BASE_URL, ORIGIN_URL, REQUEST_URL, REQUEST_COOKIE } from 'angular2-universal/common';
+import { App } from './components/app/app';
+
+export default function (params: aspnet.BootFuncParams): Promise<{ html: string, globals?: any }> {
+  let cookie = new Cookie(params.cookie);
+  const serverBindings = [
+    ngCore.provide(BASE_URL, { useValue: '/' }),
+    ngCore.provide(ORIGIN_URL, { useValue: params.origin }),
+    ngCore.provide(REQUEST_URL, { useValue: params.url }),
+    ngCore.provide(REQUEST_COOKIE, { useValue: cookie }),
+    ...ngUniversal.NODE_PLATFORM_PIPES,
+    ...ngUniversal.NODE_ROUTER_PROVIDERS,
+    ...ngUniversal.NODE_HTTP_PROVIDERS,
+  ];
+
+  let boot = ngUniversal.bootloader({
+    directives: [App],
+    componentProviders: serverBindings,
+    async: true,
+    preboot: false,
+    // TODO: Render just the <app> component instead of wrapping it inside an extra HTML document
+    // Waiting on https://github.com/angular/universal/issues/347
+    template: '<!DOCTYPE html>\n<html><head></head><body><app></app></body></html>'
+  })
+
+  return boot.serializeApplication().then(html => {
+    boot.dispose();
+    return { html };
+  });
+}

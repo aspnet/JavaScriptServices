@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{E6E88944-4800-40BA-8AF5-069EA3ADFEB8}"
 EndProject
@@ -33,6 +33,10 @@ EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "ReactSpa", "templates\ReactSpa\ReactSpa.xproj", "{E9D1A695-F0E6-46F2-B5E3-72F4AF805387}"
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "WebApplicationBasic", "templates\WebApplicationBasic\WebApplicationBasic.xproj", "{CB4398D6-B7F1-449A-AE02-828769679232}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "AuthSample", "samples\AuthSample\AuthSample.xproj", "{3EB6A95A-6ADA-447C-B2C1-B7F2EDEF6838}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "ReactAuthSample", "samples\ReactAuthSample\ReactAuthSample.xproj", "{24173791-FBB7-459B-875E-9FA09C7795EF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -84,6 +88,14 @@ Global
 		{CB4398D6-B7F1-449A-AE02-828769679232}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CB4398D6-B7F1-449A-AE02-828769679232}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CB4398D6-B7F1-449A-AE02-828769679232}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3EB6A95A-6ADA-447C-B2C1-B7F2EDEF6838}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3EB6A95A-6ADA-447C-B2C1-B7F2EDEF6838}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3EB6A95A-6ADA-447C-B2C1-B7F2EDEF6838}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3EB6A95A-6ADA-447C-B2C1-B7F2EDEF6838}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24173791-FBB7-459B-875E-9FA09C7795EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24173791-FBB7-459B-875E-9FA09C7795EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24173791-FBB7-459B-875E-9FA09C7795EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24173791-FBB7-459B-875E-9FA09C7795EF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -96,5 +108,7 @@ Global
 		{DBFC6DB0-A6D1-4694-A108-1C604B988DA3} = {727E6D58-6830-4792-96C6-E138A33959FB}
 		{E9D1A695-F0E6-46F2-B5E3-72F4AF805387} = {727E6D58-6830-4792-96C6-E138A33959FB}
 		{CB4398D6-B7F1-449A-AE02-828769679232} = {727E6D58-6830-4792-96C6-E138A33959FB}
+		{3EB6A95A-6ADA-447C-B2C1-B7F2EDEF6838} = {E6E88944-4800-40BA-8AF5-069EA3ADFEB8}
+		{24173791-FBB7-459B-875E-9FA09C7795EF} = {E6E88944-4800-40BA-8AF5-069EA3ADFEB8}
 	EndGlobalSection
 EndGlobal

@@ -14,6 +14,11 @@ export interface RenderToStringResult {
     globals: { [key: string]: any };
 }
 
+export interface Cookie {
+  key: string;
+  value: string;
+}
+
 export interface BootFunc {
     (params: BootFuncParams): Promise<RenderToStringResult>;
 }
@@ -24,6 +29,8 @@ export interface BootFuncParams {
     url: string;                // e.g., '/some/path'
     absoluteUrl: string;        // e.g., 'https://example.com:1234/some/path'
     domainTasks: Promise<any>;
+    cookie: Cookie[];
+    payload: any[];
 }
 
 export interface BootModuleInfo {
@@ -32,7 +39,14 @@ export interface BootModuleInfo {
     webpackConfig?: string;
 }
 
-export function renderToString(callback: RenderToStringCallback, applicationBasePath: string, bootModule: BootModuleInfo, absoluteRequestUrl: string, requestPathAndQuery: string) {
+export function renderToString(
+  callback: RenderToStringCallback,
+  applicationBasePath: string,
+  bootModule: BootModuleInfo,
+  absoluteRequestUrl: string,
+  requestPathAndQuery: string,
+  cookie: Cookie[],
+  payload: any[]) {
     findBootFunc(applicationBasePath, bootModule, (findBootFuncError, bootFunc) => {
         if (findBootFuncError) {
             callback(findBootFuncError, null);
@@ -51,7 +65,9 @@ export function renderToString(callback: RenderToStringCallback, applicationBase
             origin: parsedAbsoluteRequestUrl.protocol + '//' + parsedAbsoluteRequestUrl.host,
             url: requestPathAndQuery,
             absoluteUrl: absoluteRequestUrl,
-            domainTasks: domainTaskCompletionPromise
+            domainTasks: domainTaskCompletionPromise,
+            cookie: cookie,
+            payload: payload
         };
 
         // Open a new domain that can track all the async tasks involved in the app's execution

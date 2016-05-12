@@ -33,6 +33,11 @@ class MyGenerator extends yeoman.Base {
             name: 'name',
             message: 'Your project name',
             default: this.appname
+        }, {
+            type: 'input',
+            name: 'clientFolder',
+            message: 'Your client code folder name',
+            default: 'ClientApp'
         }], answers => {
             this._answers = answers;
             this._answers.namePascalCase = toPascalCase(answers.name);
