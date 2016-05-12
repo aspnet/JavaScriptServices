@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNet.SpaServices.Prerendering;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace Microsoft.AspNet.SpaServices
@@ -6,13 +7,12 @@ namespace Microsoft.AspNet.SpaServices
     public static class Configuration
     {
         public static void AddPrerender(this IServiceCollection serviceCollection)
-        {
-            serviceCollection.AddTransient(typeof(PrerenderOptions), r => new PrerenderOptions());
-        }
+            => AddPrerender(serviceCollection, _ => new PrerenderOptions());
 
         public static void AddPrerender(this IServiceCollection serviceCollection, Func<IServiceProvider, PrerenderOptions> optionsFactory)
         {
-            serviceCollection.AddSingleton(typeof(PrerenderOptions), optionsFactory);
+            serviceCollection.AddTransient(typeof(PrerenderOptions), optionsFactory);
+            serviceCollection.AddSingleton(typeof(IPrerenderer), serviceProvider => new Prerenderer(serviceProvider));
         }
     }
 }

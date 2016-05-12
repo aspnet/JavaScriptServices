@@ -1,20 +1,15 @@
+using Microsoft.AspNet.Razor.TagHelpers;
+using Newtonsoft.Json;
 using System;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Http.Extensions;
-using Microsoft.AspNet.NodeServices;
-using Microsoft.AspNet.Razor.TagHelpers;
-using Microsoft.Extensions.PlatformAbstractions;
-using Newtonsoft.Json;
 
 namespace Microsoft.AspNet.SpaServices.Prerendering
 {
     [HtmlTargetElement(Attributes = PrerenderModuleAttributeName)]
     public class PrerenderTagHelper : TagHelper
     {
-        private readonly PrerenderOptions _prerenderOptions;
-        static INodeServices fallbackNodeServices; // Used only if no INodeServices was registered with DI
+        private readonly IPrerenderer _prerenderer;
 
         const string PrerenderModuleAttributeName = "asp-prerender-module";
         const string PrerenderExportAttributeName = "asp-prerender-export";
@@ -29,49 +24,19 @@ namespace Microsoft.AspNet.SpaServices.Prerendering
         [HtmlAttributeName(PrerenderWebpackConfigAttributeName)]
         public string WebpackConfigPath { get; set; }
 
-        private string applicationBasePath;
-        private IHttpContextAccessor contextAccessor;
-        private INodeServices nodeServices;
-
-        public PrerenderTagHelper(IServiceProvider serviceProvider, IHttpContextAccessor contextAccessor, PrerenderOptions prerenderOptions)
+        public PrerenderTagHelper(IServiceProvider serviceProvider)
         {
-            var appEnv = (IApplicationEnvironment)serviceProvider.GetService(typeof(IApplicationEnvironment));
-            this.contextAccessor = contextAccessor;
-            this.nodeServices = (INodeServices)serviceProvider.GetService(typeof(INodeServices)) ?? fallbackNodeServices;
-            this.applicationBasePath = appEnv.ApplicationBasePath;
-
-            // Consider removing the following. Having it means you can get away with not putting app.AddNodeServices()
-            // in your startup file, but then again it might be confusing that you don't need to.
-            if (this.nodeServices == null)
-            {
-                this.nodeServices = fallbackNodeServices = NodeServices.Configuration.CreateNodeServices(new NodeServicesOptions
-                {
-                    HostingModel = NodeHostingModel.Http,
-                    ProjectPath = this.applicationBasePath
-                });
-            }
-
-            _prerenderOptions = prerenderOptions ?? new PrerenderOptions();
-            _prerenderOptions.BeforeRender = (context, info) =>
-            {
-                info.Args.Add(this.applicationBasePath);
-                info.Args.Add(new JavaScriptModuleExport(this.ModuleName)
-                {
-                    exportName = this.ExportName,
-                    webpackConfig = this.WebpackConfigPath
-                });
-                info.Args.Add(UriHelper.GetEncodedUrl(this.contextAccessor.HttpContext.Request));
-                info.Args.Add(this.contextAccessor.HttpContext.Request.Path + this.contextAccessor.HttpContext.Request.QueryString.Value);
-                info.Args.Add(this.contextAccessor.HttpContext.Request.Cookies);
-            };
+            this._prerenderer = (IPrerenderer)serviceProvider.GetService(typeof(IPrerenderer)) ?? new Prerenderer(serviceProvider);
         }
 
         public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
-            var request = this.contextAccessor.HttpContext.Request;
-            var invocationInfo = new NodeInvocationInfo();
-            this._prerenderOptions.BeforeRender(this.contextAccessor.HttpContext, invocationInfo);
-            var result = await this.nodeServices.Invoke<RenderToStringResult>(invocationInfo);
+            var result = await this._prerenderer.RenderToString(new JavaScriptModuleExport(this.ModuleName)
+            {
+                exportName = this.ExportName,
+                webpackConfig = this.WebpackConfigPath
+            });
+
             output.Content.SetHtmlContent(result.Html);
 
             // Also attach any specified globals to the 'window' object. This is useful for transferring
