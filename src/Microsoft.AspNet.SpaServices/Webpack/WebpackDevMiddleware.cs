@@ -5,6 +5,7 @@ using Microsoft.AspNet.NodeServices;
 using Microsoft.AspNet.SpaServices.Webpack;
 using Microsoft.Extensions.PlatformAbstractions;
 using Newtonsoft.Json;
+using Microsoft.AspNet.Hosting;
 
 // Putting in this namespace so it's always available whenever MapRoute is
 namespace Microsoft.AspNet.Builder
@@ -31,10 +32,12 @@ namespace Microsoft.AspNet.Builder
             // middleware). And since this is a dev-time-only feature, it doesn't matter if the default transport isn't
             // as fast as some theoretical future alternative.
             var appEnv = (IApplicationEnvironment)appBuilder.ApplicationServices.GetService(typeof(IApplicationEnvironment));
+            var hostEnv = (IHostingEnvironment)appBuilder.ApplicationServices.GetService(typeof(IHostingEnvironment));
             var nodeServices = Configuration.CreateNodeServices(new NodeServicesOptions {
                 HostingModel = NodeHostingModel.Http,
                 ProjectPath = appEnv.ApplicationBasePath,
-                WatchFileExtensions = new string[] {} // Don't watch anything
+                WatchFileExtensions = new string[] {}, // Don't watch anything
+                AspnetEnviroment = hostEnv.EnvironmentName
             });
 
             // Get a filename matching the middleware Node script

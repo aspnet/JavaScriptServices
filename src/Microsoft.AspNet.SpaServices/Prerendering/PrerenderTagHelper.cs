@@ -7,6 +7,7 @@ using Microsoft.AspNet.NodeServices;
 using Microsoft.AspNet.Razor.TagHelpers;
 using Microsoft.Extensions.PlatformAbstractions;
 using Newtonsoft.Json;
+using Microsoft.AspNet.Hosting;
 
 namespace Microsoft.AspNet.SpaServices.Prerendering
 {
@@ -35,6 +36,7 @@ namespace Microsoft.AspNet.SpaServices.Prerendering
         public PrerenderTagHelper(IServiceProvider serviceProvider, IHttpContextAccessor contextAccessor)
         {
             var appEnv = (IApplicationEnvironment)serviceProvider.GetService(typeof(IApplicationEnvironment));
+            var hostEnv = (IHostingEnvironment)serviceProvider.GetService(typeof(IHostingEnvironment));
             this.contextAccessor = contextAccessor;
             this.nodeServices = (INodeServices)serviceProvider.GetService(typeof (INodeServices)) ?? fallbackNodeServices;
             this.applicationBasePath = appEnv.ApplicationBasePath;
@@ -44,7 +46,8 @@ namespace Microsoft.AspNet.SpaServices.Prerendering
             if (this.nodeServices == null) {
                 this.nodeServices = fallbackNodeServices = Configuration.CreateNodeServices(new NodeServicesOptions {
                     HostingModel = NodeHostingModel.Http,
-                    ProjectPath = this.applicationBasePath
+                    ProjectPath = this.applicationBasePath,
+                    AspnetEnviroment = hostEnv.EnvironmentName
                 });
             }
         }

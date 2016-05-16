@@ -17,8 +17,8 @@ namespace Microsoft.AspNet.NodeServices {
 
         private int _portNumber;
 
-		public HttpNodeInstance(string projectPath, int port = 0, string[] watchFileExtensions = null)
-            : base(EmbeddedResourceReader.Read(typeof(HttpNodeInstance), "/Content/Node/entrypoint-http.js"), projectPath, MakeCommandLineOptions(port, watchFileExtensions))
+		public HttpNodeInstance(string projectPath, int port = 0, string[] watchFileExtensions = null, string enviroment = null)
+            : base(EmbeddedResourceReader.Read(typeof(HttpNodeInstance), "/Content/Node/entrypoint-http.js"), projectPath, MakeCommandLineOptions(port, watchFileExtensions), enviroment)
         {
 		}
 

@@ -14,6 +14,7 @@ namespace Microsoft.AspNet.NodeServices {
         private StringAsTempFile _entryPointScript;
         private string _projectPath;
         private string _commandLineArguments;
+        private string _aspnetEnv;
         private Process _nodeProcess;
         private TaskCompletionSource<bool> _nodeProcessIsReadySource;
 
@@ -25,12 +26,13 @@ namespace Microsoft.AspNet.NodeServices {
             }
         }
 
-        public OutOfProcessNodeInstance(string entryPointScript, string projectPath, string commandLineArguments = null)
+        public OutOfProcessNodeInstance(string entryPointScript, string projectPath, string commandLineArguments = null, string aspnetEnv = null)
         {
             this._childProcessLauncherLock = new object();
             this._entryPointScript = new StringAsTempFile(entryPointScript);
             this._projectPath = projectPath;
             this._commandLineArguments = commandLineArguments ?? string.Empty;
+            this._aspnetEnv = aspnetEnv;
         }
 
         public abstract Task<T> Invoke<T>(NodeInvocationInfo invocationInfo);
@@ -68,8 +70,10 @@ namespace Microsoft.AspNet.NodeServices {
                     var nodePathValue = existingNodePath + Path.Combine(this._projectPath, "node_modules");
                     #if NET451
                     startInfo.EnvironmentVariables.Add("NODE_PATH", nodePathValue);
+                    startInfo.EnvironmentVariables.Add("ASPNET_ENV", _aspnetEnv);
                     #else
                     startInfo.Environment.Add("NODE_PATH", nodePathValue);
+                    startInfo.Environment.Add("ASPNET_ENV", _aspnetEnv);
                     #endif
 
                     this.OnBeforeLaunchProcess();
