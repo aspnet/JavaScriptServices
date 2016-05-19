@@ -87,7 +87,7 @@ function copyRecursive(sourceRoot: string, destRoot: string, matchGlob: string) 
         });
 }
 
-const outputRoot = './generator-aspnet-spa';
+const outputRoot = './generator-aspnetcore-spa';
 const outputTemplatesRoot = path.join(outputRoot, 'app/templates');
 rimraf.sync(outputTemplatesRoot);
 
