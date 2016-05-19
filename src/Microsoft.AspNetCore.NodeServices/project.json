@@ -1,0 +1,33 @@
+{
+  "version": "1.0.0-*",
+  "description": "Invoke Node.js modules at runtime in ASP.NET Core applications.",
+  "compilationOptions": {
+    "keyFile": "../../tools/Key.snk"
+  },
+  "authors": [ "Microsoft" ],
+  "dependencies": {
+    "Microsoft.NETCore.App": {
+      "version": "1.0.0-rc2-*",
+      "type": "platform"
+    },
+    "Microsoft.AspNetCore.Hosting.Abstractions": "1.0.0-*",
+    "Microsoft.Extensions.Configuration.Json": "1.0.0-*",
+    "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-*",
+    "Microsoft.Extensions.PlatformAbstractions": "1.0.0-*",
+    "Newtonsoft.Json": "8.0.3"
+  },
+  "frameworks": {
+    "netcoreapp1.0": {
+      "imports": [
+        "dotnet5.6",
+        "dnxcore50",
+        "portable-net45+win8"
+      ]
+    }
+  },
+  "buildOptions": {
+    "embed": [
+      "Content/**/*"
+    ]
+  } 
+}
