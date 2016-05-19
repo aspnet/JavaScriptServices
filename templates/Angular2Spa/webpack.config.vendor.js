@@ -2,7 +2,7 @@ var path = require('path');
 var webpack = require('webpack');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var extractCSS = new ExtractTextPlugin('vendor.css');
-var isDevelopment = process.env.ASPNET_ENV === 'Development';
+var isDevelopment = process.env.ASPNETCORE_ENVIRONMENT === 'Development';
 
 module.exports = {
     resolve: {
@@ -15,7 +15,21 @@ module.exports = {
         ]
     },
     entry: {
-        vendor: ['angular2/bundles/angular2-polyfills.js', 'bootstrap', 'bootstrap/dist/css/bootstrap.css', 'style-loader', 'jquery', 'angular2/core', 'angular2/common', 'angular2/http', 'angular2/router', 'angular2/platform/browser']
+        vendor: [
+            'bootstrap',
+            'bootstrap/dist/css/bootstrap.css',
+            'style-loader',
+            'jquery',
+            '@angular/common',
+            '@angular/compiler',
+            '@angular/core',
+            '@angular/http',
+            '@angular/platform-browser',
+            '@angular/platform-browser-dynamic',
+            '@angular/router-deprecated',
+            '@angular/platform-server',
+            '@angular/router-deprecated',
+        ]
     },
     output: {
         path: path.join(__dirname, 'wwwroot', 'dist'),

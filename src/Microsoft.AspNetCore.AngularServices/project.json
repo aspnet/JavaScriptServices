@@ -1,0 +1,24 @@
+{
+  "version": "1.0.0-*",
+  "description": "Helpers for building Angular 2 applications on ASP.NET Core.",
+  "compilationOptions": {
+    "keyFile": "../../tools/Key.snk"
+  },
+  "authors": [ "Microsoft" ],
+  "tooling": {
+    "defaultNamespace": "Microsoft.AspNetCore.AngularServices"
+  },
+  "dependencies": {
+    "Microsoft.AspNetCore.Mvc.TagHelpers": "1.0.0-*",
+    "Microsoft.AspNetCore.SpaServices": "1.0.0-*"
+  },
+  "frameworks": {
+    "netcoreapp1.0": {
+      "imports": [
+        "dotnet5.6",
+        "dnxcore50",
+        "portable-net45+win8"
+      ]
+    }
+  }
+}
