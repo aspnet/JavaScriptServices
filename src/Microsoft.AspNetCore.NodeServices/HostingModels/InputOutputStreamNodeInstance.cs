@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.NodeServices {
         }
 
         protected override void OnOutputDataReceived(string outputData) {
-            if (this._currentInvocationResult != null) {
+            if (this._currentInvocationResult != null  && outputData.Contains("{")) {
                 this._currentInvocationResult.SetResult(outputData);
             } else {
                 base.OnOutputDataReceived(outputData);
