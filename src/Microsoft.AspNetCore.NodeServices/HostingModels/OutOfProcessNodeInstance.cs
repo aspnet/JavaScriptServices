@@ -66,7 +66,7 @@ namespace Microsoft.AspNetCore.NodeServices {
                     }
 
                     var nodePathValue = existingNodePath + Path.Combine(this._projectPath, "node_modules");
-                    #if NET451
+                    #if NET45 || NET451 || NET452 || NET46 || NET461
                     startInfo.EnvironmentVariables.Add("NODE_PATH", nodePathValue);
                     #else
                     startInfo.Environment.Add("NODE_PATH", nodePathValue);

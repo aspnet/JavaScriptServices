@@ -6,23 +6,68 @@
   },
   "authors": [ "Microsoft" ],
   "dependencies": {
-    "Microsoft.NETCore.App": {
-      "version": "1.0.0-rc2-*",
-      "type": "platform"
-    },
-    "Microsoft.AspNetCore.Hosting.Abstractions": "1.0.0-*",
-    "Microsoft.Extensions.Configuration.Json": "1.0.0-*",
-    "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-*",
-    "Microsoft.Extensions.PlatformAbstractions": "1.0.0-*",
     "Newtonsoft.Json": "8.0.3"
   },
   "frameworks": {
     "netcoreapp1.0": {
+      "dependencies": {
+        "Microsoft.NETCore.App": {
+          "version": "1.0.0-rc2-*",
+          "type": "platform"
+        },
+        "Microsoft.AspNetCore.Hosting.Abstractions": "1.0.0-*",
+        "Microsoft.Extensions.Configuration.Json": "1.0.0-*",
+        "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-*",
+        "Microsoft.Extensions.PlatformAbstractions": "1.0.0-*"
+      },
       "imports": [
         "dotnet5.6",
         "dnxcore50",
         "portable-net45+win8"
-      ]
+      ],
+      "buildOptions": {
+        "define": [ "NETCORE", "DI_CONFIGURATION" ]
+      }
+    },
+    "net45": {
+      "dependencies": {
+        "System.Net.Http": "4.0.0"
+      },
+      "buildOptions": {
+        "define": [ "NET45" ]
+      }
+    },
+    "net451": {
+      "dependencies": {
+        "System.Net.Http": "4.0.0"
+      },
+      "buildOptions": {
+        "define": [ "NET451" ]
+      }
+    },
+    "net452": {
+      "dependencies": {
+        "System.Net.Http": "4.0.0"
+      },
+      "buildOptions": {
+        "define": [ "NET452" ]
+      }
+    },
+    "net46": {
+      "dependencies": {
+        "System.Net.Http": "4.0.0"
+      },
+      "buildOptions": {
+        "define": [ "NET46" ]
+      }
+    },
+    "net461": {
+      "dependencies": {
+        "System.Net.Http": "4.0.0"
+      },
+      "buildOptions": {
+        "define": [ "NET461" ]
+      }
     }
   },
   "buildOptions": {
