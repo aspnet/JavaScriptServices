@@ -1,3 +1,4 @@
+#if DI_CONFIGURATION
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.AspNetCore.Hosting;
@@ -49,3 +50,4 @@ namespace Microsoft.AspNetCore.NodeServices {
         }
     }
 }
+#endif
