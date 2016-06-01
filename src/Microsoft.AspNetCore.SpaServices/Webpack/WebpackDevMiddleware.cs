@@ -7,10 +7,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.PlatformAbstractions;
 using Newtonsoft.Json;
-using Microsoft.AspNet.Hosting;
 
 // Putting in this namespace so it's always available whenever MapRoute is
-
 namespace Microsoft.AspNetCore.Builder
 {
     public static class WebpackDevMiddleware

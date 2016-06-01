@@ -29,13 +29,13 @@ namespace Microsoft.AspNetCore.NodeServices
         private TaskCompletionSource<string> _currentInvocationResult;
         private readonly SemaphoreSlim _invocationSemaphore = new SemaphoreSlim(1);
 
-        public InputOutputStreamNodeInstance(string projectPath)
+        public InputOutputStreamNodeInstance(string projectPath, string aspnetEnv = null)
             : base(
                 EmbeddedResourceReader.Read(
                     typeof(InputOutputStreamNodeInstance),
                     "/Content/Node/entrypoint-stream.js"),
                 projectPath,
-                aspnetEnv: aspnetEnviroment)
+                aspnetEnv: aspnetEnv)
         {
         }
 

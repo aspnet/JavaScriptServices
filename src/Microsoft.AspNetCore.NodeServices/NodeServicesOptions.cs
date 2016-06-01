@@ -10,5 +10,6 @@ namespace Microsoft.AspNetCore.NodeServices
         public NodeHostingModel HostingModel { get; set; }
         public string ProjectPath { get; set; }
         public string[] WatchFileExtensions { get; set; }
+        public string AspnetEnviroment { get; set; }
     }
 }

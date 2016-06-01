@@ -1,16 +1,13 @@
+using Newtonsoft.Json;
 using System;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.NodeServices;
 using Microsoft.AspNetCore.Razor.TagHelpers;
-using Microsoft.Extensions.PlatformAbstractions;
-using Newtonsoft.Json;
-using Microsoft.AspNet.Hosting;
 
 namespace Microsoft.AspNetCore.SpaServices.Prerendering
 {
@@ -38,7 +35,8 @@ namespace Microsoft.AspNetCore.SpaServices.Prerendering
                 _nodeServices = _fallbackNodeServices = Configuration.CreateNodeServices(new NodeServicesOptions
                 {
                     HostingModel = NodeHostingModel.Http,
-                    ProjectPath = _applicationBasePath
+                    ProjectPath = _applicationBasePath,
+                    AspnetEnviroment = hostEnv.EnvironmentName
                 });
             }
         }
@@ -58,25 +56,6 @@ namespace Microsoft.AspNetCore.SpaServices.Prerendering
 
         private string applicationBasePath;
         private INodeServices nodeServices;
-
-        public PrerenderTagHelper(IServiceProvider serviceProvider)
-        {
-            var appEnv = (IApplicationEnvironment)serviceProvider.GetService(typeof(IApplicationEnvironment));
-            var hostEnv = (IHostingEnvironment)serviceProvider.GetService(typeof(IHostingEnvironment));
-            this.contextAccessor = contextAccessor;
-            this.nodeServices = (INodeServices)serviceProvider.GetService(typeof (INodeServices)) ?? fallbackNodeServices;
-            this.applicationBasePath = hostEnv.ContentRootPath;
-
-            // Consider removing the following. Having it means you can get away with not putting app.AddNodeServices()
-            // in your startup file, but then again it might be confusing that you don't need to.
-            if (this.nodeServices == null) {
-                this.nodeServices = fallbackNodeServices = Configuration.CreateNodeServices(new NodeServicesOptions {
-                    HostingModel = NodeHostingModel.Http,
-                    ProjectPath = this.applicationBasePath,
-                    AspnetEnviroment = hostEnv.EnvironmentName
-                });
-            }
-        }
 
         public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
