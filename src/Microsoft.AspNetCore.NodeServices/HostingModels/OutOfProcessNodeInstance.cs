@@ -15,17 +15,20 @@ namespace Microsoft.AspNetCore.NodeServices
         private readonly object _childProcessLauncherLock;
         private readonly string _commandLineArguments;
         private readonly StringAsTempFile _entryPointScript;
+        private readonly string _projectPath;
+        private readonly string _aspnetEnv;
+
         private Process _nodeProcess;
         private TaskCompletionSource<bool> _nodeProcessIsReadySource;
-        private readonly string _projectPath;
         private bool _disposed;
 
-        public OutOfProcessNodeInstance(string entryPointScript, string projectPath, string commandLineArguments = null)
+        public OutOfProcessNodeInstance(string entryPointScript, string projectPath, string commandLineArguments = null, string aspnetEnv = null)
         {
             _childProcessLauncherLock = new object();
             _entryPointScript = new StringAsTempFile(entryPointScript);
             _projectPath = projectPath;
             _commandLineArguments = commandLineArguments ?? string.Empty;
+            this._aspnetEnv = aspnetEnv;
         }
 
         protected Process NodeProcess
@@ -85,8 +88,10 @@ namespace Microsoft.AspNetCore.NodeServices
                     var nodePathValue = existingNodePath + Path.Combine(_projectPath, "node_modules");
 #if NET451
                     startInfo.EnvironmentVariables.Add("NODE_PATH", nodePathValue);
+                    startInfo.EnvironmentVariables.Add("ASPNET_ENV", _aspnetEnv);
 #else
                     startInfo.Environment.Add("NODE_PATH", nodePathValue);
+                    startInfo.Environment.Add("ASPNET_ENV", _aspnetEnv);
 #endif
 
                     OnBeforeLaunchProcess();

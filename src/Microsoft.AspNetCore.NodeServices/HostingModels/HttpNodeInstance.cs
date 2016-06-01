@@ -21,13 +21,14 @@ namespace Microsoft.AspNetCore.NodeServices
 
         private int _portNumber;
 
-        public HttpNodeInstance(string projectPath, int port = 0, string[] watchFileExtensions = null)
+        public HttpNodeInstance(string projectPath, int port = 0, string[] watchFileExtensions = null, string enviroment = null)
             : base(
                 EmbeddedResourceReader.Read(
                     typeof(HttpNodeInstance),
                     "/Content/Node/entrypoint-http.js"),
                 projectPath,
-                MakeCommandLineOptions(port, watchFileExtensions))
+                MakeCommandLineOptions(port, watchFileExtensions),
+                enviroment)
         {
         }
 

@@ -9,7 +9,6 @@ using Microsoft.Extensions.PlatformAbstractions;
 using Newtonsoft.Json;
 
 // Putting in this namespace so it's always available whenever MapRoute is
-
 namespace Microsoft.AspNetCore.Builder
 {
     public static class WebpackDevMiddleware
@@ -46,7 +45,8 @@ namespace Microsoft.AspNetCore.Builder
             {
                 HostingModel = NodeHostingModel.Http,
                 ProjectPath = hostEnv.ContentRootPath,
-                WatchFileExtensions = new string[] { } // Don't watch anything
+                WatchFileExtensions = new string[] {}, // Don't watch anything
+                AspnetEnviroment = hostEnv.EnvironmentName
             });
 
             // Get a filename matching the middleware Node script

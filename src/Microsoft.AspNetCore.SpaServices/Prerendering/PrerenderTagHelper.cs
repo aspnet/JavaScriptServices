@@ -1,15 +1,13 @@
+using Newtonsoft.Json;
 using System;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.NodeServices;
 using Microsoft.AspNetCore.Razor.TagHelpers;
-using Microsoft.Extensions.PlatformAbstractions;
-using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.SpaServices.Prerendering
 {
@@ -37,7 +35,8 @@ namespace Microsoft.AspNetCore.SpaServices.Prerendering
                 _nodeServices = _fallbackNodeServices = Configuration.CreateNodeServices(new NodeServicesOptions
                 {
                     HostingModel = NodeHostingModel.Http,
-                    ProjectPath = _applicationBasePath
+                    ProjectPath = _applicationBasePath,
+                    AspnetEnviroment = hostEnv.EnvironmentName
                 });
             }
         }
@@ -54,6 +53,9 @@ namespace Microsoft.AspNetCore.SpaServices.Prerendering
         [HtmlAttributeNotBound]
         [ViewContext]
         public ViewContext ViewContext { get; set; }
+
+        private string applicationBasePath;
+        private INodeServices nodeServices;
 
         public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {

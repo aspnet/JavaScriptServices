@@ -37,9 +37,9 @@ namespace Microsoft.AspNetCore.NodeServices
             switch (options.HostingModel)
             {
                 case NodeHostingModel.Http:
-                    return new HttpNodeInstance(options.ProjectPath, /* port */ 0, watchFileExtensions);
+                    return new HttpNodeInstance(options.ProjectPath, /* port */ 0, watchFileExtensions, options.AspnetEnviroment);
                 case NodeHostingModel.InputOutputStream:
-                    return new InputOutputStreamNodeInstance(options.ProjectPath);
+                    return new InputOutputStreamNodeInstance(options.ProjectPath, options.AspnetEnviroment);
                 default:
                     throw new ArgumentException("Unknown hosting model: " + options.HostingModel);
             }
