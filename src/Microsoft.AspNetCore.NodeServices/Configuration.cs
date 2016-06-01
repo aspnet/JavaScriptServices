@@ -6,11 +6,12 @@ namespace Microsoft.AspNetCore.NodeServices
 {
     public static class Configuration
     {
-        private static readonly string[] DefaultWatchFileExtensions = {".js", ".jsx", ".ts", ".tsx", ".json", ".html"};
+        public const NodeHostingModel DefaultNodeHostingModel = NodeHostingModel.Http;
 
+        private static readonly string[] DefaultWatchFileExtensions = {".js", ".jsx", ".ts", ".tsx", ".json", ".html"};
         private static readonly NodeServicesOptions DefaultOptions = new NodeServicesOptions
         {
-            HostingModel = NodeHostingModel.Http,
+            HostingModel = DefaultNodeHostingModel,
             WatchFileExtensions = DefaultWatchFileExtensions
         };
 
@@ -38,6 +39,8 @@ namespace Microsoft.AspNetCore.NodeServices
             {
                 case NodeHostingModel.Http:
                     return new HttpNodeInstance(options.ProjectPath, /* port */ 0, watchFileExtensions);
+                case NodeHostingModel.Socket:
+                    return new SocketNodeInstance(options.ProjectPath, watchFileExtensions);
                 case NodeHostingModel.InputOutputStream:
                     return new InputOutputStreamNodeInstance(options.ProjectPath);
                 default:
