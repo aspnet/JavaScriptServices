@@ -16,30 +16,16 @@ namespace Microsoft.AspNetCore.SpaServices.Prerendering
     [HtmlTargetElement(Attributes = PrerenderModuleAttributeName)]
     public class PrerenderTagHelper : TagHelper
     {
+        private const string PrerenderModelAttributeName = "asp-prerender-model";
         private const string PrerenderModuleAttributeName = "asp-prerender-module";
         private const string PrerenderExportAttributeName = "asp-prerender-export";
         private const string PrerenderWebpackConfigAttributeName = "asp-prerender-webpack-config";
-        private static INodeServices _fallbackNodeServices; // Used only if no INodeServices was registered with DI
 
-        private readonly string _applicationBasePath;
-        private readonly INodeServices _nodeServices;
+        private readonly IPrerenderer _prerenderer;
 
         public PrerenderTagHelper(IServiceProvider serviceProvider)
         {
-            var hostEnv = (IHostingEnvironment) serviceProvider.GetService(typeof(IHostingEnvironment));
-            _nodeServices = (INodeServices) serviceProvider.GetService(typeof(INodeServices)) ?? _fallbackNodeServices;
-            _applicationBasePath = hostEnv.ContentRootPath;
-
-            // Consider removing the following. Having it means you can get away with not putting app.AddNodeServices()
-            // in your startup file, but then again it might be confusing that you don't need to.
-            if (_nodeServices == null)
-            {
-                _nodeServices = _fallbackNodeServices = Configuration.CreateNodeServices(new NodeServicesOptions
-                {
-                    HostingModel = NodeHostingModel.Http,
-                    ProjectPath = _applicationBasePath
-                });
-            }
+            _prerenderer = (IPrerenderer)serviceProvider.GetService(typeof(IPrerenderer)) ?? new Prerenderer(serviceProvider);
         }
 
         [HtmlAttributeName(PrerenderModuleAttributeName)]
@@ -51,39 +37,36 @@ namespace Microsoft.AspNetCore.SpaServices.Prerendering
         [HtmlAttributeName(PrerenderWebpackConfigAttributeName)]
         public string WebpackConfigPath { get; set; }
 
+        [HtmlAttributeName(PrerenderModelAttributeName)]
+        public object Model { get; set; }
+
         [HtmlAttributeNotBound]
         [ViewContext]
         public ViewContext ViewContext { get; set; }
 
         public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
-            var request = ViewContext.HttpContext.Request;
-            var result = await Prerenderer.RenderToString(
-                _applicationBasePath,
-                _nodeServices,
+            var result = await _prerenderer.RenderToString(
+                ViewContext.HttpContext,
                 new JavaScriptModuleExport(ModuleName)
                 {
                     ExportName = ExportName,
                     WebpackConfig = WebpackConfigPath
                 },
-                request.GetEncodedUrl(),
-                request.Path + request.QueryString.Value);
+                Model);
+
             output.Content.SetHtmlContent(result.Html);
 
-            // Also attach any specified globals to the 'window' object. This is useful for transferring
-            // general state between server and client.
             if (result.Globals != null)
             {
                 var stringBuilder = new StringBuilder();
                 foreach (var property in result.Globals.Properties())
                 {
-                    stringBuilder.AppendFormat("window.{0} = {1};",
-                        property.Name,
-                        property.Value.ToString(Formatting.None));
+                    stringBuilder.Append($"window.{property.Name} = {property.Value.ToString(Formatting.None)};");
                 }
                 if (stringBuilder.Length > 0)
                 {
-                    output.PostElement.SetHtmlContent($"<script>{stringBuilder}</script>");
+                    output.PostElement.SetHtmlContent($"<script>{ stringBuilder.ToString() }</script>");
                 }
             }
         }

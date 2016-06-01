@@ -6,7 +6,7 @@ namespace Microsoft.AspNetCore.NodeServices
     public interface INodeServices : IDisposable
     {
         Task<T> Invoke<T>(string moduleName, params object[] args);
-
+        Task<T> Invoke<T>(NodeInvocationInfo nodeInvocationInfo);
         Task<T> InvokeExport<T>(string moduleName, string exportedFunctionName, params object[] args);
     }
 }
