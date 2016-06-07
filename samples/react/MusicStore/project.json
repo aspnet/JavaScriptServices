@@ -32,7 +32,7 @@
     "AutoMapper": "4.1.1"
   },
   "frameworks": {
-    "netcoreapp1.0": {
+    "netstandard1.6": {
       "imports": [
         "dotnet5.6",
         "dnxcore50",

@@ -28,7 +28,7 @@
     "Microsoft.Extensions.Logging.Debug": "1.0.0-*"
   },
   "frameworks": {
-    "netcoreapp1.0": {
+    "netstandard1.6": {
       "imports": [
         "dotnet5.6",
         "dnxcore50",

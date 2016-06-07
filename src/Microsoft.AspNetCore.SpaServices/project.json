@@ -14,7 +14,7 @@
   "frameworks": {
     "net451": {
     },
-    "netstandard1.0": {
+    "netstandard1.6": {
       "imports": [
         "dotnet5.6",
         "dnxcore50",
