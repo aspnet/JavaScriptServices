@@ -5,43 +5,74 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.NodeServices.HostingModels.PhysicalConnections;
 using Microsoft.AspNetCore.NodeServices.HostingModels.VirtualConnections;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Microsoft.AspNetCore.NodeServices
+namespace Microsoft.AspNetCore.NodeServices.HostingModels
 {
+    /// <summary>
+    /// A specialisation of the OutOfProcessNodeInstance base class that uses a lightweight binary streaming protocol
+    /// to perform RPC invocations. The physical transport is Named Pipes on Windows, or Domain Sockets on Linux/Mac.
+    /// For details on the binary streaming protocol, see
+    /// Microsoft.AspNetCore.NodeServices.HostingModels.VirtualConnections.VirtualConnectionClient.
+    /// The advantage versus using HTTP for RPC is that this is faster (not surprisingly - there's much less overhead
+    /// because we don't need most of the functionality of HTTP.
+    ///
+    /// The address of the pipe/socket is selected randomly here on the .NET side and sent to the child process as a
+    /// command-line argument (the address space is wide enough that there's no real risk of a clash, unlike when
+    /// selecting TCP port numbers).
+    /// </summary>
+    /// <seealso cref="Microsoft.AspNetCore.NodeServices.HostingModels.OutOfProcessNodeInstance" />
     internal class SocketNodeInstance : OutOfProcessNodeInstance
     {
-        private readonly static JsonSerializerSettings jsonSerializerSettings =  new JsonSerializerSettings
+        private readonly static JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver()
         };
 
-        private string _addressForNextConnection;
-        private readonly SemaphoreSlim _clientModificationSemaphore = new SemaphoreSlim(1);
-        private StreamConnection _currentPhysicalConnection;
-        private VirtualConnectionClient _currentVirtualConnectionClient;
-        private readonly string[] _watchFileExtensions;
+        private readonly SemaphoreSlim _connectionCreationSemaphore = new SemaphoreSlim(1);
+        private bool _connectionHasFailed;
+        private StreamConnection _physicalConnection;
+        private string _socketAddress;
+        private VirtualConnectionClient _virtualConnectionClient;
 
-        public SocketNodeInstance(string projectPath, string[] watchFileExtensions = null): base(
+        public SocketNodeInstance(string projectPath, string[] watchFileExtensions, string socketAddress, ILogger nodeInstanceOutputLogger) : base(
                 EmbeddedResourceReader.Read(
                     typeof(SocketNodeInstance),
                     "/Content/Node/entrypoint-socket.js"),
-                projectPath)
+                projectPath,
+                watchFileExtensions,
+                MakeNewCommandLineOptions(socketAddress),
+                nodeInstanceOutputLogger)
         {
-            _watchFileExtensions = watchFileExtensions;
-		}
+            _socketAddress = socketAddress;
+        }
 
-        public override async Task<T> Invoke<T>(NodeInvocationInfo invocationInfo)
+        protected override async Task<T> InvokeExportAsync<T>(NodeInvocationInfo invocationInfo)
         {
-            await EnsureReady();
-            var virtualConnectionClient = await GetOrCreateVirtualConnectionClientAsync();
+            if (_connectionHasFailed)
+            {
+                // This special exception type forces NodeServicesImpl to restart the Node instance
+                throw new NodeInvocationException(
+                    "The SocketNodeInstance socket connection failed. See logs to identify the reason.",
+                    null,
+                    nodeInstanceUnavailable: true);
+            }
 
+            if (_virtualConnectionClient == null)
+            {
+                await EnsureVirtualConnectionClientCreated();
+            }
+
+            // For each invocation, we open a new virtual connection. This gives an API equivalent to opening a new
+            // physical connection to the child process, but without the overhead of doing so, because it's really
+            // just multiplexed into the existing physical connection stream.
             bool shouldDisposeVirtualConnection = true;
             Stream virtualConnection = null;
             try
             {
-                virtualConnection = _currentVirtualConnectionClient.OpenVirtualConnection();
+                virtualConnection = _virtualConnectionClient.OpenVirtualConnection();
 
                 // Send request
                 await WriteJsonLineAsync(virtualConnection, invocationInfo);
@@ -75,46 +106,32 @@ namespace Microsoft.AspNetCore.NodeServices
             }
         }
 
-        private async Task<VirtualConnectionClient> GetOrCreateVirtualConnectionClientAsync()
+        private async Task EnsureVirtualConnectionClientCreated()
         {
-            var client = _currentVirtualConnectionClient;
-            if (client == null)
+            // Asynchronous equivalent to a 'lock(...) { ... }'
+            await _connectionCreationSemaphore.WaitAsync();
+            try
             {
-                await _clientModificationSemaphore.WaitAsync();
-                try
+                if (_virtualConnectionClient == null)
                 {
-                    if (_currentVirtualConnectionClient == null)
+                    _physicalConnection = StreamConnection.Create();
+
+                    var connection = await _physicalConnection.Open(_socketAddress);
+                    _virtualConnectionClient = new VirtualConnectionClient(connection);
+                    _virtualConnectionClient.OnError += (ex) =>
                     {
-                        var address = _addressForNextConnection;
-                        if (string.IsNullOrEmpty(address))
-                        {
-                            // This shouldn't happen, because we always await 'EnsureReady' before getting here.
-                            throw new InvalidOperationException("Cannot open connection to Node process until it has signalled that it is ready");
-                        }
+                        // This callback is fired only if there's a protocol-level failure (e.g., child process disconnected
+                        // unexpectedly). It does *not* fire when RPC calls return errors. Since there's been a protocol-level
+                        // failure, this Node instance is no longer usable and should be discarded.
+                        _connectionHasFailed = true;
 
-                        _currentPhysicalConnection = StreamConnection.Create();
-
-                        var connection = await _currentPhysicalConnection.Open(address);
-                        _currentVirtualConnectionClient = new VirtualConnectionClient(connection);
-                        _currentVirtualConnectionClient.OnError += (ex) =>
-                        {
-                            // TODO: Log the exception properly. Need to change the chain of calls up to this point to supply
-                            // an ILogger or IServiceProvider etc.
-                            Console.WriteLine(ex.Message);
-                            ExitNodeProcess(); // We'll restart it next time there's a request to it
-                        };
-                    }
-
-                    return _currentVirtualConnectionClient;
-                }
-                finally
-                {
-                    _clientModificationSemaphore.Release();
+                        OutputLogger.LogError(0, ex, ex.Message);
+                    };
                 }
             }
-            else
+            finally
             {
-                return client;
+                _connectionCreationSemaphore.Release();
             }
         }
 
@@ -122,19 +139,20 @@ namespace Microsoft.AspNetCore.NodeServices
         {
             if (disposing)
             {
-                EnsurePipeRpcClientDisposed();
+                if (_virtualConnectionClient != null)
+                {
+                    _virtualConnectionClient.Dispose();
+                    _virtualConnectionClient = null;
+                }
+
+                if (_physicalConnection != null)
+                {
+                    _physicalConnection.Dispose();
+                    _physicalConnection = null;
+                }
             }
 
             base.Dispose(disposing);
-        }
-
-        protected override void OnBeforeLaunchProcess()
-        {
-            // Either we've never yet launched the Node process, or we did but the old one died.
-            // Stop waiting for any outstanding requests and prepare to launch the new process.
-            EnsurePipeRpcClientDisposed();
-            _addressForNextConnection = "pni-" + Guid.NewGuid().ToString("D"); // Arbitrary non-clashing string
-            CommandLineArguments = MakeNewCommandLineOptions(_addressForNextConnection, _watchFileExtensions);
         }
 
         private static async Task WriteJsonLineAsync(Stream stream, object serializableObject)
@@ -152,7 +170,7 @@ namespace Microsoft.AspNetCore.NodeServices
 
         private static async Task<byte[]> ReadAllBytesAsync(Stream input)
         {
-            byte[] buffer = new byte[16*1024];
+            byte[] buffer = new byte[16 * 1024];
 
             using (var ms = new MemoryStream())
             {
@@ -166,39 +184,9 @@ namespace Microsoft.AspNetCore.NodeServices
             }
         }
 
-        private static string MakeNewCommandLineOptions(string pipeName, string[] watchFileExtensions)
+        private static string MakeNewCommandLineOptions(string listenAddress)
         {
-            var result = "--pipename " + pipeName;
-            if (watchFileExtensions != null && watchFileExtensions.Length > 0)
-            {
-                result += " --watch " + string.Join(",", watchFileExtensions);
-            }
-
-            return result;
-        }
-
-        private void EnsurePipeRpcClientDisposed()
-        {
-            _clientModificationSemaphore.Wait();
-
-            try
-            {
-                if (_currentVirtualConnectionClient != null)
-                {
-                    _currentVirtualConnectionClient.Dispose();
-                    _currentVirtualConnectionClient = null;
-                }
-
-                if (_currentPhysicalConnection != null)
-                {
-                    _currentPhysicalConnection.Dispose();
-                    _currentPhysicalConnection = null;
-                }
-            }
-            finally
-            {
-                _clientModificationSemaphore.Release();
-            }
+            return $"--listenAddress {listenAddress}";
         }
 
 #pragma warning disable 649 // These properties are populated via JSON deserialization

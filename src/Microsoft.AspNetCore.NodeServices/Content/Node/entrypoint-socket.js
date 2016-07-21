@@ -44,19 +44,60 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(7);
+	module.exports = __webpack_require__(6);
 
 
 /***/ },
 /* 1 */,
-/* 2 */,
-/* 3 */
+/* 2 */
+/***/ function(module, exports) {
+
+	// When Node writes to stdout/strerr, we capture that and convert the lines into calls on the
+	// active .NET ILogger. But by default, stdout/stderr don't have any way of distinguishing
+	// linebreaks inside log messages from the linebreaks that delimit separate log messages,
+	// so multiline strings will end up being written to the ILogger as multiple independent
+	// log messages. This makes them very hard to make sense of, especially when they represent
+	// something like stack traces.
+	//
+	// To fix this, we intercept stdout/stderr writes, and replace internal linebreaks with a
+	// marker token. When .NET receives the lines, it converts the marker tokens back to regular
+	// linebreaks within the logged messages.
+	//
+	// Note that it's better to do the interception at the stdout/stderr level, rather than at
+	// the console.log/console.error (etc.) level, because this takes place after any native
+	// message formatting has taken place (e.g., inserting values for % placeholders).
+	var findInternalNewlinesRegex = /\n(?!$)/g;
+	var encodedNewline = '__ns_newline__';
+	encodeNewlinesWrittenToStream(process.stdout);
+	encodeNewlinesWrittenToStream(process.stderr);
+	function encodeNewlinesWrittenToStream(outputStream) {
+	    var origWriteFunction = outputStream.write;
+	    outputStream.write = function (value) {
+	        // Only interfere with the write if it's definitely a string
+	        if (typeof value === 'string') {
+	            var argsClone = Array.prototype.slice.call(arguments, 0);
+	            argsClone[0] = encodeNewlinesInString(value);
+	            origWriteFunction.apply(this, argsClone);
+	        }
+	        else {
+	            origWriteFunction.apply(this, arguments);
+	        }
+	    };
+	}
+	function encodeNewlinesInString(str) {
+	    return str.replace(findInternalNewlinesRegex, encodedNewline);
+	}
+
+
+/***/ },
+/* 3 */,
+/* 4 */
 /***/ function(module, exports) {
 
 	module.exports = require("path");
 
 /***/ },
-/* 4 */
+/* 5 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -82,52 +123,21 @@
 
 
 /***/ },
-/* 5 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var fs = __webpack_require__(6);
-	var path = __webpack_require__(3);
-	function autoQuitOnFileChange(rootDir, extensions) {
-	    // Note: This will only work on Windows/OS X, because the 'recursive' option isn't supported on Linux.
-	    // Consider using a different watch mechanism (though ideally without forcing further NPM dependencies).
-	    fs.watch(rootDir, { persistent: false, recursive: true }, function (event, filename) {
-	        var ext = path.extname(filename);
-	        if (extensions.indexOf(ext) >= 0) {
-	            console.log('Restarting due to file change: ' + filename);
-	            process.exit(0);
-	        }
-	    });
-	}
-	exports.autoQuitOnFileChange = autoQuitOnFileChange;
-
-
-/***/ },
 /* 6 */
-/***/ function(module, exports) {
-
-	module.exports = require("fs");
-
-/***/ },
-/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	// Limit dependencies to core Node modules. This means the code in this file has to be very low-level and unattractive,
 	// but simplifies things for the consumer of this module.
-	var net = __webpack_require__(8);
-	var path = __webpack_require__(3);
-	var readline = __webpack_require__(9);
-	var ArgsUtil_1 = __webpack_require__(4);
-	var AutoQuit_1 = __webpack_require__(5);
-	var virtualConnectionServer = __webpack_require__(10);
+	__webpack_require__(2);
+	var net = __webpack_require__(7);
+	var path = __webpack_require__(4);
+	var readline = __webpack_require__(8);
+	var ArgsUtil_1 = __webpack_require__(5);
+	var virtualConnectionServer = __webpack_require__(9);
 	// Webpack doesn't support dynamic requires for files not present at compile time, so grab a direct
 	// reference to Node's runtime 'require' function.
 	var dynamicRequire = eval('require');
-	var parsedArgs = ArgsUtil_1.parseArgs(process.argv);
-	if (parsedArgs.watch) {
-	    AutoQuit_1.autoQuitOnFileChange(process.cwd(), parsedArgs.watch.split(','));
-	}
 	// Signal to the .NET side when we're ready to accept invocations
 	var server = net.createServer().on('listening', function () {
 	    console.log('[Microsoft.AspNetCore.NodeServices:Listening]');
@@ -176,29 +186,30 @@
 	// Begin listening now. The underlying transport varies according to the runtime platform.
 	// On Windows it's Named Pipes; on Linux/OSX it's Domain Sockets.
 	var useWindowsNamedPipes = /^win/.test(process.platform);
-	var listenAddress = (useWindowsNamedPipes ? '\\\\.\\pipe\\' : '/tmp/') + parsedArgs.pipename;
+	var parsedArgs = ArgsUtil_1.parseArgs(process.argv);
+	var listenAddress = (useWindowsNamedPipes ? '\\\\.\\pipe\\' : '/tmp/') + parsedArgs.listenAddress;
 	server.listen(listenAddress);
 
 
 /***/ },
-/* 8 */
+/* 7 */
 /***/ function(module, exports) {
 
 	module.exports = require("net");
 
 /***/ },
-/* 9 */
+/* 8 */
 /***/ function(module, exports) {
 
 	module.exports = require("readline");
 
 /***/ },
-/* 10 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var events_1 = __webpack_require__(11);
-	var VirtualConnection_1 = __webpack_require__(12);
+	var events_1 = __webpack_require__(10);
+	var VirtualConnection_1 = __webpack_require__(11);
 	// Keep this in sync with the equivalent constant in the .NET code. Both sides split up their transmissions into frames with this max length,
 	// and both will reject longer frames.
 	var MaxFrameBodyLength = 16 * 1024;
@@ -379,13 +390,13 @@
 
 
 /***/ },
-/* 11 */
+/* 10 */
 /***/ function(module, exports) {
 
 	module.exports = require("events");
 
 /***/ },
-/* 12 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -394,7 +405,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var stream_1 = __webpack_require__(13);
+	var stream_1 = __webpack_require__(12);
 	/**
 	 * Represents a virtual connection. Multiple virtual connections may be multiplexed over a single physical socket connection.
 	 */
@@ -435,7 +446,7 @@
 
 
 /***/ },
-/* 13 */
+/* 12 */
 /***/ function(module, exports) {
 
 	module.exports = require("stream");

@@ -4,11 +4,21 @@ using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Microsoft.AspNetCore.NodeServices
+namespace Microsoft.AspNetCore.NodeServices.HostingModels
 {
+    /// <summary>
+    /// A specialisation of the OutOfProcessNodeInstance base class that uses HTTP to perform RPC invocations.
+    ///
+    /// The Node child process starts an HTTP listener on an arbitrary available port (except where a nonzero
+    /// port number is specified as a constructor parameter), and signals which port was selected using the same
+    /// input/output-based mechanism that the base class uses to determine when the child process is ready to
+    /// accept RPC invocations.
+    /// </summary>
+    /// <seealso cref="Microsoft.AspNetCore.NodeServices.HostingModels.OutOfProcessNodeInstance" />
     internal class HttpNodeInstance : OutOfProcessNodeInstance
     {
         private static readonly Regex PortMessageRegex =
@@ -19,37 +29,30 @@ namespace Microsoft.AspNetCore.NodeServices
             ContractResolver = new CamelCasePropertyNamesContractResolver()
         };
 
-	    private HttpClient _client;
+        private readonly HttpClient _client;
         private bool _disposed;
         private int _portNumber;
 
-        public HttpNodeInstance(string projectPath, int port = 0, string[] watchFileExtensions = null)
+        public HttpNodeInstance(string projectPath, string[] watchFileExtensions, ILogger nodeInstanceOutputLogger, int port = 0)
             : base(
                 EmbeddedResourceReader.Read(
                     typeof(HttpNodeInstance),
                     "/Content/Node/entrypoint-http.js"),
                 projectPath,
-                MakeCommandLineOptions(port, watchFileExtensions))
+                watchFileExtensions,
+                MakeCommandLineOptions(port),
+                nodeInstanceOutputLogger)
         {
             _client = new HttpClient();
-		}
-
-        private static string MakeCommandLineOptions(int port, string[] watchFileExtensions)
-        {
-            var result = "--port " + port;
-            if (watchFileExtensions != null && watchFileExtensions.Length > 0)
-            {
-                result += " --watch " + string.Join(",", watchFileExtensions);
-            }
-
-            return result;
         }
 
-        public override async Task<T> Invoke<T>(NodeInvocationInfo invocationInfo)
+        private static string MakeCommandLineOptions(int port)
         {
-            await EnsureReady();
+            return $"--port {port}";
+        }
 
-            // TODO: Use System.Net.Http.Formatting (PostAsJsonAsync etc.)
+        protected override async Task<T> InvokeExportAsync<T>(NodeInvocationInfo invocationInfo)
+        {
             var payloadJson = JsonConvert.SerializeObject(invocationInfo, JsonSerializerSettings);
             var payload = new StringContent(payloadJson, Encoding.UTF8, "application/json");
             var response = await _client.PostAsync("http://localhost:" + _portNumber, payload);
@@ -97,6 +100,9 @@ namespace Microsoft.AspNetCore.NodeServices
 
         protected override void OnOutputDataReceived(string outputData)
         {
+            // Watch for "port selected" messages, and when observed, store the port number
+            // so we can use it when making HTTP requests. The child process will always send
+            // one of these messages before it sends a "ready for connections" message.
             var match = _portNumber != 0 ? null : PortMessageRegex.Match(outputData);
             if (match != null && match.Success)
             {
@@ -108,24 +114,19 @@ namespace Microsoft.AspNetCore.NodeServices
             }
         }
 
-        protected override void OnBeforeLaunchProcess()
+        protected override void Dispose(bool disposing)
         {
-            // Prepare to receive a new port number
-            _portNumber = 0;
-        }
+            base.Dispose(disposing);
 
-	    protected override void Dispose(bool disposing) {
-	        base.Dispose(disposing);
-
-	        if (!_disposed)
+            if (!_disposed)
             {
-	            if (disposing)
+                if (disposing)
                 {
-	                _client.Dispose();
-	            }
+                    _client.Dispose();
+                }
 
-	            _disposed = true;
-	        }
-	    }
-	}
+                _disposed = true;
+            }
+        }
+    }
 }
