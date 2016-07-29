@@ -57,7 +57,7 @@
       "typings",
       "Views",
       "tsconfig.json",
-      "tsd.json",
+      "typings.json",
       "web.config",
       "webpack.*.js",
       "wwwroot"
