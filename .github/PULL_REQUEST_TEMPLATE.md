@@ -14,7 +14,6 @@
 - [ ] React Spa
 
 * **What kind of change does this PR introduce?** (Bug fix, feature, docs update, ...)
-remove unused proxy imports from some test files
 
 
 * **What is the current behavior?** (You can also link to an open issue here)
