@@ -1,10 +1,10 @@
-* **Is this issue involving a Module(s)?**
+* **Is this JavaScriptServices issue involving a Module(s)?**
 - [ ] AngularServices
 - [ ] NodeServices
 - [ ] ReactServices
 - [ ] SpaServices
 
-* **Is this issue involving a Template (if any)?** *
+* **Is this issue involving one of the Templates?** *
 - [ ] Angular2 Spa
 - [ ] Knockout Spa 
 - [ ] ReactRedux Spa
