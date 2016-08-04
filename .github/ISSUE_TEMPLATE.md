@@ -7,7 +7,6 @@
 - [ ] NodeServices
 - [ ] ReactServices
 - [ ] SpaServices
-
 - [ ] Angular2 Spa
 - [ ] Knockout Spa 
 - [ ] ReactRedux Spa
@@ -15,7 +14,7 @@
 
 
 * **What is the current behavior?**
-* 
+
 
 * **What is the expected behavior?**
 
