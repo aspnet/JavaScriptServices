@@ -2,7 +2,6 @@
   "name": "angular2-spa",
   "version": "0.0.0",
   "devDependencies": {
-    "@types/core-js": "^0.9.30",
     "@types/requirejs": "^2.1.26",
     "aspnet-webpack": "^1.0.6",
     "bootstrap": "^3.3.6",

@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "devDependencies": {
     "@types/crossroads": "0.0.28",
-    "@types/es6-promise": "0.0.29",
     "@types/history": "^2.0.30",
     "@types/knockout": "^3.4.31",
     "@types/react-router": "^2.0.30",
