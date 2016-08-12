@@ -24,10 +24,22 @@ Everything here is cross-platform, and works with .NET Core 1.0 RC2 or later on 
 
 ## Creating new applications
 
-If you want to build a brand-new ASP.NET Core app that uses Angular 2 / React / Knockout on the client, consider starting with the `aspnetcore-spa` generator. This lets you choose your client-side framework, and generates a starting point that includes applicable features such as Webpack dev middleware, server-side prerendering, and efficient production builds.
+If you want to build a brand-new ASP.NET Core app that uses Angular 2 / React / Knockout on the client, consider starting with the `aspnetcore-spa` generator. This lets you choose your client-side framework, and generates a starting point that includes applicable features such as Webpack dev middleware, server-side prerendering, and efficient production builds. It's much easier than configuring everything to work together manually!
 
-See: [getting started with the `aspnetcore-spa` generator](http://blog.stevensanderson.com/2016/05/02/angular2-react-knockout-apps-on-aspnet-core/). It's much easier than configuring everything to work together manually!
+To do this, first install Yeoman and these generator templates:
 
+    npm install -g yo generator-aspnetcore-spa
+
+Then you can generate your new application starting point:
+
+    cd some-empty-directory
+    yo aspnetcore-spa
+
+Finally, once the generator has run and restored all the dependencies, you can start up your new ASP.NET Core Single Page Application:
+
+    dotnet run 
+
+For a more detailed walkthrough, see [getting started with the `aspnetcore-spa` generator](http://blog.stevensanderson.com/2016/05/02/angular2-react-knockout-apps-on-aspnet-core/).
 
 ## Adding to existing applications
 
