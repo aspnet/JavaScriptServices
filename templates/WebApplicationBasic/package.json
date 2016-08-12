@@ -1,5 +1,5 @@
 {
-  "name": "WebApplicationBasic",
+  "name": "webapplication-basic",
   "version": "0.0.0",
   "devDependencies": {
     "bootstrap": "^3.3.6",
@@ -10,7 +10,7 @@
     "jquery": "^2.2.1",
     "style-loader": "^0.13.0",
     "ts-loader": "^0.8.1",
-    "typescript": "^1.8.2",
+    "typescript": "^2.0.0",
     "url-loader": "^0.5.7",
     "webpack": "^1.12.14"
   }

@@ -1,7 +1,15 @@
 {
-  "name": "WebApplicationBasic",
+  "name": "knockout-spa",
   "version": "0.0.0",
   "devDependencies": {
+    "@types/crossroads": "0.0.28",
+    "@types/es6-promise": "0.0.29",
+    "@types/history": "^2.0.30",
+    "@types/knockout": "^3.4.31",
+    "@types/react-router": "^2.0.30",
+    "@types/requirejs": "^2.1.26",
+    "@types/signals": "0.0.16",
+    "@types/whatwg-fetch": "0.0.28",
     "aspnet-webpack": "^1.0.6",
     "bootstrap": "^3.3.6",
     "bundle-loader": "^0.5.4",
@@ -15,8 +23,8 @@
     "knockout": "^3.4.0",
     "raw-loader": "^0.5.1",
     "style-loader": "^0.13.0",
-    "ts-loader": "^0.8.1",
-    "typescript": "^1.8.2",
+    "ts-loader": "^0.8.2",
+    "typescript": "^2.0.0",
     "url-loader": "^0.5.7",
     "webpack": "^1.12.14"
   },
