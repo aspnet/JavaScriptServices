@@ -7,8 +7,6 @@
     "outDir": "."
   },
   "exclude": [
-    "node_modules",
-    "index.d.ts",
-    "HotModuleReplacement.d.ts"
+    "node_modules"
   ]
 }
