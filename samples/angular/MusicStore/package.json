@@ -1,6 +1,9 @@
 {
   "name": "MusicStore",
   "version": "0.0.0",
+  "scripts": {
+    "postinstall": "typings install"
+  },
   "dependencies": {
     "angular2": "2.0.0-beta.15",
     "angular2-aspnet": "^0.0.6",
