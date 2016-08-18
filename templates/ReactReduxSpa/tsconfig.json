@@ -5,8 +5,14 @@
     "jsx": "preserve",
     "experimentalDecorators": true,
     "sourceMap": true,
-    "skipDefaultLibCheck": true
+    "skipDefaultLibCheck": true,
+    "lib": ["es6", "dom"],
+    "typeRoots": [ "node_modules/@types" ],
+    "types": [ "react", "react-dom", "react-redux", "react-router", "react-router/history", "react-router-redux", "redux", "redux-thunk",
+    "source-map", "uglify-js", "webpack", "whatwg-fetch" ]
   },
+  "compileOnSave": false,
+  "buildOnSave": false,
   "exclude": [
       "node_modules"
   ]

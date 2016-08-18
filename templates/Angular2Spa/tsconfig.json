@@ -6,8 +6,12 @@
     "sourceMap": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "skipDefaultLibCheck": true
+    "skipDefaultLibCheck": true,
+    "typeRoots": [ "node_modules/@types" ],
+    "types": [ "requirejs" ]
   },
+  "compileOnSave": false,
+  "buildOnSave": false,
   "exclude": [
       "node_modules"
   ]
