@@ -14,8 +14,12 @@ export default function (params: any): Promise<{ html: string }> {
                 throw error;
             }
 
+            // If the route attempts to redirect to another path, redirectLocation will be defined.
+            if (redirectLocation){
+                throw new Error(`The location '${ params.url }' requested a redirect to '${redirectLocation.pathname + redirectLocation.search}'. Redirecting isn't supported during prerendering.`);
+            }
             // If it didn't match any route, renderProps will be undefined
-            if (!renderProps) {
+            else if (!renderProps) {
                 throw new Error(`The location '${ params.url }' doesn't match any route configured in react-router.`);
             }
 
