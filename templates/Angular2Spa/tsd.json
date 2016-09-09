@@ -10,6 +10,15 @@
     },
     "es6-shim/es6-shim.d.ts": {
       "commit": "c0d876601e0f8236fd6b57626eb62c4e485f1563"
+    },
+    "chai/chai.d.ts": {
+      "commit": "15d88ee05780bd6bbc4e376c5202b160895017f5"
+    },
+    "assertion-error/assertion-error.d.ts": {
+      "commit": "15d88ee05780bd6bbc4e376c5202b160895017f5"
+    },
+    "jasmine/jasmine.d.ts": {
+      "commit": "15d88ee05780bd6bbc4e376c5202b160895017f5"
     }
   }
 }
