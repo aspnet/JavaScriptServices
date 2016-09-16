@@ -8,7 +8,7 @@
     "skipDefaultLibCheck": true,
     "lib": ["es6", "dom"],
     "typeRoots": [ "node_modules/@types" ],
-    "types": [ "react", "react-dom", "react-redux", "react-router", "react-router/history", "react-router-redux", "redux", "redux-thunk",
+    "types": [ "react", "react-dom", "react-redux", "react-router", "react-router-redux", "redux", "redux-thunk",
     "source-map", "uglify-js", "webpack", "whatwg-fetch" ]
   },
   "compileOnSave": false,

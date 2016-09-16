@@ -3,10 +3,9 @@
     "moduleResolution": "node",
     "target": "es5",
     "sourceMap": true,
-		"lib": ["es6", "dom"],
     "skipDefaultLibCheck": true,
     "typeRoots": [ "node_modules/@types" ],
-    "types": [ "crossroads", "history", "knockout", "react-router", "requirejs", "signals", "whatwg-fetch" ]
+    "types": ["core-js", "crossroads", "history", "knockout", "react-router", "requirejs", "signals", "whatwg-fetch" ]
   },
   "compileOnSave": false,
   "buildOnSave": false,

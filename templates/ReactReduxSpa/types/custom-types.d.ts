@@ -4,7 +4,6 @@
 *
 */
 
-/// <reference types="react-router/history.d.ts" />
 
 declare var module: any;
 
