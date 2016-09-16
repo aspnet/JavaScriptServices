@@ -40,12 +40,14 @@ namespace Microsoft.AspNetCore.Builder
             // because it must *not* restart when files change (if it did, you'd lose all the benefits of Webpack
             // middleware). And since this is a dev-time-only feature, it doesn't matter if the default transport isn't
             // as fast as some theoretical future alternative.
-            var hostEnv = (IHostingEnvironment)appBuilder.ApplicationServices.GetService(typeof(IHostingEnvironment));
-            var nodeServices = Configuration.CreateNodeServices(new NodeServicesOptions
+            var nodeServicesOptions = new NodeServicesOptions(appBuilder.ApplicationServices);
+            nodeServicesOptions.WatchFileExtensions = new string[] {}; // Don't watch anything
+            if (!string.IsNullOrEmpty(options.ProjectPath))
             {
-                ProjectPath = hostEnv.ContentRootPath,
-                WatchFileExtensions = new string[] { } // Don't watch anything
-            });
+                nodeServicesOptions.ProjectPath = options.ProjectPath;
+            }
+
+            var nodeServices = NodeServicesFactory.CreateNodeServices(nodeServicesOptions);
 
             // Get a filename matching the middleware Node script
             var script = EmbeddedResourceReader.Read(typeof(WebpackDevMiddleware),
@@ -55,7 +57,7 @@ namespace Microsoft.AspNetCore.Builder
             // Tell Node to start the server hosting webpack-dev-middleware
             var devServerOptions = new
             {
-                webpackConfigPath = Path.Combine(hostEnv.ContentRootPath, options.ConfigFile ?? DefaultConfigFile),
+                webpackConfigPath = Path.Combine(nodeServicesOptions.ProjectPath, options.ConfigFile ?? DefaultConfigFile),
                 suppliedOptions = options
             };
             var devServerInfo =
@@ -79,12 +81,12 @@ namespace Microsoft.AspNetCore.Builder
             // sees, not "localhost", so that it works even when you're not running on localhost (e.g., Docker).
             appBuilder.Map(WebpackHotMiddlewareEndpoint, builder =>
             {
-                builder.Use(next => async ctx =>
+                builder.Use(next => ctx =>
                 {
                     var hostname = ctx.Request.Host.Host;
                     ctx.Response.Redirect(
                         $"{WebpackDevMiddlewareScheme}://{hostname}:{devServerInfo.Port.ToString()}{WebpackHotMiddlewareEndpoint}");
-                    await Task.Yield();
+                    return Task.FromResult(0);
                 });
             });
         }

@@ -5,6 +5,10 @@ import { fakeData } from '../data/fakeData.js';
 import { columnMeta } from '../data/columnMeta.jsx';
 const resultsPerPage = 10;
 
+// Griddle requires each row to have a property matching each column, even if you're not displaying
+// any data from the row in that column
+fakeData.forEach(row => { row.actions = ''; });
+
 export class PeopleGrid extends React.Component {
     render() {
         var pageIndex = this.props.params ? (this.props.params.pageIndex || 1) - 1 : 0;

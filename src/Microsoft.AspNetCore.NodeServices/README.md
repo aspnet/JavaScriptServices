@@ -43,15 +43,9 @@ In that case, you don't need to use NodeServices directly (or install it manuall
 
 ## For ASP.NET Core apps
 
-ASP.NET Core has a built-in dependency injection (DI) system. NodeServices is designed to work with this, so you don't have to manage the creation or disposal of instances.
+.NET Core has a built-in dependency injection (DI) system. NodeServices is designed to work with this, so you don't have to manage the creation or disposal of instances.
 
-Enable NodeServices in your application by first adding the following to the top of your `Startup.cs` file:
-
-```csharp
-using Microsoft.AspNetCore.NodeServices;
-```
-
-... and then add to your `ConfigureServices` method in that file:
+Enable NodeServices in your application by first adding the following to your `ConfigureServices` method in `Startup.cs`:
 
 ```csharp
 public void ConfigureServices(IServiceCollection services)
@@ -90,18 +84,34 @@ If you want to put `addNumber.js` inside a subfolder rather than the root of you
 
 ## For non-ASP.NET apps
 
-In other types of .NET app where you don't have ASP.NET Core's DI system, you can get an instance of `NodeServices` as follows:
+In other types of .NET Core app, where you don't have ASP.NET supplying an `IServiceCollection` to you, you'll need to instantiate your own DI container. For example, add a reference to the .NET package `Microsoft.Extensions.DependencyInjection`, and then you can construct an `IServiceCollection`, then register NodeServices as usual:
 
 ```csharp
-// Remember to add 'using Microsoft.AspNetCore.NodeServices;' at the top of your file
+var services = new ServiceCollection();
+services.AddNodeServices(options => {
+    // Set any properties that you want on 'options' here
+});
+```
 
-var nodeServices = Configuration.CreateNodeServices(new NodeServicesOptions());
+Now you can ask it to supply the shared `INodeServices` instance:
+
+```csharp
+var serviceProvider = services.BuildServiceProvider();
+var nodeServices = serviceProvider.GetRequiredService<INodeServices>();
+```
+
+Or, if you want to obtain a separate (non-shared) `INodeServices` instance:
+
+```csharp
+var options = new NodeServicesOptions(serviceProvider) { /* Assign/override any other options here */ };
+var nodeServices = NodeServicesFactory.CreateNodeServices(options);
 ```
 
 Besides this, the usage is the same as described for ASP.NET above, so you can now call `nodeServices.InvokeAsync<T>(...)` etc.
 
-You can dispose the `nodeServices` object whenever you are done with it (and it will shut down the associated Node.js instance), but because these instances are expensive to create, you should whenever possible retain and reuse instances. They are thread-safe - you can call `InvokeAsync<T>` simultaneously from multiple threads. Also, `NodeServices` instances are smart enough to detect if the associated Node instance has died and will automatically start a new Node instance if needed.
+You can dispose the `nodeServices` object whenever you are done with it (and it will shut down the associated Node.js instance), but because these instances are expensive to create, you should whenever possible retain and reuse instances. Don't dispose the shared instance returned from `serviceProvider.GetRequiredService` (except perhaps if you know your application is shutting down, although .NET's finalizers will dispose it anyway if the shutdown is graceful).
 
+NodeServices instances are thread-safe - you can call `InvokeAsync<T>` simultaneously from multiple threads. Also, they are smart enough to detect if the associated Node instance has died and will automatically start a new Node instance if needed.
 
 # API Reference
 
@@ -111,15 +121,15 @@ You can dispose the `nodeServices` object whenever you are done with it (and it 
 
 ```csharp
 AddNodeServices()
-AddNodeServices(NodeServicesOptions options)
+AddNodeServices(Action<NodeServicesOptions> setupAction)
 ```
 
 This is an extension method on `IServiceCollection`. It registers NodeServices with ASP.NET Core's DI system. Typically you should call this from the `ConfigureServices` method in your `Startup.cs` file.
 
-To access this extension method, you'll need to add the following namespace import to the top of your file:
+To access this extension method, you'll need to add the following namespace import to the top of your file, if it isn't already there:
 
 ```csharp
-using Microsoft.AspNetCore.NodeServices;
+using Microsoft.Extensions.DependencyInjection;
 ```
 
 **Examples**
@@ -133,23 +143,21 @@ services.AddNodeServices();
 Or, specifying options:
 
 ```csharp
-services.AddNodeServices(new NodeServicesOptions
+services.AddNodeServices(options =>
 {
-    WatchFileExtensions = new[] { ".coffee", ".sass" },
+    options.WatchFileExtensions = new[] { ".coffee", ".sass" };
     // ... etc. - see other properties below
 });
 ```
 
 **Parameters**
 
- * `options` - type: `NodeServicesOptions`
-   * Optional. If specified, configures how the `NodeServices` instances will work.
-   * Properties:
+ * `setupAction` - type: `Action<NodeServicesOptions>`
+   * Optional. If not specified, defaults will be used.
+   * Properties on `NodeServicesOptions`:
      * `HostingModel` - an `NodeHostingModel` enum value. See: [hosting models](#hosting-models)
      * `ProjectPath` - if specified, controls the working directory used when launching Node instances. This affects, for example, the location that `require` statements resolve relative paths against. If not specified, your application root directory is used.
-     * `WatchFileExtensions` - if specified, the launched Node instance will watch for changes to any files with these extensions, and auto-restarts when any are changed.
-
-If no `options` is passed, the default `WatchFileExtensions` array includes `.js`, `.jsx`, `.ts`, `.tsx`, `.json`, and `.html`.
+     * `WatchFileExtensions` - if specified, the launched Node instance will watch for changes to any files with these extensions, and auto-restarts when any are changed. The default array includes `.js`, `.jsx`, `.ts`, `.tsx`, `.json`, and `.html`.
 
 **Return type**: None. But once you've done this, you can get `NodeServices` instances out of ASP.NET's DI system. Typically it will be a singleton instance.
 
@@ -161,18 +169,16 @@ If no `options` is passed, the default `WatchFileExtensions` array includes `.js
 CreateNodeServices(NodeServicesOptions options)
 ```
 
-Directly supplies an instance of `NodeServices` without using ASP.NET's DI system.
+Supplies a new (non-shared) instance of `NodeServices`.
 
 **Example**
 
 ```csharp
-var nodeServices = Configuration.CreateNodeServices(new NodeServicesOptions {
-    HostingModel = NodeHostingModel.Socket
-});
+var options = new NodeServicesOptions(serviceProvider); // Obtains default options from DI config
+var nodeServices = NodeServicesFactory.CreateNodeServices(options);
 ```
 
 **Parameters**
-
  * `options` - type: `NodeServicesOptions`.
    * Configures the returned `NodeServices` instance.
    * Properties:
@@ -327,12 +333,12 @@ People have asked about using [VroomJS](https://github.com/fogzot/vroomjs) as a 
 
 ### Built-in hosting models
 
-Normally, you can just use the default hosting model, and not worry about it. But if you have some special requirements, select a hosting model by passing an `options` parameter to `AddNodeServices` or `CreateNodeServices`, and populate its `HostingModel` property. Example:
+Normally, you can just use the default hosting model, and not worry about it. But if you have some special requirements, select a hosting model by setting the `HostingModel` property on the `options` object in `AddNodeServices`. Example:
 
 ```csharp
-services.AddNodeServices(new NodeServicesOptions
+services.AddNodeServices(options =>
 {
-    HostingModel = NodeHostingModel.Socket
+    options.HostingModel = NodeHostingModel.Socket;
 });
 ```
 
@@ -349,12 +355,11 @@ The default transport may change from `Http` to `Socket` in the near future, bec
 
 ### Custom hosting models
 
-If you implement a custom hosting model (by implementing `INodeInstance`), then you can cause it to be used by populating `NodeInstanceFactory` on a `NodeServicesOptions`:
+If you implement a custom hosting model (by implementing `INodeInstance`), then you can cause it to be used by populating `NodeInstanceFactory` on your options:
 
 ```csharp
-var options = new NodeServicesOptions {
-    NodeInstanceFactory = () => new MyCustomNodeInstance()
-};
+services.AddNodeServices(options =>
+{
+    options.NodeInstanceFactory = () => new MyCustomNodeInstance();
+});
 ```
-
-Now you can pass this `options` object to [`AddNodeServices`](#addnodeservices) or [`CreateNodeServices`](#createnodeservices).
