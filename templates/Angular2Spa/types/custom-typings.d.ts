@@ -5,3 +5,7 @@
 declare module 'url' {
     export interface Url {}
 }
+
+declare var module: {
+    id: string;
+};

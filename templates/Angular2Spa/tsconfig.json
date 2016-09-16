@@ -2,11 +2,16 @@
   "compilerOptions": {
     "moduleResolution": "node",
     "target": "es5",
+		"lib": ["es6", "dom"],
     "sourceMap": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "skipDefaultLibCheck": true
+    "skipDefaultLibCheck": true,
+    "typeRoots": [ "node_modules/@types" ],
+    "types": [ "requirejs" ]
   },
+  "compileOnSave": false,
+  "buildOnSave": false,
   "exclude": [
       "bin",
       "node_modules"

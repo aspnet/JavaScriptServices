@@ -4,8 +4,12 @@
     "target": "es6",
     "jsx": "preserve",
     "sourceMap": true,
-    "skipDefaultLibCheck": true
+    "skipDefaultLibCheck": true,
+    "typeRoots": [ "node_modules/@types" ],
+    "types": [ "react", "react-dom", "react-router", "whatwg-fetch" ]
   },
+  "compileOnSave": false,
+  "buildOnSave": false,
   "exclude": [
       "bin",
       "node_modules"
