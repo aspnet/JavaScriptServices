@@ -1,7 +1,7 @@
 {
   "name": "react-redux-spa",
   "version": "0.0.0",
-  "devDependencies": {
+  "dependencies": {
     "@types/react": "^0.14.29",
     "@types/react-dom": "^0.14.14",
     "@types/react-redux": "^4.4.29",
@@ -13,28 +13,20 @@
     "@types/uglify-js": "^2.0.27",
     "@types/webpack": "^1.12.31",
     "@types/whatwg-fetch": "0.0.28",
+    "aspnet-prerendering": "^1.0.2",
     "aspnet-webpack": "^1.0.6",
-    "aspnet-webpack-react": "^1.0.1",
+    "aspnet-webpack-react": "^1.0.2",
+    "babel-core": "^6.5.2",
     "babel-loader": "^6.2.3",
     "babel-preset-es2015": "^6.5.0",
     "babel-preset-react": "^6.5.0",
     "bootstrap": "^3.3.6",
     "css-loader": "^0.23.1",
+    "domain-task": "^2.0.0",
     "extendify": "^1.0.0",
     "extract-text-webpack-plugin": "^1.0.1",
     "file-loader": "^0.8.5",
     "jquery": "^2.2.1",
-    "style-loader": "^0.13.0",
-    "ts-loader": "^0.8.2",
-    "typescript": "^2.0.0",
-    "url-loader": "^0.5.7",
-    "webpack": "^1.12.14",
-    "webpack-hot-middleware": "^2.10.0"
-  },
-  "dependencies": {
-    "aspnet-prerendering": "^1.0.2",
-    "babel-core": "^6.5.2",
-    "domain-task": "^2.0.0",
     "react": "^15.0.1",
     "react-dom": "^15.0.1",
     "react-redux": "^4.4.4",
@@ -43,6 +35,12 @@
     "redux": "^3.4.0",
     "redux-thunk": "^2.0.1",
     "redux-typed": "^1.0.0",
-    "webpack-externals-plugin": "^1.0.0"
+    "style-loader": "^0.13.0",
+    "ts-loader": "^0.8.1",
+    "typescript": "^1.8.2",
+    "url-loader": "^0.5.7",
+    "webpack-externals-plugin": "^1.0.0",
+    "webpack": "^1.12.14",
+    "webpack-hot-middleware": "^2.10.0"
   }
 }

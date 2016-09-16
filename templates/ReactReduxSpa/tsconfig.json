@@ -14,6 +14,7 @@
   "compileOnSave": false,
   "buildOnSave": false,
   "exclude": [
+      "bin",
       "node_modules"
   ]
 }

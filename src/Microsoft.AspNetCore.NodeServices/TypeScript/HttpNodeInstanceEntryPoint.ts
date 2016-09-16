@@ -4,6 +4,7 @@ import './Util/OverrideStdOutputs';
 import * as http from 'http';
 import * as path from 'path';
 import { parseArgs } from './Util/ArgsUtil';
+import { exitWhenParentExits } from './Util/ExitWhenParentExits';
 
 // Webpack doesn't support dynamic requires for files not present at compile time, so grab a direct
 // reference to Node's runtime 'require' function.
@@ -16,17 +17,19 @@ const server = http.createServer((req, res) => {
             if (!hasSentResult) {
                 hasSentResult = true;
                 if (errorValue) {
-                    res.statusCode = 500;
-
-                    if (errorValue.stack) {
-                        res.end(errorValue.stack);
-                    } else {
-                        res.end(errorValue.toString());
-                    }
+                    respondWithError(res, errorValue);
                 } else if (typeof successValue !== 'string') {
                     // Arbitrary object/number/etc - JSON-serialize it
+                    let successValueJson: string;
+                    try {
+                        successValueJson = JSON.stringify(successValue);
+                    } catch (ex) {
+                        // JSON serialization error - pass it back to .NET
+                        respondWithError(res, ex);
+                        return;
+                    }
                     res.setHeader('Content-Type', 'application/json');
-                    res.end(JSON.stringify(successValue));
+                    res.end(successValueJson);
                 } else {
                     // String - can bypass JSON-serialization altogether
                     res.setHeader('Content-Type', 'text/plain');
@@ -73,9 +76,15 @@ server.listen(requestedPortOrZero, 'localhost', function () {
     console.log('[Microsoft.AspNetCore.NodeServices:Listening]');
 });
 
+exitWhenParentExits(parseInt(parsedArgs.parentPid));
+
 function readRequestBodyAsJson(request, callback) {
     let requestBodyAsString = '';
-    request
-        .on('data', chunk => { requestBodyAsString += chunk; })
-        .on('end', () => { callback(JSON.parse(requestBodyAsString)); });
+    request.on('data', chunk => { requestBodyAsString += chunk; });
+    request.on('end', () => { callback(JSON.parse(requestBodyAsString)); });
+}
+
+function respondWithError(res: http.ServerResponse, errorValue: any) {
+    res.statusCode = 500;
+    res.end(errorValue.stack || errorValue.toString());
 }

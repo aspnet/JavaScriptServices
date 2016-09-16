@@ -18,6 +18,7 @@
     "extract-text-webpack-plugin": "^1.0.1",
     "file-loader": "^0.8.5",
     "history": "^2.0.1",
+    "isomorphic-fetch": "^2.2.1",
     "jquery": "^2.2.1",
     "knockout": "^3.4.0",
     "raw-loader": "^0.5.1",
@@ -25,9 +26,7 @@
     "ts-loader": "^0.8.2",
     "typescript": "^2.0.0",
     "url-loader": "^0.5.7",
-    "webpack": "^1.12.14"
-  },
-  "dependencies": {
+    "webpack": "^1.12.14",
     "webpack-hot-middleware": "^2.10.0"
   }
 }
