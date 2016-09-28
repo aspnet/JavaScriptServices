@@ -5,4 +5,5 @@ import { Component } from '@angular/core';
     template: require('./home.component.html')
 })
 export class HomeComponent {
+    public ratingValue: number;
 }
