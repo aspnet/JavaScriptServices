@@ -5,7 +5,6 @@
     "jsx": "preserve",
     "sourceMap": true,
     "skipDefaultLibCheck": true,
-    "typeRoots": [ "node_modules/@types" ],
     "types": [ "react", "react-dom", "react-router", "whatwg-fetch" ]
   },
   "exclude": [
