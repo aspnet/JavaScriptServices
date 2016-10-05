@@ -1,6 +1,6 @@
 {
   "name": "generator-aspnetcore-spa",
-  "version": "0.3.0",
+  "version": "0.3.4",
   "description": "Single-Page App templates for ASP.NET Core",
   "author": "Microsoft",
   "license": "Apache-2.0",
@@ -10,6 +10,13 @@
   "keywords": [
     "yeoman-generator"
   ],
+  "bugs": {
+    "url": "https://github.com/aspnet/JavaScriptServices/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aspnet/JavaScriptServices.git"
+  },
   "dependencies": {
     "glob": "^7.0.3",
     "node-uuid": "^1.4.7",

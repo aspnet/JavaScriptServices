@@ -1,3 +1,7 @@
+------------------------------------------------------------------
+Don't delete this file. Do include it in your source control repo.
+------------------------------------------------------------------
+
 This file exists as a workaround for https://github.com/dotnet/cli/issues/1396
 ('dotnet publish' does not publish any directories that didn't exist or were
 empty before the publish script started, which means it's not enough just to

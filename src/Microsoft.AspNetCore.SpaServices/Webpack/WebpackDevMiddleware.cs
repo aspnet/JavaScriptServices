@@ -58,11 +58,19 @@ namespace Microsoft.AspNetCore.Builder
             var devServerOptions = new
             {
                 webpackConfigPath = Path.Combine(nodeServicesOptions.ProjectPath, options.ConfigFile ?? DefaultConfigFile),
-                suppliedOptions = options
+                suppliedOptions = options,
+                understandsMultiplePublicPaths = true
             };
             var devServerInfo =
                 nodeServices.InvokeExportAsync<WebpackDevServerInfo>(nodeScript.FileName, "createWebpackDevServer",
                     JsonConvert.SerializeObject(devServerOptions)).Result;
+
+            // If we're talking to an older version of aspnet-webpack, it will return only a single PublicPath,
+            // not an array of PublicPaths. Handle that scenario.
+            if (devServerInfo.PublicPaths == null)
+            {
+                devServerInfo.PublicPaths = new[] { devServerInfo.PublicPath };
+            }
 
             // Proxy the corresponding requests through ASP.NET and into the Node listener
             // Note that this is hardcoded to make requests to "localhost" regardless of the hostname of the
@@ -73,7 +81,10 @@ namespace Microsoft.AspNetCore.Builder
             // able to make outbound requests to it from here.
             var proxyOptions = new ConditionalProxyMiddlewareOptions(WebpackDevMiddlewareScheme,
                 "localhost", devServerInfo.Port.ToString());
-            appBuilder.UseMiddleware<ConditionalProxyMiddleware>(devServerInfo.PublicPath, proxyOptions);
+            foreach (var publicPath in devServerInfo.PublicPaths)
+            {
+                appBuilder.UseMiddleware<ConditionalProxyMiddleware>(publicPath, proxyOptions);
+            }
 
             // While it would be nice to proxy the /__webpack_hmr requests too, these return an EventStream,
             // and the Microsoft.AspNetCore.Proxy code doesn't handle that entirely - it throws an exception after
@@ -95,6 +106,10 @@ namespace Microsoft.AspNetCore.Builder
         class WebpackDevServerInfo
         {
             public int Port { get; set; }
+            public string[] PublicPaths { get; set; }
+
+            // For back-compatibility with older versions of aspnet-webpack, in the case where your webpack
+            // configuration contains exactly one config entry. This will be removed soon.
             public string PublicPath { get; set; }
         }
     }
