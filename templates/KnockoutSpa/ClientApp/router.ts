@@ -15,7 +15,7 @@ export class Router {
     private disposeHistory: () => void;
     private clickEventListener: EventListener;
 
-    constructor(history: HistoryModule.History, routes: Route[]) {
+    constructor(history: History.History, routes: Route[]) {
         // Reset and configure Crossroads so it matches routes and updates this.currentRoute
         crossroads.removeAllRoutes();
         crossroads.resetState();

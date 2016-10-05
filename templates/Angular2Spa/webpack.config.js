@@ -24,7 +24,7 @@ var sharedConfig = {
 
 // Configuration for client-side bundle suitable for running in browsers
 var clientBundleConfig = merge(sharedConfig, {
-    entry: { 'main-client': './ClientApp/boot-client.ts' },
+    entry: { 'main-client': './ClientApp/main-client.ts' },
     output: { path: path.join(__dirname, './wwwroot/dist') },
     devtool: isDevBuild ? 'inline-source-map' : null,
     plugins: [
@@ -41,7 +41,7 @@ var clientBundleConfig = merge(sharedConfig, {
 
 // Configuration for server-side (prerendering) bundle suitable for running in Node
 var serverBundleConfig = merge(sharedConfig, {
-    entry: { 'main-server': './ClientApp/boot-server.ts' },
+    entry: { 'main-server': './ClientApp/main-server.ts' },
     output: {
         libraryTarget: 'commonjs',
         path: path.join(__dirname, './ClientApp/dist')
