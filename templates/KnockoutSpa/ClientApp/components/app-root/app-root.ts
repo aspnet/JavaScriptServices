@@ -1,12 +1,12 @@
-import * as ko from 'knockout';
-import { Route, Router } from '../../router';
-import navMenu from '../nav-menu/nav-menu';
+import * as ko from "knockout";
+import { Route, Router } from "../../router";
+import navMenu from "../nav-menu/nav-menu";
 
 // Declare the client-side routing configuration
 const routes: Route[] = [
-    { url: '',              params: { page: 'home-page' } },
-    { url: 'counter',       params: { page: 'counter-example' } },
-    { url: 'fetch-data',    params: { page: 'fetch-data' } }
+    { url: "",              params: { page: "home-page" } },
+    { url: "counter",       params: { page: "counter-example" } },
+    { url: "fetch-data",    params: { page: "fetch-data" } }
 ];
 
 class AppRootViewModel {
@@ -15,17 +15,17 @@ class AppRootViewModel {
 
     constructor(params: { history: HistoryModule.History }) {
         // Activate the client-side router
-        this._router = new Router(params.history, routes)
+        this._router = new Router(params.history, routes);
         this.route = this._router.currentRoute;
 
         // Load and register all the KO components needed to handle the routes
-        // The optional 'bundle?lazy!' prefix is a Webpack feature that causes the referenced modules
+        // The optional "bundle?lazy!" prefix is a Webpack feature that causes the referenced modules
         // to be split into separate files that are then loaded on demand.
         // For docs, see https://github.com/webpack/bundle-loader
-        ko.components.register('nav-menu', navMenu);
-        ko.components.register('home-page', require('bundle?lazy!../home-page/home-page'));
-        ko.components.register('counter-example', require('bundle?lazy!../counter-example/counter-example'));
-        ko.components.register('fetch-data', require('bundle?lazy!../fetch-data/fetch-data'));
+        ko.components.register("nav-menu", navMenu);
+        ko.components.register("home-page", require("bundle?lazy!../home-page/home-page"));
+        ko.components.register("counter-example", require("bundle?lazy!../counter-example/counter-example"));
+        ko.components.register("fetch-data", require("bundle?lazy!../fetch-data/fetch-data"));
     }
 
     // To support hot module replacement, this method unregisters the router and KO components.
@@ -40,4 +40,4 @@ class AppRootViewModel {
     }
 }
 
-export default { viewModel: AppRootViewModel, template: require('./app-root.html') };
+export default { viewModel: AppRootViewModel, template: require("./app-root.html") };

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import * as React from "react";
 
 interface CounterState {
     currentCount: number;
@@ -18,7 +18,7 @@ export class Counter extends React.Component<any, CounterState> {
 
             <p>Current count: <strong>{ this.state.currentCount }</strong></p>
 
-            <button onClick={ () => { this.incrementCounter() } }>Increment</button>
+            <button onClick={ () => { this.incrementCounter(); } }>Increment</button>
         </div>;
     }
 

@@ -1,5 +1,5 @@
-import * as ko from 'knockout';
-import 'isomorphic-fetch';
+import * as ko from "knockout";
+import "isomorphic-fetch";
 
 interface WeatherForecast {
     dateFormatted: string;
@@ -12,7 +12,7 @@ class FetchDataViewModel {
     public forecasts = ko.observableArray<WeatherForecast>();
 
     constructor() {
-        fetch('/api/SampleData/WeatherForecasts')
+        fetch("/api/SampleData/WeatherForecasts")
             .then(response => response.json())
             .then((data: WeatherForecast[]) => {
                 this.forecasts(data);
@@ -20,4 +20,4 @@ class FetchDataViewModel {
     }
 }
 
-export default { viewModel: FetchDataViewModel, template: require('./fetch-data.html') };
+export default { viewModel: FetchDataViewModel, template: require("./fetch-data.html") };

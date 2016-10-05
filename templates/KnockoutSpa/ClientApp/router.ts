@@ -1,13 +1,13 @@
-import * as ko from 'knockout';
-import * as $ from 'jquery';
-import crossroads = require('crossroads');
+import * as ko from "knockout";
+import * as $ from "jquery";
+import crossroads = require("crossroads");
 
 // This module configures crossroads.js, a routing library. If you prefer, you
 // can use any other routing library (or none at all) as Knockout is designed to
 // compose cleanly with external libraries.
 //
 // You *don't* have to follow the pattern established here (each route entry
-// specifies a 'page', which is a Knockout component) - there's nothing built into
+// specifies a "page", which is a Knockout component) - there's nothing built into
 // Knockout that requires or even knows about this technique. It's just one of
 // many possible ways of setting up client-side routes.
 export class Router {
@@ -30,21 +30,21 @@ export class Router {
         this.disposeHistory = history.listen(location => crossroads.parse(location.pathname));
         this.clickEventListener = evt => {
             let target: any = evt.currentTarget;
-            if (target && target.tagName === 'A') {
-                let href = target.getAttribute('href');
-                if (href && href.charAt(0) == '/') {
+            if (target && target.tagName === "A") {
+                let href = target.getAttribute("href");
+                if (href && href.charAt(0) === "/") {
                     history.push(href);
                     evt.preventDefault();
                 }
             }
         };
 
-        $(document).on('click', 'a', this.clickEventListener);
+        $(document).on("click", "a", this.clickEventListener);
     }
 
     public dispose() {
         this.disposeHistory();
-        $(document).off('click', 'a', this.clickEventListener);
+        $(document).off("click", "a", this.clickEventListener);
     }
 }
 

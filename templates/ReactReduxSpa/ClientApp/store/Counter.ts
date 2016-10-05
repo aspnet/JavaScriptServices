@@ -1,5 +1,5 @@
-import { typeName, isActionType, Action, Reducer } from 'redux-typed';
-import { ActionCreator } from './';
+import { typeName, isActionType, Action, Reducer } from "redux-typed";
+import { ActionCreator } from "./";
 
 // -----------------
 // STATE - This defines the type of data maintained in the Redux store.
