@@ -28,13 +28,7 @@ Obj/
 
 # Visual Studio 2015 cache/options directory
 .vs/
-/wwwroot/dist/**
-/ClientApp/dist/**
-
-# Workaround for https://github.com/aspnet/JavaScriptServices/issues/235
-!/wwwroot/dist/_placeholder.txt
-!/ClientApp/dist/_placeholder.txt
-
+/wwwroot/dist/
 
 # MSTest test Results
 [Tt]est[Rr]esult*/

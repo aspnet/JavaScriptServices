@@ -11,13 +11,13 @@ interface RouteParams {
 class FetchData extends React.Component<WeatherForecastProps, void> {
     componentWillMount() {
         // This method runs when the component is first added to the page 
-        let startDateIndex = parseInt(this.props.params.startDateIndex) || 0;
+        let startDateIndex = parseInt(this.props.params.startDateIndex, 10) || 0;
         this.props.requestWeatherForecasts(startDateIndex);
     }
 
     componentWillReceiveProps(nextProps: WeatherForecastProps) {
         // This method runs when incoming props (e.g., route params) change
-        let startDateIndex = parseInt(nextProps.params.startDateIndex) || 0;
+        let startDateIndex = parseInt(nextProps.params.startDateIndex, 10) || 0;
         this.props.requestWeatherForecasts(startDateIndex);
     }
 
