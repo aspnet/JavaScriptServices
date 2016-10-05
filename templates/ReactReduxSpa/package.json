@@ -7,7 +7,7 @@
     "@types/react-redux": "^4.4.29",
     "@types/react-router": "^2.0.30",
     "@types/react-router-redux": "^4.0.30",
-    "@types/redux": "^3.5.27",
+    "@types/redux": "3.5.27",
     "@types/redux-thunk": "^2.1.28",
     "@types/source-map": "^0.1.26",
     "@types/uglify-js": "^2.0.27",

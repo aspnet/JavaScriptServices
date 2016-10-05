@@ -4,7 +4,7 @@ import navMenu from '../nav-menu/nav-menu';
 
 // Declare the client-side routing configuration
 const routes: Route[] = [
-    { url: '/',              params: { page: 'home-page' } },
+    { url: '',              params: { page: 'home-page' } },
     { url: 'counter',       params: { page: 'counter-example' } },
     { url: 'fetch-data',    params: { page: 'fetch-data' } }
 ];
@@ -40,4 +40,4 @@ class AppRootViewModel {
     }
 }
 
-export default { viewModel: AppRootViewModel, componentName: 'Home', template: require('./app-root.html') };
+export default { viewModel: AppRootViewModel, template: require('./app-root.html') };

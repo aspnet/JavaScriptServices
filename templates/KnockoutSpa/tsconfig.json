@@ -4,7 +4,6 @@
     "target": "es5",
     "sourceMap": true,
     "skipDefaultLibCheck": true,
-    "typeRoots": [ "node_modules/@types" ],
     "types": ["core-js", "crossroads", "history", "knockout",
      "requirejs", "signals", "whatwg-fetch" ]
   },

@@ -2,7 +2,7 @@ import './css/site.css';
 import * as ko from 'knockout';
 import './webpack-component-loader';
 import AppRootComponent from './components/app-root/app-root';
-var createHistory = require('history').createBrowserHistory
+const createHistory = require('history').createBrowserHistory
 
 // Load and register the <app-root> component
 ko.components.register('app-root', AppRootComponent);
