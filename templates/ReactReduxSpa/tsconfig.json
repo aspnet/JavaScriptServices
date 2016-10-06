@@ -8,7 +8,7 @@
     "skipDefaultLibCheck": true,
     "lib": ["es6", "dom"],
     "types": [ "react", "react-dom", "react-redux", "react-router", "react-router-redux",
-     "redux", "redux-thunk", "source-map", "uglify-js", "webpack", "webpack/webpack-env",
+     "redux", "redux-thunk", "source-map", "uglify-js", "webpack", "webpack-env",
       "whatwg-fetch" ]
   },
   "exclude": [
