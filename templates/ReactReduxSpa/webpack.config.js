@@ -23,7 +23,7 @@ var sharedConfig = () => ({
 
 // Configuration for client-side bundle suitable for running in browsers
 var clientBundleConfig = merge(sharedConfig(), {
-    entry: { 'main-client': './ClientApp/main-client.tsx' },
+    entry: { 'main-client': './ClientApp/boot-client.tsx' },
     module: {
         loaders: [
             { test: /\.css$/, loader: ExtractTextPlugin.extract(['css']) },
@@ -47,7 +47,7 @@ var clientBundleConfig = merge(sharedConfig(), {
 
 // Configuration for server-side (prerendering) bundle suitable for running in Node
 var serverBundleConfig = merge(sharedConfig(), {
-    entry: { 'main-server': './ClientApp/main-server.tsx' },
+    entry: { 'main-server': './ClientApp/boot-server.tsx' },
     output: {
         libraryTarget: 'commonjs',
         path: path.join(__dirname, './ClientApp/dist')
