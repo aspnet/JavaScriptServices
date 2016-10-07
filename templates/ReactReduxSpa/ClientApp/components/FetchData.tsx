@@ -1,8 +1,8 @@
-import * as React from 'react';
-import { Link } from 'react-router';
-import { provide } from 'redux-typed';
-import { ApplicationState }  from '../store';
-import * as WeatherForecastsState from '../store/WeatherForecasts';
+import * as React from "react";
+import { Link } from "react-router";
+import { provide } from "redux-typed";
+import { ApplicationState }  from "../store";
+import * as WeatherForecastsState from "../store/WeatherForecasts";
 
 interface RouteParams {
     startDateIndex: string;
@@ -14,7 +14,7 @@ class FetchData extends React.Component<WeatherForecastProps, void> {
         let startDateIndex = parseInt(this.props.params.startDateIndex) || 0;
         this.props.requestWeatherForecasts(startDateIndex);
     }
-    
+
     componentWillReceiveProps(nextProps: WeatherForecastProps) {
         // This method runs when incoming props (e.g., route params) change
         let startDateIndex = parseInt(nextProps.params.startDateIndex) || 0;
@@ -31,7 +31,7 @@ class FetchData extends React.Component<WeatherForecastProps, void> {
     }
 
     private renderForecastsTable() {
-        return <table className='table'>
+        return <table className="table">
             <thead>
                 <tr>
                     <th>Date</th>
@@ -52,14 +52,14 @@ class FetchData extends React.Component<WeatherForecastProps, void> {
             </tbody>
         </table>;
     }
-    
+
     private renderPagination() {
         let prevStartDateIndex = this.props.startDateIndex - 5;
         let nextStartDateIndex = this.props.startDateIndex + 5;
 
-        return <p className='clearfix text-center'>
-            <Link className='btn btn-default pull-left' to={ `/fetchdata/${ prevStartDateIndex }` }>Previous</Link>
-            <Link className='btn btn-default pull-right' to={ `/fetchdata/${ nextStartDateIndex }` }>Next</Link>
+        return <p className="clearfix text-center">
+            <Link className="btn btn-default pull-left" to={ `/fetchdata/${ prevStartDateIndex }` }>Previous</Link>
+            <Link className="btn btn-default pull-right" to={ `/fetchdata/${ nextStartDateIndex }` }>Next</Link>
             { this.props.isLoading ? <span>Loading...</span> : [] }
         </p>;
     }
@@ -69,6 +69,6 @@ class FetchData extends React.Component<WeatherForecastProps, void> {
 const provider = provide(
     (state: ApplicationState) => state.weatherForecasts, // Select which part of global state maps to this component
     WeatherForecastsState.actionCreators                 // Select which action creators should be exposed to this component
-).withExternalProps<{ params: RouteParams }>();          // Also include a 'params' property on WeatherForecastProps
+).withExternalProps<{ params: RouteParams }>();          // Also include a "params" property on WeatherForecastProps
 type WeatherForecastProps = typeof provider.allProps;
 export default provider.connect(FetchData);

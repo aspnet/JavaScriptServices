@@ -1,6 +1,6 @@
-import * as ko from 'knockout';
+import * as ko from "knockout";
 
 class HomePageViewModel {
 }
 
-export default { viewModel: HomePageViewModel, template: require('./home-page.html') };
+export default { viewModel: HomePageViewModel, template: require("./home-page.html") };

@@ -1,8 +1,8 @@
-import * as React from 'react';
-import { Link } from 'react-router';
-import { provide } from 'redux-typed';
-import { ApplicationState }  from '../store';
-import * as CounterStore from '../store/Counter';
+import * as React from "react";
+import { Link } from "react-router";
+import { provide } from "redux-typed";
+import { ApplicationState }  from "../store";
+import * as CounterStore from "../store/Counter";
 
 class Counter extends React.Component<CounterProps, void> {
     public render() {
@@ -13,7 +13,7 @@ class Counter extends React.Component<CounterProps, void> {
 
             <p>Current count: <strong>{ this.props.count }</strong></p>
 
-            <button onClick={ () => { this.props.increment() } }>Increment</button>
+            <button onClick={ () => { this.props.increment(); } }>Increment</button>
         </div>;
     }
 }

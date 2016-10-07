@@ -1,10 +1,10 @@
-import * as React from 'react';
-import { Provider } from 'react-redux';
-import { renderToString } from 'react-dom/server';
-import { match, RouterContext } from 'react-router';
-import createMemoryHistory from 'history/lib/createMemoryHistory';
-import routes from './routes';
-import configureStore from './configureStore';
+import * as React from "react";
+import { Provider } from "react-redux";
+import { renderToString } from "react-dom/server";
+import { match, RouterContext } from "react-router";
+import createMemoryHistory from "history/lib/createMemoryHistory";
+import routes from "./routes";
+import configureStore from "./configureStore";
 type BootResult = { html?: string, globals?: { [key: string]: any }, redirectUrl?: string};
 
 export default function (params: any): Promise<{ html: string }> {
@@ -23,7 +23,7 @@ export default function (params: any): Promise<{ html: string }> {
 
             // If it didn't match any route, renderProps will be undefined
             if (!renderProps) {
-                throw new Error(`The location '${ params.url }' doesn't match any route configured in react-router.`);
+                throw new Error(`The location "${ params.url }" doesn't match any route configured in react-router.`);
             }
 
             // Build an instance of the application

@@ -1,5 +1,5 @@
-import * as ko from 'knockout';
-import { Route } from '../../router';
+import * as ko from "knockout";
+import { Route } from "../../router";
 
 interface NavMenuParams {
     route: KnockoutObservable<Route>;
@@ -16,4 +16,4 @@ class NavMenuViewModel {
     }
 }
 
-export default { viewModel: NavMenuViewModel, template: require('./nav-menu.html') };
+export default { viewModel: NavMenuViewModel, template: require("./nav-menu.html") };

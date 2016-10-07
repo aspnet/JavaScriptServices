@@ -1,5 +1,5 @@
-import * as React from 'react';
-import 'isomorphic-fetch';
+import * as React from "react";
+import "isomorphic-fetch";
 
 interface FetchDataExampleState {
     forecasts: WeatherForecast[];
@@ -11,7 +11,7 @@ export class FetchData extends React.Component<any, FetchDataExampleState> {
         super();
         this.state = { forecasts: [], loading: true };
 
-        fetch('/api/SampleData/WeatherForecasts')
+        fetch("/api/SampleData/WeatherForecasts")
             .then(response => response.json())
             .then((data: WeatherForecast[]) => {
                 this.setState({ forecasts: data, loading: false });
@@ -32,7 +32,7 @@ export class FetchData extends React.Component<any, FetchDataExampleState> {
     }
 
     private static renderForecastsTable(forecasts: WeatherForecast[]) {
-        return <table className='table'>
+        return <table className="table">
             <thead>
                 <tr>
                     <th>Date</th>

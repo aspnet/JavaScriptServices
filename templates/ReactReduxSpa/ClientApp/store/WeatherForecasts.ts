@@ -1,6 +1,6 @@
-import { fetch, addTask } from 'domain-task';
-import { typeName, isActionType, Action, Reducer } from 'redux-typed';
-import { ActionCreator } from './';
+import { fetch, addTask } from "domain-task";
+import { typeName, isActionType, Action, Reducer } from "redux-typed";
+import { ActionCreator } from "./";
 
 // -----------------
 // STATE - This defines the type of data maintained in the Redux store.
@@ -70,7 +70,7 @@ export const reducer: Reducer<WeatherForecastsState> = (state, action) => {
             return { startDateIndex: action.startDateIndex, forecasts: action.forecasts, isLoading: false };
         }
     }
-    
+
     // For unrecognized actions (or in cases where actions have no effect), must return the existing state
     // (or default initial state if none was supplied)
     return state || unloadedState;

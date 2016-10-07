@@ -1,4 +1,4 @@
-import * as ko from 'knockout';
+import * as ko from "knockout";
 
 class CounterExampleViewModel {
     public currentCount = ko.observable(0);
@@ -9,4 +9,4 @@ class CounterExampleViewModel {
     }
 }
 
-export default { viewModel: CounterExampleViewModel, template: require('./counter-example.html') };
+export default { viewModel: CounterExampleViewModel, template: require("./counter-example.html") };
