@@ -3,8 +3,12 @@
     "moduleResolution": "node",
     "target": "es5",
     "sourceMap": true,
-    "skipDefaultLibCheck": true
+    "skipDefaultLibCheck": true,
+    "types": ["core-js", "crossroads", "history", "knockout",
+     "requirejs", "signals", "whatwg-fetch" ]
   },
+  "compileOnSave": false,
+  "buildOnSave": false,
   "exclude": [
       "bin",
       "node_modules"

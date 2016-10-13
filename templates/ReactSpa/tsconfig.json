@@ -4,7 +4,8 @@
     "target": "es6",
     "jsx": "preserve",
     "sourceMap": true,
-    "skipDefaultLibCheck": true
+    "skipDefaultLibCheck": true,
+    "types": [ "react", "react-dom", "react-router", "whatwg-fetch" ]
   },
   "exclude": [
       "bin",
