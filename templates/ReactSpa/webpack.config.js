@@ -25,7 +25,10 @@ module.exports = {
             context: __dirname,
             manifest: require('./wwwroot/dist/vendor-manifest.json')
         })
-    ].concat(isDevBuild ? [] : [
+    ].concat(isDevBuild ? [
+        // Plugins that apply in development builds only
+        new webpack.SourceMapDevToolPlugin({ moduleFilenameTemplate: '../../[resourcePath]' }) // Compiled output is at './wwwroot/dist/', but sources are relative to './'
+    ] : [
         // Plugins that apply in production builds only
         new webpack.optimize.OccurenceOrderPlugin(),
         new webpack.optimize.UglifyJsPlugin({ compress: { warnings: false } }),

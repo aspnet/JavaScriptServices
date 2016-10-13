@@ -31,14 +31,16 @@ var clientBundleConfig = merge(sharedConfig(), {
         ]
     },
     output: { path: path.join(__dirname, './wwwroot/dist') },
-    devtool: isDevBuild ? 'inline-source-map' : null,
     plugins: [
         new ExtractTextPlugin('site.css'),
         new webpack.DllReferencePlugin({
             context: __dirname,
             manifest: require('./wwwroot/dist/vendor-manifest.json')
         })
-    ].concat(isDevBuild ? [] : [
+    ].concat(isDevBuild ? [
+        // Plugins that apply in development builds only
+        new webpack.SourceMapDevToolPlugin({ moduleFilenameTemplate: '../../[resourcePath]' }) // Compiled output is at './wwwroot/dist/', but sources are relative to './'
+    ] : [
         // Plugins that apply in production builds only
         new webpack.optimize.OccurenceOrderPlugin(),
         new webpack.optimize.UglifyJsPlugin({ compress: { warnings: false } })

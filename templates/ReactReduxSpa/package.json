@@ -24,6 +24,7 @@
     "bootstrap": "^3.3.6",
     "css-loader": "^0.23.1",
     "domain-task": "^2.0.1",
+    "event-source-polyfill": "^0.0.7",
     "extract-text-webpack-plugin": "^1.0.1",
     "file-loader": "^0.8.5",
     "jquery": "^2.2.1",
@@ -40,7 +41,7 @@
     "typescript": "2.0.3",
     "url-loader": "^0.5.7",
     "webpack": "^1.13.2",
-    "webpack-externals-plugin": "^1.0.0",
+    "webpack-node-externals": "^1.4.3",
     "webpack-hot-middleware": "^2.12.2",
     "webpack-merge": "^0.14.1"
   }
