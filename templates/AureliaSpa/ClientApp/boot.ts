@@ -12,5 +12,4 @@ export function configure(aurelia: Aurelia) {
     .developmentLogging();
 
   aurelia.start().then(() => aurelia.setRoot('app/components/app/app'));
-  console.log('in configure');
 }

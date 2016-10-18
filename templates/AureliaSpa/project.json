@@ -67,8 +67,7 @@
       "npm install",
       "node node_modules/webpack/bin/webpack.js --env.prod"
     ],
-    "postpublish": [ "dotnet publish-iis --publish-folder %publish:OutputPath% --framework %publish:FullTargetFramework%",
-     "node node_modules/webpack/bin/webpack.js --watch" ]
+    "postpublish": "dotnet publish-iis --publish-folder %publish:OutputPath% --framework %publish:FullTargetFramework%"
   },
 
   "tooling": {
