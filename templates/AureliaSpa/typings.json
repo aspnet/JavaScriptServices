@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "bluebird": "registry:npm/bluebird#3.4.1+20160909132857"
+  }
+}
