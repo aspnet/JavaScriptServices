@@ -24,6 +24,7 @@ module.exports = {
             '@angular/platform-browser-dynamic',
             '@angular/router',
             '@angular/platform-server',
+            'angular2-materialize',
             'angular2-universal',
             'angular2-universal-polyfills',
             'bootstrap',
@@ -32,6 +33,7 @@ module.exports = {
             'es6-promise',
             'event-source-polyfill',
             'jquery',
+            'materialize-css',
             'zone.js',
         ]
     },
@@ -42,7 +44,12 @@ module.exports = {
     },
     plugins: [
         extractCSS,
-        new webpack.ProvidePlugin({ $: 'jquery', jQuery: 'jquery' }), // Maps these identifiers to the jQuery package (because Bootstrap expects it to be a global variable)
+        new webpack.ProvidePlugin({
+            $: 'jquery',
+            jQuery: 'jquery',
+            'window.jQuery': 'jquery',
+            Hammer: 'hammerjs/hammer'
+        }), // Maps these identifiers to the jQuery/Hammer packages (because Materialize/Bootstrap expects them to be global variables)
         new webpack.optimize.OccurenceOrderPlugin(),
         new webpack.DllPlugin({
             path: path.join(__dirname, 'wwwroot', 'dist', '[name]-manifest.json'),

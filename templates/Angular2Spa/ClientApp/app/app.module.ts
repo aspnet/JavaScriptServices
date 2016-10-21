@@ -6,10 +6,12 @@ import { NavMenuComponent } from './components/navmenu/navmenu.component';
 import { HomeComponent } from './components/home/home.component';
 import { FetchDataComponent } from './components/fetchdata/fetchdata.component';
 import { CounterComponent } from './components/counter/counter.component';
+import { MaterializeDirective } from 'angular2-materialize';
 
 @NgModule({
     bootstrap: [ AppComponent ],
     declarations: [
+        MaterializeDirective,
         AppComponent,
         NavMenuComponent,
         CounterComponent,
