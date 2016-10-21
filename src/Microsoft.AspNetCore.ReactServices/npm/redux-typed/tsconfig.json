@@ -4,12 +4,8 @@
     "module": "commonjs",
     "target": "es5",
     "declaration": true,
-    "outDir": ".",
-    "lib": ["es2015", "dom"]
+    "outDir": "."
   },
-  "files": [
-    "src/main.ts"
-  ],
   "exclude": [
     "node_modules"
   ]
