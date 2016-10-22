@@ -2,11 +2,12 @@
   "name": "AureliaSpa",
   "version": "0.0.0",
   "aurelia": {
-    "build": {      
-       "includeDependencies": "aurelia-*"
+    "build": {
+      "includeDependencies": "aurelia-*"
     }
-  },  
-  "dependencies": {   
+  },
+  "dependencies": {
+    "@types/node": "^6.0.45",
     "aurelia-bootstrapper-webpack": "^1.0.0",
     "aurelia-event-aggregator": "^1.0.0",
     "aurelia-fetch-client": "^1.0.0",
@@ -21,15 +22,15 @@
     "aurelia-templating-binding": "^1.0.0",
     "aurelia-templating-resources": "^1.0.0",
     "aurelia-templating-router": "^1.0.0",
-    "bluebird": "^3.4.1",    
-    "bootstrap": "^3.3.7",  
+    "bluebird": "^3.4.1",
+    "bootstrap": "^3.3.7",
     "isomorphic-fetch": "^2.2.1",
     "jquery": "^2.2.1",
     "preboot": "^4.5.2"
   },
   "devDependencies": {
     "aspnet-prerendering": "^1.0.6",
-    "aspnet-webpack": "^1.0.11",    
+    "aspnet-webpack": "^1.0.11",
     "aurelia-webpack-plugin": "^1.1.0",
     "copy-webpack-plugin": "^3.0.1",
     "css": "^2.2.1",
@@ -40,9 +41,9 @@
     "html-webpack-plugin": "^2.22.0",
     "raw-loader": "^0.5.1",
     "sourcemap-istanbul-instrumenter-loader": "^0.2.0",
-    "style-loader": "^0.13.1",    
+    "style-loader": "^0.13.1",
     "to-string-loader": "^1.1.5",
-    "ts-loader": "^0.8.2",    
+    "ts-loader": "^0.8.2",
     "typescript": "^2.0.0",
     "url-loader": "^0.5.7",
     "webpack": "2.1.0-beta.22"

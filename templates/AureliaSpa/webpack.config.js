@@ -34,8 +34,9 @@ var clientBundleConfig = {
         loaders: [
             { 
                 test: /\.ts$/, 
-                exclude: /node_modules/, 
-                loader: 'ts-loader',
+                include: /ClientApp/, 
+                loader: 'ts',
+                query: {silent: true}
             }, {
                 test: /\.html$/,
                 exclude: /index\.html$/,

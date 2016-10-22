@@ -9,10 +9,6 @@
     "lib": [ "es6", "dom" ],
     "types": [ "node" ]
   },
-  "exclude": [ "bin", "node_modules", "dist",
-    "release",
-    "index.js",
-    "webpack.config.js",
-    "config" ],
+  "exclude": [ "bin", "node_modules" ],
   "atom": { "rewriteTsconfig": false }
 }
