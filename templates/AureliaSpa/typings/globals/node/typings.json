@@ -1,0 +1,13 @@
+{
+  "resolution": "main",
+  "tree": {
+    "src": "https://raw.githubusercontent.com/types/env-node/374f42213af406d9f76e9181da371df3f9e93903/6.0/typings.json",
+    "raw": "registry:env/node#6.0.0+20161019193037",
+    "version": "6",
+    "files": [
+      "node.d.ts"
+    ],
+    "name": "node",
+    "type": "typings"
+  }
+}
