@@ -7,6 +7,7 @@
     }
   },
   "dependencies": {
+    "@types/bluebird": "^3.0.35",
     "@types/node": "^6.0.45",
     "aurelia-bootstrapper-webpack": "^1.0.0",
     "aurelia-event-aggregator": "^1.0.0",
