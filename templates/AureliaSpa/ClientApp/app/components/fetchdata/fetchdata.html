@@ -5,7 +5,7 @@
 
     <p if.bind="!forecasts"><em>Loading...</em></p>
 
-    <table class='table' if.bind="forecasts">
+    <table if.bind="forecasts" class="table">
         <thead>
             <tr>
                 <th>Date</th>
@@ -16,7 +16,7 @@
         </thead>
         <tbody>
             <tr repeat.for="forecast of forecasts">
-                <td>${forecast.dateFormatted }</td>
+                <td>${ forecast.dateFormatted }</td>
                 <td>${ forecast.temperatureC }</td>
                 <td>${ forecast.temperatureF }</td>
                 <td>${ forecast.summary }</td>

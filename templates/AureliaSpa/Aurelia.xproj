@@ -8,7 +8,7 @@
   <Import Project="$(VSToolsPath)\DotNet\Microsoft.DotNet.Props" Condition="'$(VSToolsPath)' != ''" />
   <PropertyGroup Label="Globals">
     <ProjectGuid>33d8dad9-74f9-471d-8bad-55f828faa736</ProjectGuid>
-    <RootNamespace>Angular2</RootNamespace>
+    <RootNamespace>Aurelia</RootNamespace>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup>

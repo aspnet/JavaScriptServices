@@ -54,10 +54,8 @@
       "appsettings.json",
       "ClientApp/dist",
       "node_modules",
-      "tsconfig.json",
-      "tsd.json",
+      "Views",
       "web.config",
-      "webpack.*.js",
       "wwwroot"
     ]
   },
@@ -71,6 +69,6 @@
   },
 
   "tooling": {
-    "defaultNamespace": "Aurelia"
+    "defaultNamespace": "WebApplicationBasic"
   }
 }
