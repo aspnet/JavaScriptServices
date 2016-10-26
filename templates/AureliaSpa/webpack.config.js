@@ -9,22 +9,7 @@ var baseUrl = '/';
 var project = require('./package.json');
 var aureliaModules = Object.keys(project.dependencies).filter(dep => dep.startsWith('aurelia-'));
 
-//workaround so HMR doesn't cause runtime error
-class AureliaHotModulePlugin {
-    apply(compiler) {
-        compiler.plugin('compilation', function (compilation) {
-            // Re-add HMR functionality, aurelia plugin removes it.
-            compilation.mainTemplate.plugin('require', function(source) {
-                return source.replace(`exports: {}`, this.asString([
-                    "exports: {},",
-                    "hot: hotCreateModule(moduleId),",
-                    "parents: (hotCurrentParentsTemp = hotCurrentParents, hotCurrentParents = [], hotCurrentParentsTemp),",
-                    "children: []"
-                ]));
-            });
-        });
-    }
-}
+console.log (isDevBuild);
 
 // Configuration for client-side bundle suitable for running in browsers
 var clientBundleConfig = {
@@ -69,7 +54,6 @@ var clientBundleConfig = {
             src: srcDir,
             baseUrl: baseUrl
         }),
-        new AureliaHotModulePlugin(),
         new webpack.optimize.CommonsChunkPlugin({
             name: ['aurelia-modules']
         }),

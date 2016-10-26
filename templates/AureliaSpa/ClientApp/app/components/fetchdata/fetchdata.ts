@@ -9,7 +9,6 @@ export class Fetchdata {
     http: HttpClient;
 
     constructor(http: HttpClient) {
-        //this.http = http;
         http.fetch('/api/SampleData/WeatherForecasts')
             .then(result => result.json())
             .then(data => {

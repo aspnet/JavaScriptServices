@@ -41,9 +41,9 @@ namespace WebApplicationBasic
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                // Aurelia Webpack Plugin HMR currently not fully functional, requires manual reload after recompile
+                // Aurelia Webpack Plugin HMR currently has issues, leave the HotModuleReplacement setting as false
                 app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions {
-                    HotModuleReplacement = true
+                    HotModuleReplacement = false
                 });
             }
             else
