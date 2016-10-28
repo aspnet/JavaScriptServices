@@ -9,8 +9,6 @@ var baseUrl = '/';
 var project = require('./package.json');
 var aureliaModules = Object.keys(project.dependencies).filter(dep => dep.startsWith('aurelia-'));
 
-console.log (isDevBuild);
-
 // Configuration for client-side bundle suitable for running in browsers
 var clientBundleConfig = {
      resolve: { extensions: [ '.js', '.ts' ] },

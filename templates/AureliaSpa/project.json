@@ -53,7 +53,6 @@
     "include": [
       "appsettings.json",
       "ClientApp/dist",
-      "node_modules",
       "Views",
       "web.config",
       "wwwroot"
