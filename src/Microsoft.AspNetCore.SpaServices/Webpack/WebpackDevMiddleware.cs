@@ -28,6 +28,10 @@ namespace Microsoft.AspNetCore.Builder
                 options = new WebpackDevMiddlewareOptions();
             }
 
+            if (options.UseHttps) {
+                WebpackDevMiddlewareScheme = "https";
+            }
+
             // Validate options
             if (options.ReactHotModuleReplacement && !options.HotModuleReplacement)
             {
