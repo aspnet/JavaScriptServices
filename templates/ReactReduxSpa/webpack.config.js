@@ -15,7 +15,7 @@ module.exports = merge({
         loaders: [
             { test: /\.ts(x?)$/, include: /ClientApp/, loader: 'babel-loader' },
             { test: /\.ts(x?)$/, include: /ClientApp/, loader: 'ts-loader' },
-            { test: /\.css/, loader: extractCSS.extract(['css']) }
+            { test: /\.css/, loader: extractCSS.extract(['css-loader']) }
         ]
     },
     entry: {

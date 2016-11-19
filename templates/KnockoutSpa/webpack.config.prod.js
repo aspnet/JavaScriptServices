@@ -5,7 +5,7 @@ var extractCSS = new ExtractTextPlugin('site.css');
 module.exports = {
     module: {
         loaders: [
-            { test: /\.css/, loader: extractCSS.extract(['css']) },
+            { test: /\.css/, loader: extractCSS.extract(['css-loader']) },
         ]
     },
     plugins: [
