@@ -12,7 +12,7 @@ export class Fetchdata {
     constructor(http: HttpClient) {
         http.fetch('/api/SampleData/WeatherForecasts')
             .then(result => result.json())
-            .then(data => {
+            .then((data: any) => {
                 this.forecasts = data;
             });
     }
