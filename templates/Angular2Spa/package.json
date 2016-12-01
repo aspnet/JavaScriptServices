@@ -20,6 +20,7 @@
     "angular2-universal": "^2.1.0-rc.1",
     "angular2-universal-patch": "^0.2.1",
     "angular2-universal-polyfills": "^2.1.0-rc.1",
+    "angular2-router-loader": "^0.3.4",
     "aspnet-prerendering": "^2.0.0",
     "aspnet-webpack": "^1.0.17",
     "awesome-typescript-loader": "^3.0.0",
