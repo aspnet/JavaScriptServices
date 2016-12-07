@@ -6,7 +6,7 @@ var merge = require('webpack-merge');
 var extractCSS = new ExtractTextPlugin('vendor.css');
 
 var sharedConfig = {
-    resolve: { extensions: [ '', '.js' ] },
+    resolve: { extensions: [ '.js' ] },
     module: {
         loaders: [
             { test: /\.json$/, loader: require.resolve('json-loader') },
@@ -68,7 +68,7 @@ var clientBundleConfig = merge(sharedConfig, {
 
 var serverBundleConfig = merge(sharedConfig, {
     target: 'node',
-    resolve: { packageMains: ['main'] },
+    resolve: { mainFields: ['main'] },
     output: {
         path: path.join(__dirname, 'ClientApp', 'dist'),
         libraryTarget: 'commonjs2',

@@ -1,5 +1,11 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "*": [
+        "*"
+      ]
+    },
     "moduleResolution": "node",
     "target": "es5",
     "sourceMap": true,

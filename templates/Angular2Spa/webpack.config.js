@@ -6,7 +6,13 @@ var merge = require('webpack-merge');
 // Configuration in common to both client-side and server-side bundles
 var sharedConfig = {
     context: __dirname,
-    resolve: { extensions: [ '', '.js', '.ts' ] },
+    resolve: {
+        extensions: [ '.js', '.ts' ],
+        modules: [
+            'node_modules',
+            '.'
+        ]
+    },
     output: {
         filename: '[name].js',
         publicPath: '/dist/' // Webpack dev middleware, if enabled, handles requests for this URL prefix
@@ -46,7 +52,7 @@ var clientBundleConfig = merge(sharedConfig, {
 
 // Configuration for server-side (prerendering) bundle suitable for running in Node
 var serverBundleConfig = merge(sharedConfig, {
-    resolve: { packageMains: ['main'] },
+    resolve: { mainFields: ['main'] },
     entry: { 'main-server': './ClientApp/boot-server.ts' },
     plugins: [
         new webpack.DllReferencePlugin({
