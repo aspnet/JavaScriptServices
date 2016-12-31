@@ -1,6 +1,8 @@
 import * as connect from 'connect';
 import * as webpack from 'webpack';
 import * as url from 'url';
+import * as fs from 'fs';
+import * as path from 'path';
 import { requireNewCopy } from './RequireNewCopy';
 
 export type CreateDevServerResult = {
@@ -17,6 +19,7 @@ export interface CreateDevServerCallback {
 interface CreateDevServerOptions {
     webpackConfigPath: string;
     suppliedOptions: DevServerOptions;
+    hotModuleReplacementEndpointUrl: string;
 }
 
 // These are the options configured in C# and then JSON-serialized, hence the C#-style naming
@@ -26,11 +29,7 @@ interface DevServerOptions {
     ReactHotModuleReplacement: boolean;
 }
 
-function arrayContainsStringStartingWith(array: string[], prefixToFind: string) {
-    return array.some(item => item.substring(0, prefixToFind.length) === prefixToFind);
-}
-
-function attachWebpackDevMiddleware(app: any, webpackConfig: webpack.Configuration, enableHotModuleReplacement: boolean, enableReactHotModuleReplacement: boolean) {
+function attachWebpackDevMiddleware(app: any, webpackConfig: webpack.Configuration, enableHotModuleReplacement: boolean, enableReactHotModuleReplacement: boolean, hmrClientEndpoint: string, hmrServerEndpoint: string) {
     // Build the final Webpack config based on supplied options
     if (enableHotModuleReplacement) {
         // For this, we only support the key/value config format, not string or string[], since
@@ -46,10 +45,32 @@ function attachWebpackDevMiddleware(app: any, webpackConfig: webpack.Configurati
         // Augment all entry points so they support HMR (unless they already do)
         Object.getOwnPropertyNames(entryPoints).forEach(entryPointName => {
             const webpackHotMiddlewareEntryPoint = 'webpack-hot-middleware/client';
+            const webpackHotMiddlewareOptions = `?path=` + encodeURIComponent(hmrClientEndpoint);
             if (typeof entryPoints[entryPointName] === 'string') {
-                entryPoints[entryPointName] = [webpackHotMiddlewareEntryPoint, entryPoints[entryPointName]];
-            } else if (!arrayContainsStringStartingWith(entryPoints[entryPointName], webpackHotMiddlewareEntryPoint)) {
-                entryPoints[entryPointName].unshift(webpackHotMiddlewareEntryPoint);
+                entryPoints[entryPointName] = [webpackHotMiddlewareEntryPoint + webpackHotMiddlewareOptions, entryPoints[entryPointName]];
+            } else if (firstIndexOfStringStartingWith(entryPoints[entryPointName], webpackHotMiddlewareEntryPoint) < 0) {
+                entryPoints[entryPointName].unshift(webpackHotMiddlewareEntryPoint + webpackHotMiddlewareOptions);
+            }
+
+            // Now also inject eventsource polyfill so this can work on IE/Edge (unless it's already there)
+            // To avoid this being a breaking change for everyone who uses aspnet-webpack, we only do this if you've
+            // referenced event-source-polyfill in your package.json. Note that having event-source-polyfill available
+            // on the server in node_modules doesn't imply that you've also included it in your client-side bundle,
+            // but the converse is true (if it's not in node_modules, then you obviously aren't trying to use it at
+            // all, so it would definitely not work to take a dependency on it).
+            const eventSourcePolyfillEntryPoint = 'event-source-polyfill';
+            if (npmModuleIsPresent(eventSourcePolyfillEntryPoint)) {
+                const entryPointsArray: string[] = entryPoints[entryPointName]; // We know by now that it's an array, because if it wasn't, we already wrapped it in one
+                if (entryPointsArray.indexOf(eventSourcePolyfillEntryPoint) < 0) {
+                    const webpackHmrIndex = firstIndexOfStringStartingWith(entryPointsArray, webpackHotMiddlewareEntryPoint);
+                    if (webpackHmrIndex < 0) {
+                        // This should not be possible, since we just added it if it was missing
+                        throw new Error('Cannot find ' + webpackHotMiddlewareEntryPoint + ' in entry points array: ' + entryPointsArray);
+                    }
+
+                    // Insert the polyfill just before the HMR entrypoint
+                    entryPointsArray.splice(webpackHmrIndex, 0, eventSourcePolyfillEntryPoint);
+                }
             }
         });
 
@@ -78,6 +99,18 @@ function attachWebpackDevMiddleware(app: any, webpackConfig: webpack.Configurati
         publicPath: webpackConfig.output.publicPath
     }));
 
+    // After each compilation completes, copy the in-memory filesystem to disk.
+    // This is needed because the debuggers in both VS and VS Code assume that they'll be able to find
+    // the compiled files on the local disk (though it would be better if they got the source file from
+    // the browser they are debugging, which would be more correct and make this workaround unnecessary).
+    // Without this, Webpack plugins like HMR that dynamically modify the compiled output in the dev
+    // middleware's in-memory filesystem only (and not on disk) would confuse the debugger, because the
+    // file on disk wouldn't match the file served to the browser, and the source map line numbers wouldn't
+    // match up. Breakpoints would either not be hit, or would hit the wrong lines.
+    (compiler as any).plugin('done', stats => {
+        copyRecursiveToRealFsSync(compiler.outputFileSystem, '/', [/\.hot-update\.(js|json|js\.map)$/]);
+    });
+
     if (enableHotModuleReplacement) {
         let webpackHotMiddlewareModule;
         try {
@@ -85,7 +118,39 @@ function attachWebpackDevMiddleware(app: any, webpackConfig: webpack.Configurati
         } catch (ex) {
             throw new Error('HotModuleReplacement failed because of an error while loading \'webpack-hot-middleware\'. Error was: ' + ex.stack);
         }
-        app.use(webpackHotMiddlewareModule(compiler));
+        app.use(webpackHotMiddlewareModule(compiler, {
+            path: hmrServerEndpoint
+        }));
+    }
+}
+
+function copyRecursiveToRealFsSync(from: typeof fs, rootDir: string, exclude: RegExp[]) {
+    from.readdirSync(rootDir).forEach(filename => {
+        const fullPath = pathJoinSafe(rootDir, filename);
+        const shouldExclude = exclude.filter(re => re.test(fullPath)).length > 0;
+        if (!shouldExclude) {
+            const fileStat = from.statSync(fullPath);
+            if (fileStat.isFile()) {
+                const fileBuf = from.readFileSync(fullPath);
+                fs.writeFileSync(fullPath, fileBuf);
+            } else if (fileStat.isDirectory()) {
+                if (!fs.existsSync(fullPath)) {
+                    fs.mkdirSync(fullPath);
+                }
+                copyRecursiveToRealFsSync(from, fullPath, exclude);
+            }
+        }
+    });
+}
+
+function pathJoinSafe(rootPath: string, filePath: string) {
+    // On Windows, MemoryFileSystem's readdirSync output produces directory entries like 'C:'
+    // which then trigger errors if you call statSync for them. Avoid this by detecting drive
+    // names at the root, and adding a backslash (so 'C:' becomes 'C:\', which works).
+    if (rootPath === '/' && path.sep === '\\' && filePath.match(/^[a-z0-9]+\:$/i)) {
+        return filePath + '\\';
+    } else {
+        return path.join(rootPath, filePath);
     }
 }
 
@@ -135,7 +200,17 @@ export function createWebpackDevServer(callback: CreateDevServerCallback, option
                         throw new Error('To use the Webpack dev server, you must specify a value for \'publicPath\' on the \'output\' section of your webpack config (for any configuration that targets browsers)');
                     }
                     normalizedPublicPaths.push(removeTrailingSlash(publicPath));
-                    attachWebpackDevMiddleware(app, webpackConfig, enableHotModuleReplacement, enableReactHotModuleReplacement);
+
+                    // Newer versions of Microsoft.AspNetCore.SpaServices will explicitly pass an HMR endpoint URL
+                    // (because it's relative to the app's URL space root, which the client doesn't otherwise know).
+                    // For back-compatibility, fall back on connecting directly to the underlying HMR server (though
+                    // that won't work if the app is hosted on HTTPS because of the mixed-content rule, and we can't
+                    // run the HMR server itself on HTTPS because in general it has no valid cert).
+                    const hmrClientEndpoint = options.hotModuleReplacementEndpointUrl   // The URL that we'll proxy (e.g., /__asp_webpack_hmr)
+                        || `http://localhost:${listener.address().port}/__webpack_hmr`; // Fall back on absolute URL to bypass proxying
+                    const hmrServerEndpoint = options.hotModuleReplacementEndpointUrl
+                        || '/__webpack_hmr';                                            // URL is relative to webpack dev server root
+                    attachWebpackDevMiddleware(app, webpackConfig, enableHotModuleReplacement, enableReactHotModuleReplacement, hmrClientEndpoint, hmrServerEndpoint);
                 }
             });
 
@@ -164,4 +239,24 @@ function removeTrailingSlash(str: string) {
 
 function getPath(publicPath: string) {
     return url.parse(publicPath).path;
+}
+
+function firstIndexOfStringStartingWith(array: string[], prefixToFind: string) {
+    for (let index = 0; index < array.length; index++) {
+        const candidate = array[index];
+        if ((typeof candidate === 'string') && (candidate.substring(0, prefixToFind.length) === prefixToFind)) {
+            return index;
+        }
+    }
+
+    return -1; // Not found
+}
+
+function npmModuleIsPresent(moduleName: string) {
+    try {
+        require.resolve(moduleName);
+        return true;
+    } catch (ex) {
+        return false;
+    }
 }

@@ -1,12 +1,9 @@
 import * as url from 'url';
 import * as domain from 'domain';
 import * as domainContext from 'domain-context';
+import { baseUrl } from './main';
 const isomorphicFetch = require('isomorphic-fetch');
-const isBrowser: boolean = (new Function('try { return this === window; } catch (e) { return false; }'))();
-
-// Not using a symbol, because this may need to run in a version of Node.js that doesn't support them
-const domainTaskStateKey = '__DOMAIN_TASK_INTERNAL_FETCH_BASEURL__DO_NOT_REFERENCE_THIS__';
-let noDomainBaseUrl: string;
+const isNode = typeof process === 'object' && process.versions && !!process.versions.node;
 
 function issueRequest(baseUrl: string, req: string | Request, init?: RequestInit): Promise<any> {
     // Resolve relative URLs
@@ -17,7 +14,7 @@ function issueRequest(baseUrl: string, req: string | Request, init?: RequestInit
         } else {
             req = url.resolve(baseUrl, req as string);
         }
-    } else if (!isBrowser) {
+    } else if (isNode) {
         // TODO: Consider only throwing if it's a relative URL, since absolute ones would work fine
         throw new Error(`
             When running outside the browser (e.g., in Node.js), you must specify a base URL
@@ -70,16 +67,6 @@ export function fetch(url: string | Request, init?: RequestInit): Promise<any> {
     return issueRequest(baseUrl(), url, init);
 }
 
-export function baseUrl(url?: string): string {
-    if (url) {
-        if (domain.active) {
-            // There's an active domain (e.g., in Node.js), so associate the base URL with it
-            domainContext.set(domainTaskStateKey, url);
-        } else {
-            // There's no active domain (e.g., in browser), so there's just one shared base URL
-            noDomainBaseUrl = url;
-        }
-    }
-
-    return domain.active ? domainContext.get(domainTaskStateKey) : noDomainBaseUrl;
-}
+// Re-exporting baseUrl from this module for back-compatibility only
+// Newer code that wants to access baseUrl should use the version exported from the root of this package
+export { baseUrl } from './main';

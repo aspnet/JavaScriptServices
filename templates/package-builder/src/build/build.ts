@@ -8,11 +8,21 @@ import * as rimraf from 'rimraf';
 import * as childProcess from 'child_process';
 
 const isWindows = /^win/.test(process.platform);
-const textFileExtensions = ['.gitignore', 'template_gitignore', '.config', '.cs', '.cshtml', 'Dockerfile', '.html', '.js', '.json', '.jsx', '.md', '.nuspec', '.ts', '.tsx', '.xproj'];
+const textFileExtensions = ['.gitignore', 'template_gitignore', '.config', '.cs', '.cshtml', '.csproj', 'Dockerfile', '.html', '.js', '.json', '.jsx', '.md', '.nuspec', '.ts', '.tsx', '.xproj'];
 const yeomanGeneratorSource = './src/yeoman';
 
-const templates: { [key: string]: { dir: string, dotNetNewId: string, displayName: string, forceInclusion?: RegExp } } = {
-    'angular-2': { dir: '../../templates/Angular2Spa/', dotNetNewId: 'Angular', displayName: 'Angular 2', forceInclusion: /^(wwwroot|ClientApp)\/dist\// },
+// For the Angular 2 template, we want to bundle prebuilt dist dev-mode files, because the VS template can't auto-run
+// webpack on project creation. Note that these script entries are *not* the same as the project's usual prepublish
+// scripts, because here we want dev-mode builds (e.g., to support HMR), not prod-mode builds.
+const runWebpackInDevModeScripts = [
+    'npm install',
+    'node node_modules/webpack/bin/webpack.js --config webpack.config.vendor.js',
+    'node node_modules/webpack/bin/webpack.js'
+];
+
+const templates: { [key: string]: { dir: string, dotNetNewId: string, displayName: string, prepublish?: string[], forceInclusion?: RegExp } } = {
+    'angular-2': { dir: '../../templates/Angular2Spa/', dotNetNewId: 'Angular', displayName: 'Angular 2', prepublish: runWebpackInDevModeScripts, forceInclusion: /^(wwwroot|ClientApp)\/dist\// },
+    'aurelia': { dir: '../../templates/AureliaSpa/', dotNetNewId: 'Aurelia', displayName: 'Aurelia' },
     'knockout': { dir: '../../templates/KnockoutSpa/', dotNetNewId: 'Knockout', displayName: 'Knockout.js' },
     'react-redux': { dir: '../../templates/ReactReduxSpa/', dotNetNewId: 'ReactRedux', displayName: 'React.js and Redux' },
     'react': { dir: '../../templates/ReactSpa/', dotNetNewId: 'React', displayName: 'React.js' }
@@ -78,14 +88,19 @@ function buildYeomanNpmPackage() {
 
     // Copy template files
     const filenameReplacements = [
-        { from: /.*\.xproj$/, to: 'tokenreplace-namePascalCase.xproj' }
+        { from: /.*\.xproj$/, to: 'tokenreplace-namePascalCase.xproj' },
+        { from: /.*\.csproj$/, to: 'tokenreplace-namePascalCase.csproj' }
     ];
     const contentReplacements = [
+        // .xproj items
         { from: /\bWebApplicationBasic\b/g, to: '<%= namePascalCase %>' },
         { from: /<ProjectGuid>[0-9a-f\-]{36}<\/ProjectGuid>/g, to: '<ProjectGuid><%= projectGuid %></ProjectGuid>' },
         { from: /<RootNamespace>.*?<\/RootNamespace>/g, to: '<RootNamespace><%= namePascalCase %></RootNamespace>'},
         { from: /\s*<BaseIntermediateOutputPath.*?<\/BaseIntermediateOutputPath>/g, to: '' },
         { from: /\s*<OutputPath.*?<\/OutputPath>/g, to: '' },
+
+        // global.json items
+        { from: /1\.0\.0-preview2-1-003177/, to: '<%= sdkVersion %>' }
     ];
     _.forEach(templates, (templateConfig, templateName) => {
         const outputDir = path.join(outputTemplatesRoot, templateName);
@@ -109,12 +124,9 @@ function buildDotNetNewNuGetPackage() {
     const sourceProjectName = 'WebApplicationBasic';
     const projectGuid = '00000000-0000-0000-0000-000000000000';
     const filenameReplacements = [
+        // TODO: For dotnetnew templates, switch to csproj. No need for SDK choice as it can be Preview3+ only.
         { from: /.*\.xproj$/, to: `${sourceProjectName}.xproj` },
-        { from: /\btemplate_gitignore$/, to: '.gitignore' },
-
-        // Workaround for https://github.com/aspnet/JavaScriptServices/issues/235
-        // For details, see the comment in ../yeoman/app/index.ts
-        { from: /\btemplate_nodemodules_placeholder.txt$/, to: 'node_modules/_placeholder.txt' }
+        { from: /\btemplate_gitignore$/, to: '.gitignore' }
     ];
     const contentReplacements = [
         { from: /<ProjectGuid>[0-9a-f\-]{36}<\/ProjectGuid>/g, to: `<ProjectGuid>${projectGuid}</ProjectGuid>` },
@@ -160,21 +172,25 @@ function buildDotNetNewNuGetPackage() {
     rimraf.sync('./tmp');
 }
 
-// TODO: Instead of just showing this warning, improve build script so it actually does build them
-// in the correct format. Can do this once we've moved away from using ASPNETCORE_ENVIRONMENT to
-// control the build output mode. The templates we warn about here are the ones where we ship some
-// files that wouldn't normally be under source control (e.g., /wwwroot/dist/*).
-const templatesWithForceIncludes = Object.getOwnPropertyNames(templates)
-    .filter(templateName => !!templates[templateName].forceInclusion);
-if (templatesWithForceIncludes.length > 0) {
-    console.warn(`
----
-WARNING: Ensure that the following templates are already built in the configuration desired for publishing.
-For example, build the dist files in debug mode.
-TEMPLATES: ${templatesWithForceIncludes.join(', ')}
----
-`);
+function runAllPrepublishScripts() {
+    Object.getOwnPropertyNames(templates).forEach(templateKey => {
+        const templateInfo = templates[templateKey];
+        if (templateInfo.prepublish) {
+            runScripts(templateInfo.dir, templateInfo.prepublish);
+        }
+    });
 }
 
+function runScripts(rootDir: string, scripts: string[]) {
+    console.log(`[Prepublish] In directory: ${ rootDir }`);
+    scripts.forEach(script => {
+        console.log(`[Prepublish] Running: ${ script }`);
+        childProcess.execSync(script, { cwd: rootDir, stdio: 'inherit' });
+    });
+    console.log(`[Prepublish] Done`)
+}
+
+rimraf.sync('./dist');
+runAllPrepublishScripts();
 buildYeomanNpmPackage();
 buildDotNetNewNuGetPackage();

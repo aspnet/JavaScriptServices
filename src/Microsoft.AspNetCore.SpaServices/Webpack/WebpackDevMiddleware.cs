@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.NodeServices;
 using Microsoft.AspNetCore.SpaServices.Webpack;
@@ -7,17 +8,29 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.PlatformAbstractions;
 using Newtonsoft.Json;
-
-// Putting in this namespace so it's always available whenever MapRoute is
+using Microsoft.AspNetCore.Http;
 
 namespace Microsoft.AspNetCore.Builder
 {
+    /// <summary>
+    /// Extension methods that can be used to enable Webpack dev middleware support.
+    /// </summary>
     public static class WebpackDevMiddleware
     {
-        private const string WebpackDevMiddlewareScheme = "http";
-        private const string WebpackHotMiddlewareEndpoint = "/__webpack_hmr";
         private const string DefaultConfigFile = "webpack.config.js";
 
+        /// <summary>
+        /// Enables Webpack dev middleware support. This hosts an instance of the Webpack compiler in memory
+        /// in your application so that you can always serve up-to-date Webpack-built resources without having
+        /// to run the compiler manually. Since the Webpack compiler instance is retained in memory, incremental
+        /// compilation is vastly faster that re-running the compiler from scratch.
+        ///
+        /// Incoming requests that match Webpack-built files will be handled by returning the Webpack compiler
+        /// output directly, regardless of files on disk. If compilation is in progress when the request arrives,
+        /// the response will pause until updated compiler output is ready.
+        /// </summary>
+        /// <param name="appBuilder">The <see cref="IApplicationBuilder"/>.</param>
+        /// <param name="options">Options for configuring the Webpack compiler instance.</param>
         public static void UseWebpackDevMiddleware(
             this IApplicationBuilder appBuilder,
             WebpackDevMiddlewareOptions options = null)
@@ -47,6 +60,14 @@ namespace Microsoft.AspNetCore.Builder
                 nodeServicesOptions.ProjectPath = options.ProjectPath;
             }
 
+            if (options.EnvironmentVariables != null)
+            {
+                foreach (var kvp in options.EnvironmentVariables)
+                {
+                    nodeServicesOptions.EnvironmentVariables[kvp.Key] = kvp.Value;
+                }
+            }
+
             var nodeServices = NodeServicesFactory.CreateNodeServices(nodeServicesOptions);
 
             // Get a filename matching the middleware Node script
@@ -54,12 +75,18 @@ namespace Microsoft.AspNetCore.Builder
                 "/Content/Node/webpack-dev-middleware.js");
             var nodeScript = new StringAsTempFile(script); // Will be cleaned up on process exit
 
+            // Ideally, this would be relative to the application's PathBase (so it could work in virtual directories)
+            // but it's not clear that such information exists during application startup, as opposed to within the context
+            // of a request.
+            var hmrEndpoint = "/__webpack_hmr";
+
             // Tell Node to start the server hosting webpack-dev-middleware
             var devServerOptions = new
             {
                 webpackConfigPath = Path.Combine(nodeServicesOptions.ProjectPath, options.ConfigFile ?? DefaultConfigFile),
                 suppliedOptions = options,
-                understandsMultiplePublicPaths = true
+                understandsMultiplePublicPaths = true,
+                hotModuleReplacementEndpointUrl = hmrEndpoint
             };
             var devServerInfo =
                 nodeServices.InvokeExportAsync<WebpackDevServerInfo>(nodeScript.FileName, "createWebpackDevServer",
@@ -73,33 +100,30 @@ namespace Microsoft.AspNetCore.Builder
             }
 
             // Proxy the corresponding requests through ASP.NET and into the Node listener
+            // Anything under /<publicpath> (e.g., /dist) is proxied as a normal HTTP request with a typical timeout (100s is the default from HttpClient),
+            // plus /__webpack_hmr is proxied with infinite timeout, because it's an EventSource (long-lived request).
+            foreach (var publicPath in devServerInfo.PublicPaths)
+            {
+                appBuilder.UseProxyToLocalWebpackDevMiddleware(publicPath, devServerInfo.Port, TimeSpan.FromSeconds(100));
+            }
+            appBuilder.UseProxyToLocalWebpackDevMiddleware(hmrEndpoint, devServerInfo.Port, Timeout.InfiniteTimeSpan);
+        }
+
+        private static void UseProxyToLocalWebpackDevMiddleware(this IApplicationBuilder appBuilder, string publicPath, int proxyToPort, TimeSpan requestTimeout)
+        {
             // Note that this is hardcoded to make requests to "localhost" regardless of the hostname of the
             // server as far as the client is concerned. This is because ConditionalProxyMiddlewareOptions is
             // the one making the internal HTTP requests, and it's going to be to some port on this machine
             // because aspnet-webpack hosts the dev server there. We can't use the hostname that the client
             // sees, because that could be anything (e.g., some upstream load balancer) and we might not be
             // able to make outbound requests to it from here.
-            var proxyOptions = new ConditionalProxyMiddlewareOptions(WebpackDevMiddlewareScheme,
-                "localhost", devServerInfo.Port.ToString());
-            foreach (var publicPath in devServerInfo.PublicPaths)
-            {
-                appBuilder.UseMiddleware<ConditionalProxyMiddleware>(publicPath, proxyOptions);
-            }
-
-            // While it would be nice to proxy the /__webpack_hmr requests too, these return an EventStream,
-            // and the Microsoft.AspNetCore.Proxy code doesn't handle that entirely - it throws an exception after
-            // a while. So, just serve a 302 for those. But note that we must use the hostname that the client
-            // sees, not "localhost", so that it works even when you're not running on localhost (e.g., Docker).
-            appBuilder.Map(WebpackHotMiddlewareEndpoint, builder =>
-            {
-                builder.Use(next => ctx =>
-                {
-                    var hostname = ctx.Request.Host.Host;
-                    ctx.Response.Redirect(
-                        $"{WebpackDevMiddlewareScheme}://{hostname}:{devServerInfo.Port.ToString()}{WebpackHotMiddlewareEndpoint}");
-                    return Task.FromResult(0);
-                });
-            });
+            // Also note that the webpack HMR service always uses HTTP, even if your app server uses HTTPS,
+            // because the HMR service has no need for HTTPS (the client doesn't see it directly - all traffic
+            // to it is proxied), and the HMR service couldn't use HTTPS anyway (in general it wouldn't have
+            // the necessary certificate).
+            var proxyOptions = new ConditionalProxyMiddlewareOptions(
+                "http", "localhost", proxyToPort.ToString(), requestTimeout);
+            appBuilder.UseMiddleware<ConditionalProxyMiddleware>(publicPath, proxyOptions);
         }
 
 #pragma warning disable CS0649

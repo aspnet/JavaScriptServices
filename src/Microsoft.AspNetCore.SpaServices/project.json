@@ -1,30 +1,37 @@
 {
-  "version": "1.0.0-*",
   "description": "Helpers for building single-page applications on ASP.NET MVC Core",
-  "compilationOptions": {
-    "keyFile": "../../tools/Key.snk"
-  },
-  "authors": [
-    "Microsoft"
-  ],
-  "dependencies": {
-    "Microsoft.AspNetCore.Mvc": "1.0.1",
-    "Microsoft.AspNetCore.NodeServices": "1.0.0-*"
-  },
-  "frameworks": {
-    "net451": {
+  "version": "1.1.0-*",
+  "packOptions": {
+    "repository": {
+      "type": "git",
+      "url": "git://github.com/aspnet/javascriptservices"
     },
-    "netstandard1.6": {
-      "imports": [
-        "dotnet5.6",
-        "dnxcore50",
-        "portable-net45+win8"
-      ]
-    }
+    "tags": [
+      "aspnetcore",
+      "aspnetcoremvc",
+      "nodeservices"
+    ]
   },
   "buildOptions": {
+    "warningsAsErrors": true,
+    "keyFile": "../../tools/Key.snk",
     "embed": [
       "Content/**/*"
+    ],
+    "xmlDoc": true
+  },
+  "dependencies": {
+    "Microsoft.AspNetCore.Mvc": "1.1.0",
+    "Microsoft.AspNetCore.NodeServices": "1.1.0-*"
+  },
+  "frameworks": {
+    "net451": {},
+    "netstandard1.6": {}
+  },
+  "scripts": {
+    "prepublish": [
+      "npm install",
+      "node node_modules/webpack/bin/webpack.js"
     ]
   }
 }

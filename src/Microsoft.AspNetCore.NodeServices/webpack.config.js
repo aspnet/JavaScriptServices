@@ -10,8 +10,7 @@ module.exports = {
         ]
     },
     entry: {
-        'entrypoint-http': ['./TypeScript/HttpNodeInstanceEntryPoint'],
-        'entrypoint-socket': ['./TypeScript/SocketNodeInstanceEntryPoint'],
+        'entrypoint-http': ['./TypeScript/HttpNodeInstanceEntryPoint']
     },
     output: {
         libraryTarget: 'commonjs',
