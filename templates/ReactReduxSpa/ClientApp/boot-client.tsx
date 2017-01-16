@@ -8,6 +8,15 @@ import { syncHistoryWithStore } from 'react-router-redux';
 import routes from './routes';
 import configureStore from './configureStore';
 import { ApplicationState }  from './store';
+import cookie from 'react-cookie';
+
+// If the server supplied any edits to cookies, apply them on the client
+const cookieDataFromServer = window['cookieData'];
+if (cookieDataFromServer) {
+    Object.getOwnPropertyNames(cookieDataFromServer).forEach(name => {
+        cookie.save(name, cookieDataFromServer[name]);
+    });
+}
 
 // Get the application-wide store instance, prepopulating with state from the server where available.
 const initialState = (window as any).initialReduxState as ApplicationState;

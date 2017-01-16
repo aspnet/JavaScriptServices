@@ -1,4 +1,5 @@
 import { Action, Reducer, ThunkAction } from 'redux';
+import cookie from 'react-cookie';
 
 // -----------------
 // STATE - This defines the type of data maintained in the Redux store.
@@ -30,13 +31,20 @@ export const actionCreators = {
 
 // ----------------
 // REDUCER - For a given state and action, returns the new state. To support time travel, this must not mutate the old state.
+const cookieKey = 'counterValue';
+
+function modifiedCount(state: CounterState, delta: number): CounterState {
+    const newCount = state.count + delta;
+    cookie.save(cookieKey, newCount); // Ideally, don't do this here: have something that watches the store instead of having a side-effect from a reducer
+    return { count: newCount };
+}
 
 export const reducer: Reducer<CounterState> = (state: CounterState, action: KnownAction) => {
     switch (action.type) {
         case 'INCREMENT_COUNT':
-            return { count: state.count + 1 };
+            return modifiedCount(state, +1);
         case 'DECREMENT_COUNT':
-            return { count: state.count - 1 };
+            return modifiedCount(state, -1);
         default:
             // The following line guarantees that every action in the KnownAction union has been covered by a case above
             const exhaustiveCheck: never = action;
@@ -44,5 +52,6 @@ export const reducer: Reducer<CounterState> = (state: CounterState, action: Know
 
     // For unrecognized actions (or in cases where actions have no effect), must return the existing state
     //  (or default initial state if none was supplied)
-    return state || { count: 0 };
+    const prevCountFromCookie = parseInt(cookie.load(cookieKey) || '0');
+    return state || { count: prevCountFromCookie };
 };
