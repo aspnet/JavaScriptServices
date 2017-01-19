@@ -1,25 +1,22 @@
-import 'es6-shim';
-require('zone.js');
+import 'angular2-universal-polyfills/browser';
+import { enableProdMode } from '@angular/core';
+import { platformUniversalDynamic } from 'angular2-universal';
+import { AppModule } from './app/app.module';
 import 'bootstrap';
-import 'reflect-metadata';
-import './styles/site.css';
 
-import { bootstrap } from '@angular/platform-browser-dynamic';
-import { FormBuilder } from '@angular/common';
-import { provideRouter } from '@angular/router';
-import { HTTP_PROVIDERS } from '@angular/http';
-import { App } from './components/app/app';
-import { routes } from './routes';
+// Enable either Hot Module Reloading or production mode
+if (module['hot']) {
+    module['hot'].accept();
+    module['hot'].dispose(() => { platform.destroy(); });
+} else {
+    enableProdMode();
+}
 
-bootstrap(App, [
-    ...HTTP_PROVIDERS,
-    FormBuilder,
-    provideRouter(routes)
-]);
-
-// Basic hot reloading support. Automatically reloads and restarts the Angular 2 app each time
-// you modify source files. This will not preserve any application state other than the URL.
-declare var module: any;
-if (module.hot) {
-    module.hot.accept();
+// Boot the application, either now or when the DOM content is loaded
+const platform = platformUniversalDynamic();
+const bootApplication = () => { platform.bootstrapModule(AppModule); };
+if (document.readyState === 'complete') {
+    bootApplication();
+} else {
+    document.addEventListener('DOMContentLoaded', bootApplication);
 }

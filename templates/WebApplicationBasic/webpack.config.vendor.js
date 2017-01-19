@@ -11,11 +11,11 @@ module.exports = {
     module: {
         loaders: [
             { test: /\.(png|woff|woff2|eot|ttf|svg)$/, loader: 'url-loader?limit=100000' },
-            { test: /\.css/, loader: extractCSS.extract(['css']) }
+            { test: /\.css/, loader: extractCSS.extract(['css-loader']) }
         ]
     },
     entry: {
-        vendor: ['bootstrap', 'bootstrap/dist/css/bootstrap.css', 'style-loader', 'jquery']
+        vendor: ['bootstrap', 'bootstrap/dist/css/bootstrap.css', 'event-source-polyfill', 'style-loader', 'jquery']
     },
     output: {
         path: path.join(__dirname, 'wwwroot', 'dist'),

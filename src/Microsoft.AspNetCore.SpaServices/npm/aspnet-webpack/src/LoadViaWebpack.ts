@@ -9,10 +9,9 @@ import * as webpack from 'webpack';
 import { requireNewCopy } from './RequireNewCopy';
 
 // Strange import syntax to work around https://github.com/Microsoft/TypeScript/issues/2719
-import { webpackexternals } from './typings/webpack-externals-plugin';
 import { requirefromstring } from './typings/require-from-string';
 import { memoryfs } from './typings/memory-fs';
-const ExternalsPlugin = require('webpack-externals-plugin') as typeof webpackexternals.ExternalsPlugin;
+const nodeExternals = require('webpack-node-externals');
 const requireFromString = require('require-from-string') as typeof requirefromstring.requireFromString;
 const MemoryFS = require('memory-fs') as typeof memoryfs.MemoryFS;
 
@@ -57,11 +56,38 @@ function loadViaWebpackNoCache<T>(webpackConfigPath: string, modulePath: string)
         webpackConfig.output.libraryTarget = 'commonjs';
         const outputVirtualPath = path.join(webpackConfig.output.path, webpackConfig.output.filename);
 
-        // In Node, we want anything under /node_modules/ to be loaded natively and not bundled into the output
-        // (partly because it's faster, but also because otherwise there'd be different instances of modules
-        // depending on how they were loaded, which could lead to errors)
-        webpackConfig.plugins = webpackConfig.plugins || [];
-        webpackConfig.plugins.push(new ExternalsPlugin({ type: 'commonjs', include: /node_modules/ }));
+        // In Node, we want any JavaScript modules under /node_modules/ to be loaded natively and not bundled into the
+        // output (partly because it's faster, but also because otherwise there'd be different instances of modules
+        // depending on how they were loaded, which could lead to errors).
+        // ---
+        // NOTE: We have to use webpack-node-externals rather than webpack-externals-plugin because
+        // webpack-externals-plugin doesn't correctly resolve relative paths, which means you can't
+        // use css-loader, since tries to require('./../../node_modules/css-loader/lib/css-base.js') (see #132)
+        // ---
+        // So, ensure that webpackConfig.externals is an array, and push WebpackNodeExternals into it:
+        let externalsArray: any[] = (webpackConfig.externals as any[]) || [];
+        if (!(externalsArray instanceof Array)) {
+            externalsArray = [externalsArray];
+        }
+        webpackConfig.externals = externalsArray;
+        externalsArray.push(nodeExternals({
+            // However, we do *not* want to treat non-JS files under /node_modules/ as externals (i.e., things
+            // that should be loaded via regular CommonJS 'require' statements). For example, if you reference
+            // a .css file inside an NPM module (e.g., require('somepackage/somefile.css')), then we do need to
+            // load that via Webpack rather than as a regular CommonJS module.
+            //
+            // So, configure webpack-externals-plugin to 'whitelist' (i.e., not treat as external) any file
+            // that has an extension other than .js. Also, since some libraries such as font-awesome refer to
+            // their own files with cache-busting querystrings (e.g., (url('./something.css?v=4.1.2'))), we
+            // need to treat '?' as an alternative 'end of filename' marker.
+            //
+            // The complex, awkward regex can be eliminated once webpack-externals-plugin merges
+            // https://github.com/liady/webpack-node-externals/pull/12
+            //
+            // This regex looks for at least one dot character that is *not* followed by "js<end-or-questionmark>", but
+            // is followed by some series of non-dot characters followed by <end-or-questionmark>:
+            whitelist: [/\.(?!js(\?|$))([^.]+(\?|$))/]
+        }));
 
         // The CommonsChunkPlugin is not compatible with a CommonJS environment like Node, nor is it needed in that case
         webpackConfig.plugins = webpackConfig.plugins.filter(plugin => {

@@ -1,4 +1,6 @@
 import * as ko from 'knockout';
+import * as $ from 'jquery';
+import * as History from 'history';
 import crossroads = require('crossroads');
 
 // This module configures crossroads.js, a routing library. If you prefer, you
@@ -14,7 +16,7 @@ export class Router {
     private disposeHistory: () => void;
     private clickEventListener: EventListener;
 
-    constructor(history: HistoryModule.History, routes: Route[]) {
+    constructor(history: History.History, routes: Route[]) {
         // Reset and configure Crossroads so it matches routes and updates this.currentRoute
         crossroads.removeAllRoutes();
         crossroads.resetState();
@@ -28,7 +30,7 @@ export class Router {
         // Make history.js watch for navigation and notify Crossroads
         this.disposeHistory = history.listen(location => crossroads.parse(location.pathname));
         this.clickEventListener = evt => {
-            let target: any = evt.target;
+            let target: any = evt.currentTarget;
             if (target && target.tagName === 'A') {
                 let href = target.getAttribute('href');
                 if (href && href.charAt(0) == '/') {
@@ -37,13 +39,16 @@ export class Router {
                 }
             }
         };
+        $(document).on('click', 'a', this.clickEventListener);
 
-        document.addEventListener('click', this.clickEventListener);
+        // Initialize Crossroads with starting location
+        // Need to cast history to 'any' because @types/history is out-of-date
+        crossroads.parse((history as any).location.pathname);
     }
 
     public dispose() {
         this.disposeHistory();
-        document.removeEventListener('click', this.clickEventListener);
+        $(document).off('click', 'a', this.clickEventListener);
     }
 }
 

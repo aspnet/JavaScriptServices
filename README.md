@@ -1,5 +1,7 @@
 # JavaScriptServices
 
+AppVeyor: [![AppVeyor](https://ci.appveyor.com/api/projects/status/gprilrckx116vc9m/branch/dev?svg=true)](https://ci.appveyor.com/project/aspnetci/javascriptservices/branch/dev)
+
 This project is part of ASP.NET Core. You can find samples, documentation and getting started instructions for ASP.NET Core at the [Home](https://github.com/aspnet/home) repo.
 
 ## What is this?
@@ -20,7 +22,7 @@ This repo contains:
  * A Yeoman generator that creates preconfigured app starting points ([guide](http://blog.stevensanderson.com/2016/05/02/angular2-react-knockout-apps-on-aspnet-core/))
  * Samples and docs
 
-Everything here is cross-platform, and works with .NET Core 1.0 (RTM) or later on Windows, Linux, or OS X.
+Everything here is cross-platform, and works with .NET Core 1.0.1 or later on Windows, Linux, or OS X.
 
 ## Creating new applications
 

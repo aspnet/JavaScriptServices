@@ -76,13 +76,12 @@ server.listen(requestedPortOrZero, 'localhost', function () {
     console.log('[Microsoft.AspNetCore.NodeServices:Listening]');
 });
 
-exitWhenParentExits(parseInt(parsedArgs.parentPid));
+exitWhenParentExits(parseInt(parsedArgs.parentPid), /* ignoreSigint */ true);
 
 function readRequestBodyAsJson(request, callback) {
     let requestBodyAsString = '';
-    request
-        .on('data', chunk => { requestBodyAsString += chunk; })
-        .on('end', () => { callback(JSON.parse(requestBodyAsString)); });
+    request.on('data', chunk => { requestBodyAsString += chunk; });
+    request.on('end', () => { callback(JSON.parse(requestBodyAsString)); });
 }
 
 function respondWithError(res: http.ServerResponse, errorValue: any) {

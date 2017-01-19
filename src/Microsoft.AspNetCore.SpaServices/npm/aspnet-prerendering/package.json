@@ -1,20 +1,28 @@
 {
   "name": "aspnet-prerendering",
-  "version": "1.0.6",
+  "version": "2.0.2",
   "description": "Helpers for server-side rendering of JavaScript applications in ASP.NET Core projects. Works in conjunction with the Microsoft.AspNetCore.SpaServices NuGet package.",
   "main": "index.js",
   "scripts": {
-    "prepublish": "rimraf *.d.ts && tsd update && tsc && echo 'Finished building NPM package \"aspnet-prerendering\"'",
+    "prepublish": "rimraf *.d.ts && tsc && echo 'Finished building NPM package \"aspnet-prerendering\"'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Microsoft",
   "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/aspnet/JavaScriptServices/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aspnet/JavaScriptServices.git"
+  },
   "dependencies": {
-    "domain-task": "^2.0.1",
-    "es6-promise": "^3.1.2"
+    "domain-task": "^2.0.2"
   },
   "devDependencies": {
+    "@types/node": "^6.0.42",
+    "@types/whatwg-fetch": "0.0.31",
     "rimraf": "^2.5.4",
-    "typescript": "^1.8.10"
+    "typescript": "^2.0.0"
   }
 }

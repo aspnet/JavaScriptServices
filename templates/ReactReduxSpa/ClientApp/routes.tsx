@@ -12,3 +12,8 @@ export default <Route component={ Layout }>
         <Route path='(:startDateIndex)' /> { /* Optional route segment that does not affect NavMenu highlighting */ }
     </Route>
 </Route>;
+
+// Enable Hot Module Replacement (HMR)
+if (module.hot) {
+    module.hot.accept();
+}

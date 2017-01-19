@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -36,21 +34,19 @@ namespace Microsoft.AspNetCore.NodeServices.HostingModels
         private bool _disposed;
         private int _portNumber;
 
-        public HttpNodeInstance(string projectPath, string[] watchFileExtensions, ILogger nodeInstanceOutputLogger,
-            IDictionary<string, string> environmentVars, int invocationTimeoutMilliseconds, bool launchWithDebugging,
-            int debuggingPort, int port = 0)
+        public HttpNodeInstance(NodeServicesOptions options, int port = 0)
         : base(
                 EmbeddedResourceReader.Read(
                     typeof(HttpNodeInstance),
                     "/Content/Node/entrypoint-http.js"),
-                projectPath,
-                watchFileExtensions,
+                options.ProjectPath,
+                options.WatchFileExtensions,
                 MakeCommandLineOptions(port),
-                nodeInstanceOutputLogger,
-                environmentVars,
-                invocationTimeoutMilliseconds,
-                launchWithDebugging,
-                debuggingPort)
+                options.NodeInstanceOutputLogger,
+                options.EnvironmentVariables,
+                options.InvocationTimeoutMilliseconds,
+                options.LaunchWithDebugging,
+                options.DebuggingPort)
         {
             _client = new HttpClient();
         }
@@ -95,7 +91,7 @@ namespace Microsoft.AspNetCore.NodeServices.HostingModels
 
                 case "application/octet-stream":
                     // Streamed responses have to be received as System.IO.Stream instances
-                    if (typeof(T) != typeof(Stream))
+                    if (typeof(T) != typeof(Stream) && typeof(T) != typeof(object))
                     {
                         throw new ArgumentException(
                             "Node module responded with binary stream. This cannot be converted to the requested generic type: " +
