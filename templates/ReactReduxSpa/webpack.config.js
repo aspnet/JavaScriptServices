@@ -6,7 +6,7 @@ var merge = require('webpack-merge');
 
 // Configuration in common to both client-side and server-side bundles
 var sharedConfig = () => ({
-    resolve: { extensions: [ '', '.js', '.jsx', '.ts', '.tsx' ] },
+    resolve: { extensions: [ '*', '.js', '.jsx', '.ts', '.tsx' ] },
     output: {
         filename: '[name].js',
         publicPath: '/dist/' // Webpack dev middleware, if enabled, handles requests for this URL prefix
@@ -26,7 +26,7 @@ var clientBundleConfig = merge(sharedConfig(), {
     entry: { 'main-client': './ClientApp/boot-client.tsx' },
     module: {
         loaders: [
-            { test: /\.css$/, loader: ExtractTextPlugin.extract(['css-loader']) },
+            { test: /\.css$/, loader: ExtractTextPlugin.extract({ fallbackLoader: 'style-loader', loader: 'css-loader' }) },
             { test: /\.(png|jpg|jpeg|gif|svg)$/, loader: 'url-loader', query: { limit: 25000 } }
         ]
     },
@@ -45,14 +45,19 @@ var clientBundleConfig = merge(sharedConfig(), {
         })
     ] : [
         // Plugins that apply in production builds only
-        new webpack.optimize.OccurenceOrderPlugin(),
+        // new webpack.optimize.OccurenceOrderPlugin(),
         new webpack.optimize.UglifyJsPlugin({ compress: { warnings: false } })
     ])
 });
 
 // Configuration for server-side (prerendering) bundle suitable for running in Node
 var serverBundleConfig = merge(sharedConfig(), {
-    resolve: { packageMains: ['main'] },
+    // resolve: { packageMains: ['main'] },
+    resolve: {
+        alias: {
+          packageMains: 'main'
+        }
+    },
     entry: { 'main-server': './ClientApp/boot-server.tsx' },
     plugins: [
         new webpack.DllReferencePlugin({
