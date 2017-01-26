@@ -45,14 +45,12 @@ var clientBundleConfig = merge(sharedConfig(), {
         })
     ] : [
         // Plugins that apply in production builds only
-        // new webpack.optimize.OccurenceOrderPlugin(),
         new webpack.optimize.UglifyJsPlugin({ compress: { warnings: false } })
     ])
 });
 
 // Configuration for server-side (prerendering) bundle suitable for running in Node
 var serverBundleConfig = merge(sharedConfig(), {
-    // resolve: { packageMains: ['main'] },
     resolve: {
         alias: {
           packageMains: 'main'

@@ -58,14 +58,12 @@ var clientBundleConfig = merge(sharedConfig, {
             name: '[name]_[hash]'
         })
     ].concat(isDevBuild ? [] : [
-        // new webpack.optimize.OccurenceOrderPlugin(),
         new webpack.optimize.UglifyJsPlugin({ compress: { warnings: false } })
     ])
 });
 
 var serverBundleConfig = merge(sharedConfig, {
     target: 'node',
-    // resolve: { packageMains: ['main'] },
     resolve: {
       alias: {
         packageMains: 'main'
