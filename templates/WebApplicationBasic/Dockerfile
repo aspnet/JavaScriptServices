@@ -4,6 +4,8 @@ COPY . /app
 
 WORKDIR /app
 
+ENV ASPNETCORE_URLS http://+:5000
+
 RUN ["dotnet", "restore"]
 RUN ["dotnet", "build"]
 
