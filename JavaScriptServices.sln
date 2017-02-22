@@ -54,6 +54,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReactSpa", "templates\React
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReactReduxSpa", "templates\ReactReduxSpa\ReactReduxSpa.csproj", "{9D4D15A1-A25B-44EC-AB63-F1CE9986712E}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApplicationBasic", "templates\WebApplicationBasic\WebApplicationBasic.csproj", "{86911E07-C733-4C18-B49F-9A007A651246}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -256,6 +258,18 @@ Global
 		{9D4D15A1-A25B-44EC-AB63-F1CE9986712E}.Release|x64.Build.0 = Release|x64
 		{9D4D15A1-A25B-44EC-AB63-F1CE9986712E}.Release|x86.ActiveCfg = Release|x86
 		{9D4D15A1-A25B-44EC-AB63-F1CE9986712E}.Release|x86.Build.0 = Release|x86
+		{86911E07-C733-4C18-B49F-9A007A651246}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86911E07-C733-4C18-B49F-9A007A651246}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86911E07-C733-4C18-B49F-9A007A651246}.Debug|x64.ActiveCfg = Debug|x64
+		{86911E07-C733-4C18-B49F-9A007A651246}.Debug|x64.Build.0 = Debug|x64
+		{86911E07-C733-4C18-B49F-9A007A651246}.Debug|x86.ActiveCfg = Debug|x86
+		{86911E07-C733-4C18-B49F-9A007A651246}.Debug|x86.Build.0 = Debug|x86
+		{86911E07-C733-4C18-B49F-9A007A651246}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86911E07-C733-4C18-B49F-9A007A651246}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86911E07-C733-4C18-B49F-9A007A651246}.Release|x64.ActiveCfg = Release|x64
+		{86911E07-C733-4C18-B49F-9A007A651246}.Release|x64.Build.0 = Release|x64
+		{86911E07-C733-4C18-B49F-9A007A651246}.Release|x86.ActiveCfg = Release|x86
+		{86911E07-C733-4C18-B49F-9A007A651246}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -280,5 +294,6 @@ Global
 		{4D57B6E1-7141-48ED-959E-872BDD4A2F72} = {1598B415-73F1-4B37-B3B4-0A10677ABB2D}
 		{868A630E-C61B-4807-B7A8-7EB53BE1C28A} = {1598B415-73F1-4B37-B3B4-0A10677ABB2D}
 		{9D4D15A1-A25B-44EC-AB63-F1CE9986712E} = {1598B415-73F1-4B37-B3B4-0A10677ABB2D}
+		{86911E07-C733-4C18-B49F-9A007A651246} = {1598B415-73F1-4B37-B3B4-0A10677ABB2D}
 	EndGlobalSection
 EndGlobal
