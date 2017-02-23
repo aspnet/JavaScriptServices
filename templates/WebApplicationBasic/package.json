@@ -11,7 +11,7 @@
     "jquery": "^2.2.1",
     "style-loader": "^0.13.0",
     "ts-loader": "^0.8.1",
-    "typescript": "^2.0.3",
+    "typescript": "~2.0.3",
     "url-loader": "^0.5.7",
     "webpack": "^1.13.2"
   }
