@@ -12,7 +12,7 @@
   "devDependencies": {
     "@types/node": "^6.0.42",
     "ts-loader": "^0.8.2",
-    "typescript": "^2.0.0",
+    "typescript": "~2.0.3",
     "webpack": "^1.13.1"
   }
 }

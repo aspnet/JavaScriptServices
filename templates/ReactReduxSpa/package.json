@@ -37,7 +37,7 @@
     "redux": "^3.6.0",
     "redux-thunk": "^2.2.0",
     "style-loader": "^0.13.0",
-    "typescript": "^2.0.3",
+    "typescript": "~2.0.3",
     "url-loader": "^0.5.7",
     "webpack": "^2.2.0",
     "webpack-hot-middleware": "^2.12.2",
