@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="..\common.props" />
+  <Import Project="..\build\common.props" />
 
   <PropertyGroup>
     <Description>Helpers for building Angular 2 applications on ASP.NET Core.</Description>
+    <TargetFrameworks>net451;netstandard1.6</TargetFrameworks>
     <VersionPrefix>1.1.0</VersionPrefix>
     <VersionSuffix>beta2</VersionSuffix>
     <PackageTags>aspnetcore;aspnetcoremvc;nodeservices</PackageTags>

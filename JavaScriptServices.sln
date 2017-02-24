@@ -100,6 +100,12 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "test", "test\", "{A01B46C2-
 		SlnRelativePath = "test\"
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{E415FE14-13B0-469F-836D-95059E6BAA6E}"
+	ProjectSection(SolutionItems) = preProject
+		src\build\common.props = src\build\common.props
+		src\build\Key.snk = src\build\Key.snk
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -209,5 +215,6 @@ Global
 		{86911E07-C733-4C18-B49F-9A007A651246} = {1598B415-73F1-4B37-B3B4-0A10677ABB2D}
 		{1389D9BF-402E-4639-8573-8340EFB8FBD0} = {1598B415-73F1-4B37-B3B4-0A10677ABB2D}
 		{A01B46C2-53D8-499D-8CDE-68E3E7B52804} = {BDE761D9-8E1C-4FB1-BB86-110393C59176}
+		{E415FE14-13B0-469F-836D-95059E6BAA6E} = {27304DDE-AFB2-4F8B-B765-E3E2F11E886C}
 	EndGlobalSection
 EndGlobal

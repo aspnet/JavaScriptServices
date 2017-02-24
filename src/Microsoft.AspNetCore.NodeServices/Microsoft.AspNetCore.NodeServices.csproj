@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="..\common.props" />
+  <Import Project="..\build\common.props" />
 
   <PropertyGroup>
     <Description>Invoke Node.js modules at runtime in ASP.NET Core applications.</Description>
+    <TargetFrameworks>net451;netstandard1.6</TargetFrameworks>
     <VersionPrefix>1.1.1</VersionPrefix>
     <VersionSuffix>alpha</VersionSuffix>
     <PackageTags>aspnetcore;aspnetcoremvc;nodeservices</PackageTags>
