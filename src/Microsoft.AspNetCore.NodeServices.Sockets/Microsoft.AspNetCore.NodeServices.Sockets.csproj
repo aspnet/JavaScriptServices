@@ -3,7 +3,7 @@
   <Import Project="..\build\common.props" />
 
   <PropertyGroup>
-    <Description>Socket-based RPC for Microsoft.AspNetCore.NodeServices</Description>
+    <Description>Socket-based RPC for Microsoft.AspNetCore.NodeServices.</Description>
     <TargetFrameworks>net451;netstandard1.6</TargetFrameworks>
     <VersionPrefix>1.1.0</VersionPrefix>
     <VersionSuffix>beta2</VersionSuffix>
