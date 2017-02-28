@@ -1,5 +1,5 @@
 <Project>
-  <Target Name="NpmRestore" AfterTargets="Restore">
+  <Target Name="NpmRestore" AfterTargets="Restore" Condition="'$(PreflightRestore)' != 'true'">
     <ItemGroup>
       <NpmModules Include="$(RepositoryRoot)**\package.json"
         Exclude="$(RepositoryRoot)**\node_modules\**\*" />
