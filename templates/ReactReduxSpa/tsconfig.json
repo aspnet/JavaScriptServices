@@ -9,7 +9,7 @@
     "skipDefaultLibCheck": true,
     "lib": ["es6", "dom"],
     "types": [ "webpack-env" ],
-    "paths": {
+    "files": {
       // Fix "Duplicate identifier" errors caused by multiple dependencies fetching their own copies of type definitions.
       // We tell TypeScript which type definitions module to treat as the canonical one (instead of combining all of them).
       "history": ["./node_modules/@types/history/index"],
