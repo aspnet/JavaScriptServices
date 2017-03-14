@@ -84,7 +84,7 @@ function attachWebpackDevMiddleware(app: any, webpackConfig: webpack.Configurati
             try {
                 aspNetWebpackReactModule = require('aspnet-webpack-react');
             } catch(ex) {
-                throw new Error('ReactHotModuleReplacement failed because of an error while loading \'aspnet-webpack-react\'. Error was: ' + ex.stack);
+                throw new Error('ReactHotModuleReplacement failed because of an error while loading \'aspnet-webpack-react\'. Error was: ' + ex.name + " Message: " + ex.message + " Stack: " + ex.stack);
             }
 
             aspNetWebpackReactModule.addReactHotModuleReplacementBabelTransform(webpackConfig);
@@ -115,7 +115,7 @@ function attachWebpackDevMiddleware(app: any, webpackConfig: webpack.Configurati
         try {
             webpackHotMiddlewareModule = require('webpack-hot-middleware');
         } catch (ex) {
-            throw new Error('HotModuleReplacement failed because of an error while loading \'webpack-hot-middleware\'. Error was: ' + ex.stack);
+            throw new Error('HotModuleReplacement failed because of an error while loading \'webpack-hot-middleware\'. Error was: ' + ex.name + " Message: " + ex.message + " Stack: " + ex.stack);
         }
         app.use(webpackHotMiddlewareModule(compiler));
     }
@@ -213,7 +213,7 @@ export function createWebpackDevServer(callback: CreateDevServerCallback, option
                 PublicPath: normalizedPublicPaths[0]
             });
         } catch (ex) {
-            callback(ex.stack, null);
+            callback(ex.name + " Message: " + ex.message + " Stack: " + ex.stack, null);
         }
     });
 }
