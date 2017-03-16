@@ -17,7 +17,7 @@ module.exports = (env) => {
         },
         module: {
             rules: [
-                { test: /\.tsx?$/, include: /ClientApp/, use: 'babel-loader' },
+                { test: /\.tsx?$/, include: /ClientApp/, use: { loader: 'babel-loader', options: { plugins: isDevBuild && ["transform-react-jsx-source"], cacheDirectory: true } } },
                 { test: /\.tsx?$/, include: /ClientApp/, use: 'awesome-typescript-loader?silent=true' }
             ]
         },
