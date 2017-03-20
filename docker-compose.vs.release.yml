@@ -1,0 +1,42 @@
+version: '2'
+
+services:
+  ngmusicstore:
+    build:
+      args:
+        source: ${DOCKER_BUILD_SOURCE}
+    volumes:
+      - ~/clrdbg:/clrdbg:ro
+    entrypoint: tail -f /dev/null
+    labels:
+      - "com.microsoft.visualstudio.targetoperatingsystem=linux"
+
+  nodeservicesexamples:
+    build:
+      args:
+        source: ${DOCKER_BUILD_SOURCE}
+    volumes:
+      - ~/clrdbg:/clrdbg:ro
+    entrypoint: tail -f /dev/null
+    labels:
+      - "com.microsoft.visualstudio.targetoperatingsystem=linux"
+
+  reactmusicstore:
+    build:
+      args:
+        source: ${DOCKER_BUILD_SOURCE}
+    volumes:
+      - ~/clrdbg:/clrdbg:ro
+    entrypoint: tail -f /dev/null
+    labels:
+      - "com.microsoft.visualstudio.targetoperatingsystem=linux"
+
+  reactgrid:
+    build:
+      args:
+        source: ${DOCKER_BUILD_SOURCE}
+    volumes:
+      - ~/clrdbg:/clrdbg:ro
+    entrypoint: tail -f /dev/null
+    labels:
+      - "com.microsoft.visualstudio.targetoperatingsystem=linux"

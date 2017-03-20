@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html>
     <head>
         <meta charset="utf-8" />
@@ -9,6 +9,13 @@
         <div class="container">
             @RenderBody()
         </div>
+
+        <footer class="footer">
+            <div class="container">
+                <p class="text-muted">Running on @Environment.MachineName (@System.Runtime.InteropServices.RuntimeInformation.OSDescription)</p>
+            </div>
+        </footer>
+
         @RenderSection("scripts", required: false)
     </body>
 </html>

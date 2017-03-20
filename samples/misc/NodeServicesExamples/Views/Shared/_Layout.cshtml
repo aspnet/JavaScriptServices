@@ -7,6 +7,14 @@
     </head>
     <body>
         @RenderBody()
+        
+        <footer class="footer">
+            <div class="container">
+                <p class="text-muted">Running on @Environment.MachineName (@System.Runtime.InteropServices.RuntimeInformation.OSDescription)</p>
+            </div>
+        </footer>
+        
         @RenderSection("scripts", required: false)
+
     </body>
 </html>
