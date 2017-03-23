@@ -30,6 +30,7 @@ Obj/
 .vs/
 /wwwroot/dist/**
 /ClientApp/dist/**
+/ClientApp/docs/**
 
 # Workaround for https://github.com/aspnet/JavaScriptServices/issues/235
 !/wwwroot/dist/_placeholder.txt
