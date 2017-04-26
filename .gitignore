@@ -40,3 +40,4 @@ npm-debug.log
 .vscode/
 
 /templates/*/Properties/launchSettings.json
+/templates/AureliaSpa/Aurelia/Aurelia.sln
