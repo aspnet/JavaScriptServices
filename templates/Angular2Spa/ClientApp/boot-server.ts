@@ -1,4 +1,4 @@
-import 'core-js/shim';
+import 'reflect-metadata';
 import 'zone.js';
 import 'rxjs/add/operator/first';
 import { enableProdMode, ApplicationRef, NgZone, ValueProvider } from '@angular/core';
