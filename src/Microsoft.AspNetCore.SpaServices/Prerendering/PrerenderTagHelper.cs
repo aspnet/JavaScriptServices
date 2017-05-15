@@ -22,6 +22,7 @@ namespace Microsoft.AspNetCore.SpaServices.Prerendering
         private const string PrerenderWebpackConfigAttributeName = "asp-prerender-webpack-config";
         private const string PrerenderDataAttributeName = "asp-prerender-data";
         private const string PrerenderTimeoutAttributeName = "asp-prerender-timeout";
+        private const string PrerenderNonceAttributeName = "asp-prerender-nonce";
         private static INodeServices _fallbackNodeServices; // Used only if no INodeServices was registered with DI
 
         private readonly string _applicationBasePath;
@@ -77,6 +78,12 @@ namespace Microsoft.AspNetCore.SpaServices.Prerendering
         /// </summary>
         [HtmlAttributeName(PrerenderTimeoutAttributeName)]
         public int TimeoutMillisecondsParameter { get; set; }
+
+        /// <summary>
+        /// An optional nonce to be used on the output script tag
+        /// </summary>
+        [HtmlAttributeName(PrerenderNonceAttributeName)]
+        public string NonceParameter { get; set; }
 
         /// <summary>
         /// The <see cref="ViewContext"/>.
@@ -150,7 +157,8 @@ namespace Microsoft.AspNetCore.SpaServices.Prerendering
                 }
                 if (stringBuilder.Length > 0)
                 {
-                    output.PostElement.SetHtmlContent($"<script>{stringBuilder}</script>");
+                    var nonce = string.IsNullOrEmpty(NonceParameter) ? string.Empty : $"nonce='{NonceParameter}'";
+                    output.PostElement.SetHtmlContent($"<script {nonce}>{stringBuilder}</script>");
                 }
             }
         }
