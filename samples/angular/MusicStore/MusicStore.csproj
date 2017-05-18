@@ -6,6 +6,7 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
     <IsPackable>false</IsPackable>
+    <DockerComposeProjectPath>..\..\..\docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>
 
   <ItemGroup>

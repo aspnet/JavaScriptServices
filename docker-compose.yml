@@ -1,0 +1,26 @@
+version: '2'
+
+services:
+  ngmusicstore:
+    image: ngmusicstore
+    build:
+      context: ./samples/angular/MusicStore
+      dockerfile: Dockerfile
+
+  nodeservicesexamples:
+    image: nodeservicesexamples
+    build:
+      context: ./samples/misc/NodeServicesExamples
+      dockerfile: Dockerfile
+
+  reactmusicstore:
+    image: reactmusicstore
+    build:
+      context: ./samples/react/MusicStore
+      dockerfile: Dockerfile
+
+  reactgrid:
+    image: reactgrid
+    build:
+      context: ./samples/react/ReactGrid
+      dockerfile: Dockerfile

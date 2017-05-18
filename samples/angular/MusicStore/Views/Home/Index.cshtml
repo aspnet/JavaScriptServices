@@ -2,7 +2,7 @@
     ViewData["Title"] = "Home Page";
 }
 
-<cache vary-by="@Context.Request.Path">
+<cache vary-by="@Context?.Request.Path">
     <app asp-prerender-module="wwwroot/ng-app/boot-server">Loading...</app>
     @await Html.PrimeCacheAsync(Url.Action("GenreMenuList", "GenresApi"))
     @await Html.PrimeCacheAsync(Url.Action("MostPopular", "AlbumsApi"))

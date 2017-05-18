@@ -1,0 +1,62 @@
+version: '2'
+
+services:
+  ngmusicstore:
+    image: ngmusicstore:dev
+    build:
+      args:
+        source: ${DOCKER_BUILD_SOURCE}
+    environment:
+      - DOTNET_USE_POLLING_FILE_WATCHER=1
+    volumes:
+      - ./samples/angular/MusicStore:/app
+      - ~/.nuget/packages:/root/.nuget/packages:ro
+      - ~/clrdbg:/clrdbg:ro
+    entrypoint: tail -f /dev/null
+    labels:
+      - "com.microsoft.visualstudio.targetoperatingsystem=linux"
+
+  nodeservicesexamples:
+    image: nodeservicesexamples:dev
+    build:
+      args:
+        source: ${DOCKER_BUILD_SOURCE}
+    environment:
+      - DOTNET_USE_POLLING_FILE_WATCHER=1
+    volumes:
+      - ./samples/misc/NodeServicesExamples:/app
+      - ~/.nuget/packages:/root/.nuget/packages:ro
+      - ~/clrdbg:/clrdbg:ro
+    entrypoint: tail -f /dev/null
+    labels:
+      - "com.microsoft.visualstudio.targetoperatingsystem=linux"
+
+  reactmusicstore:
+    image: reactmusicstore:dev
+    build:
+      args:
+        source: ${DOCKER_BUILD_SOURCE}
+    environment:
+      - DOTNET_USE_POLLING_FILE_WATCHER=1
+    volumes:
+      - ./samples/react/MusicStore:/app
+      - ~/.nuget/packages:/root/.nuget/packages:ro
+      - ~/clrdbg:/clrdbg:ro
+    entrypoint: tail -f /dev/null
+    labels:
+      - "com.microsoft.visualstudio.targetoperatingsystem=linux"
+
+  reactgrid:
+    image: reactgrid:dev
+    build:
+      args:
+        source: ${DOCKER_BUILD_SOURCE}
+    environment:
+      - DOTNET_USE_POLLING_FILE_WATCHER=1
+    volumes:
+      - ./samples/react/ReactGrid:/app
+      - ~/.nuget/packages:/root/.nuget/packages:ro
+      - ~/clrdbg:/clrdbg:ro
+    entrypoint: tail -f /dev/null
+    labels:
+      - "com.microsoft.visualstudio.targetoperatingsystem=linux"
