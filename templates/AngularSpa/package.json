@@ -23,6 +23,7 @@
     "bootstrap": "3.3.7",
     "css": "2.2.1",
     "css-loader": "0.28.1",
+    "core-js": "^2.4.1",
     "es6-shim": "0.35.3",
     "event-source-polyfill": "0.0.9",
     "expose-loader": "0.7.3",
