@@ -1,10 +1,11 @@
 const path = require('path');
 const webpack = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const extractCSS = new ExtractTextPlugin('vendor.css');
+const bundleOutputDir = './wwwroot/dist';
 
 module.exports = (env) => {
     const isDevBuild = !(env && env.prod);
-    const extractCSS = new ExtractTextPlugin('vendor.css');
 
     return [{
         stats: { modules: false },
@@ -27,22 +28,27 @@ module.exports = (env) => {
             ]
         },
         output: { 
-            path: path.join(__dirname, 'wwwroot', 'dist'),
+            path: path.join(__dirname, bundleOutputDir),
             publicPath: '/dist/',
             filename: '[name].js',
             library: '[name]_[hash]'
         },
         plugins: [
             extractCSS,
-            new webpack.ProvidePlugin({ $: 'jquery', jQuery: 'jquery' }), // Maps these identifiers to the jQuery package (because Bootstrap expects it to be a global variable)
-            new webpack.DefinePlugin({
-                'process.env.NODE_ENV': isDevBuild ? '"development"' : '"production"'
+            new webpack.EnvironmentPlugin({
+                NODE_ENV: isDevBuild ? 'development' : 'production'
             }),
+            new webpack.ProvidePlugin({ $: 'jquery', jQuery: 'jquery' }), // Maps these identifiers to the jQuery package (because Bootstrap expects it to be a global variable)
             new webpack.DllPlugin({
-                path: path.join(__dirname, 'wwwroot', 'dist', '[name]-manifest.json'),
+                path: path.join(__dirname, bundleOutputDir, '[name]-manifest.json'),
                 name: '[name]_[hash]'
             })
-        ].concat(isDevBuild ? [] : [
+        ].concat(isDevBuild ? 
+        [
+            // Plugins that apply in development builds only
+            // (none setup for vendors bundle)
+        ] : [
+            // Plugins that apply in production builds only
             new webpack.optimize.UglifyJsPlugin()
         ])
     }];
