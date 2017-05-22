@@ -11,7 +11,8 @@ enableProdMode();
 export default createServerRenderer(params => {
     const providers = [
         { provide: INITIAL_CONFIG, useValue: { document: '<app></app>', url: params.url } },
-        { provide: 'ORIGIN_URL', useValue: params.origin }
+        { provide: 'ORIGIN_URL', useValue: params.origin },
+        { provide: 'PRERENDERING_DATA', useValue: params.data }
     ];
 
     return platformDynamicServer(providers).bootstrapModule(AppModule).then(moduleRef => {
@@ -26,7 +27,8 @@ export default createServerRenderer(params => {
                 // completing the request in case there's an error to report
                 setImmediate(() => {
                     resolve({
-                        html: state.renderToString()
+                        html: state.renderToString(),
+                        globals: { PRERENDERING_DATA: params.data }
                     });
                     moduleRef.destroy();
                 });
