@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
-        <id>Microsoft.AspNetCore.SpaTemplates</id>
-        <version>{yeomanversion}</version>
+        <id>Microsoft.DotNet.Web.Spa.ProjectTemplates</id>
+        <version>1.0.0-preview-{buildnumber}</version>
         <description>Single Page Application templates for ASP.NET Core</description>
         <authors>Microsoft</authors>
         <language>en-US</language>
