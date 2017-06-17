@@ -15,7 +15,7 @@
       "js",
       "json"
     ]
-  }
+  },
   "dependencies": {
     "@types/history": "4.5.1",
 	"@types/jest": "20.0.0",
