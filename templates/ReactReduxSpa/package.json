@@ -2,8 +2,24 @@
   "name": "WebApplicationBasic",
   "private": true,
   "version": "0.0.0",
+  "scripts": {
+    "test": "jest"
+  },
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "json"
+    ]
+  },
   "dependencies": {
     "@types/history": "4.5.1",
+	"@types/jest": "20.0.0",
     "@types/react": "15.0.24",
     "@types/react-dom": "15.5.0",
     "@types/react-redux": "4.4.40",
@@ -22,6 +38,7 @@
     "extract-text-webpack-plugin": "2.1.0",
     "file-loader": "0.11.1",
     "history": "4.6.1",
+	"jest": "20.0.4",
     "jquery": "3.2.1",
     "json-loader": "0.5.4",
     "node-noop": "1.0.0",
@@ -34,6 +51,7 @@
     "redux": "3.6.0",
     "redux-thunk": "2.2.0",
     "style-loader": "0.17.0",
+	"ts-jest": "20.0.6",
     "typescript": "2.3.2",
     "url-loader": "0.5.8",
     "webpack": "2.5.1",

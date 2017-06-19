@@ -22,14 +22,17 @@ const testSpecificPaths = [
 const testSpecificNpmPackages = [
     "@types/chai",
     "@types/jasmine",
+	"@types/jest",
     "chai",
     "jasmine-core",
+	"jest",
     "karma",
     "karma-chai",
     "karma-chrome-launcher",
     "karma-cli",
     "karma-jasmine",
-    "karma-webpack"
+    "karma-webpack",
+	"ts-jest"
 ];
 
 type YeomanPrompt = (opt: yeoman.IPromptOptions | yeoman.IPromptOptions[], callback: (answers: any) => void) => void;
@@ -47,7 +50,7 @@ const templates: TemplateConfig[] = [
     { value: 'aurelia', rootDir: 'aurelia', name: 'Aurelia', tests: false },
     { value: 'knockout', rootDir: 'knockout', name: 'Knockout', tests: false },
     { value: 'react', rootDir: 'react', name: 'React', tests: false },
-    { value: 'react-redux', rootDir: 'react-redux', name: 'React with Redux', tests: false },
+    { value: 'react-redux', rootDir: 'react-redux', name: 'React with Redux', tests: true },
     { value: 'vue', rootDir: 'vue', name: 'Vue', tests: false }
 ];
 
@@ -247,6 +250,12 @@ function rewritePackageJson(contents, includeTests) {
                 delete contents.scripts;
             }
         }
+		
+		// Delete 'jest' section
+		const jest = contents.jest;
+		if (jest) {
+			delete contents.jest;
+		}
     }
 
     return contents;
