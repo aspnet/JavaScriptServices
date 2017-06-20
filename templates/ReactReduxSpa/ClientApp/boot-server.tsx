@@ -1,3 +1,4 @@
+import 'source-map-support/register';
 import * as React from 'react';
 import { Provider } from 'react-redux';
 import { renderToString } from 'react-dom/server';

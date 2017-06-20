@@ -80,7 +80,8 @@ module.exports = (env) => {
                 path: path.join(__dirname, 'ClientApp', 'dist', '[name]-manifest.json'),
                 name: '[name]_[hash]'
             })
-        ]
+        ],
+        devtool: 'inline-source-map'
     });
 
     return [clientBundleConfig, serverBundleConfig];
