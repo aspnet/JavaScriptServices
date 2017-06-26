@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "dependencies": {
+    "@types/react-router": "4.0.11",
     "@types/history": "4.5.1",
     "@types/react": "15.0.29",
     "@types/react-dom": "15.5.0",
