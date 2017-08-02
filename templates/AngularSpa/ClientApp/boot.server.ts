@@ -6,6 +6,7 @@ import { enableProdMode, ApplicationRef, NgZone, ValueProvider } from '@angular/
 import { platformDynamicServer, PlatformState, INITIAL_CONFIG } from '@angular/platform-server';
 import { createServerRenderer, RenderResult } from 'aspnet-prerendering';
 import { AppModule } from './app/app.module.server';
+import { HttpWithStateTransfer } from 'aspnet-angular';
 
 enableProdMode();
 
@@ -20,6 +21,7 @@ export default createServerRenderer(params => {
         const appRef: ApplicationRef = moduleRef.injector.get(ApplicationRef);
         const state = moduleRef.injector.get(PlatformState);
         const zone = moduleRef.injector.get(NgZone);
+        const http: HttpWithStateTransfer = moduleRef.injector.get(HttpWithStateTransfer);
 
         return new Promise<RenderResult>((resolve, reject) => {
             zone.onError.subscribe((errorInfo: any) => reject(errorInfo));
@@ -28,7 +30,8 @@ export default createServerRenderer(params => {
                 // completing the request in case there's an error to report
                 setImmediate(() => {
                     resolve({
-                        html: state.renderToString()
+                        html: state.renderToString(),
+                        globals: { ...http.stateForTransfer() }
                     });
                     moduleRef.destroy();
                 });

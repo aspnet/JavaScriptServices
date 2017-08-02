@@ -273,6 +273,11 @@
       "from": "asn1.js@>=4.0.0 <5.0.0",
       "resolved": "https://registry.npmjs.org/asn1.js/-/asn1.js-4.9.1.tgz"
     },
+    "aspnet-angular": {
+      "version": "0.1.1",
+      "from": "aspnet-angular@0.1.1",
+      "resolved": "https://registry.npmjs.org/aspnet-angular/-/aspnet-angular-0.1.1.tgz"
+    },
     "aspnet-prerendering": {
       "version": "3.0.1",
       "from": "aspnet-prerendering@3.0.1",
