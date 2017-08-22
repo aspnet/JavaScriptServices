@@ -42,6 +42,7 @@ namespace Microsoft.AspNetCore.NodeServices.HostingModels
                 options.ProjectPath,
                 options.WatchFileExtensions,
                 MakeCommandLineOptions(port),
+                options.ApplicationStoppingToken,
                 options.NodeInstanceOutputLogger,
                 options.EnvironmentVariables,
                 options.InvocationTimeoutMilliseconds,
@@ -49,6 +50,7 @@ namespace Microsoft.AspNetCore.NodeServices.HostingModels
                 options.DebuggingPort)
         {
             _client = new HttpClient();
+            _client.Timeout = TimeSpan.FromMilliseconds(options.InvocationTimeoutMilliseconds + 1000);
         }
 
         private static string MakeCommandLineOptions(int port)
@@ -66,8 +68,10 @@ namespace Microsoft.AspNetCore.NodeServices.HostingModels
             if (!response.IsSuccessStatusCode)
             {
                 // Unfortunately there's no true way to cancel ReadAsStringAsync calls, hence AbandonIfCancelled
-                var responseErrorString = await response.Content.ReadAsStringAsync().OrThrowOnCancellation(cancellationToken);
-                throw new Exception("Call to Node module failed with error: " + responseErrorString);
+                var responseJson = await response.Content.ReadAsStringAsync().OrThrowOnCancellation(cancellationToken);
+                var responseError = JsonConvert.DeserializeObject<RpcJsonResponse>(responseJson, jsonSerializerSettings);
+
+                throw new NodeInvocationException(responseError.ErrorMessage, responseError.ErrorDetails);
             }
 
             var responseContentType = response.Content.Headers.ContentType;
@@ -135,5 +139,13 @@ namespace Microsoft.AspNetCore.NodeServices.HostingModels
                 _disposed = true;
             }
         }
+
+#pragma warning disable 649 // These properties are populated via JSON deserialization
+        private class RpcJsonResponse
+        {
+            public string ErrorMessage { get; set; }
+            public string ErrorDetails { get; set; }
+        }
+#pragma warning restore 649
     }
 }

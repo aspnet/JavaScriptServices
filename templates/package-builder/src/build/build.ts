@@ -11,6 +11,7 @@ import * as targz from 'tar.gz';
 const isWindows = /^win/.test(process.platform);
 const textFileExtensions = ['.gitignore', 'template_gitignore', '.config', '.cs', '.cshtml', '.csproj', '.html', '.js', '.json', '.jsx', '.md', '.nuspec', '.ts', '.tsx'];
 const yeomanGeneratorSource = './src/yeoman';
+const webToolsVSPackageGuid = '{0CD94836-1526-4E85-87D3-FB5274C5AFC9}';
 
 const dotNetPackages = {
     builtIn: 'Microsoft.DotNet.Web.Spa.ProjectTemplates',
@@ -22,15 +23,16 @@ interface TemplateConfig {
     dotNetNewId: string;
     dotNetPackageId: string;
     displayName: string;
+    localizationIdStart: number;
 }
 
 const templates: { [key: string]: TemplateConfig } = {
-    'angular': { dotNetPackageId: dotNetPackages.builtIn, dir: '../../templates/AngularSpa/', dotNetNewId: 'Angular', displayName: 'Angular' },
-    'aurelia': { dotNetPackageId: dotNetPackages.extra, dir: '../../templates/AureliaSpa/', dotNetNewId: 'Aurelia', displayName: 'Aurelia' },
-    'knockout': { dotNetPackageId: dotNetPackages.extra, dir: '../../templates/KnockoutSpa/', dotNetNewId: 'Knockout', displayName: 'Knockout.js' },
-    'react-redux': { dotNetPackageId: dotNetPackages.builtIn, dir: '../../templates/ReactReduxSpa/', dotNetNewId: 'ReactRedux', displayName: 'React.js and Redux' },
-    'react': { dotNetPackageId: dotNetPackages.builtIn, dir: '../../templates/ReactSpa/', dotNetNewId: 'React', displayName: 'React.js' },
-    'vue': { dotNetPackageId: dotNetPackages.extra, dir: '../../templates/VueSpa/', dotNetNewId: 'Vue', displayName: 'Vue.js' }
+    'angular': { dotNetPackageId: dotNetPackages.builtIn, dir: '../../templates/AngularSpa/', dotNetNewId: 'Angular', displayName: 'Angular', localizationIdStart: 1100 },
+    'aurelia': { dotNetPackageId: dotNetPackages.extra, dir: '../../templates/AureliaSpa/', dotNetNewId: 'Aurelia', displayName: 'Aurelia', localizationIdStart: 1200 },
+    'knockout': { dotNetPackageId: dotNetPackages.extra, dir: '../../templates/KnockoutSpa/', dotNetNewId: 'Knockout', displayName: 'Knockout.js', localizationIdStart: 1300 },
+    'react-redux': { dotNetPackageId: dotNetPackages.builtIn, dir: '../../templates/ReactReduxSpa/', dotNetNewId: 'ReactRedux', displayName: 'React.js and Redux', localizationIdStart: 1400 },
+    'react': { dotNetPackageId: dotNetPackages.builtIn, dir: '../../templates/ReactSpa/', dotNetNewId: 'React', displayName: 'React.js', localizationIdStart: 1500 },
+    'vue': { dotNetPackageId: dotNetPackages.extra, dir: '../../templates/VueSpa/', dotNetNewId: 'Vue', displayName: 'Vue.js', localizationIdStart: 1600 }
 };
 
 function isTextFile(filename: string): boolean {
@@ -89,20 +91,13 @@ function copyRecursive(sourceRoot: string, destRoot: string, matchGlob: string) 
         });
 }
 
-function leftPad(str: string, minLength: number, padChar: string) {
-    while (str.length < minLength) {
-        str = padChar + str;
-    }
-    return str;
-}
-
 function getBuildNumber(): string {
     if (process.env.APPVEYOR_BUILD_NUMBER) {
-        return leftPad(process.env.APPVEYOR_BUILD_NUMBER, 6, '0');
+        return process.env.APPVEYOR_BUILD_NUMBER;
     }
 
     // For local builds, use timestamp
-    return 't-' + Math.floor((new Date().valueOf() - new Date(2017, 0, 1).valueOf()) / (60*1000));
+    return Math.floor((new Date().valueOf() - new Date(2017, 0, 1).valueOf()) / (60*1000)) + '-local';
 }
 
 function buildYeomanNpmPackage(outputRoot: string) {
@@ -181,6 +176,13 @@ function buildDotNetNewNuGetPackage(packageId: string) {
                 exclude: ['.template.config/**']
             }],
             symbols: {
+                TargetFrameworkOverride: {
+                    type: 'parameter',
+                    description: 'Overrides the target framework',
+                    replaces: 'TargetFrameworkOverride',
+                    datatype: 'string',
+                    defaultValue: ''
+                },
                 Framework: {
                     type: 'parameter',
                     description: 'The target framework for the project.',
@@ -191,12 +193,17 @@ function buildDotNetNewNuGetPackage(packageId: string) {
                             description: 'Target netcoreapp2.0'
                         }
                     ],
+                    replaces: 'netcoreapp2.0',
                     defaultValue: 'netcoreapp2.0'
+                },
+                HostIdentifier: {
+                    type: 'bind',
+                    binding: 'HostIdentifier'
                 },
                 skipRestore: {
                     type: 'parameter',
                     datatype: 'bool',
-                    description: 'If specified, skips the automatic restore of packages on project creation.',
+                    description: 'If specified, skips the automatic restore of the project on create.',
                     defaultValue: 'false'
                 }
             },
@@ -204,7 +211,7 @@ function buildDotNetNewNuGetPackage(packageId: string) {
             postActions: [
                 {
                     condition: '(!skipRestore)',
-                    description: 'Restores NuGet packages required by this project.',
+                    description: 'Restore NuGet packages required by this project.',
                     manualInstructions: [{ text: 'Run \'dotnet restore\'' }],
                     actionId: '210D431B-A78B-4D2F-B762-4ED3E3EA9025',
                     continueOnError: true
@@ -222,25 +229,48 @@ function buildDotNetNewNuGetPackage(packageId: string) {
                     continueOnError: false
                 }
                 */
+                {
+                    // For the preview2 release, just display manual instructions instead.
+                    // This is only applicable on the command line, because VS will restore
+                    // NPM packages automatically by default.
+                    condition: '(HostIdentifier == "dotnetcli" || HostIdentifier == "dotnetcli-preview")',
+                    actionId: 'AC1156F7-BB77-4DB8-B28F-24EEBCCA1E5C',
+                    description: '\n\n-------------------------------------------------------------------\nIMPORTANT: Before running this project on the command line,\n           you must restore NPM packages by running "npm install"\n-------------------------------------------------------------------\n',
+                    manualInstructions: [{ text: 'Run "npm install"' }]
+                }
             ],
         }, null, 2));
 
         fs.writeFileSync(path.join(templateConfigDir, 'dotnetcli.host.json'), JSON.stringify({
+            $schema: 'http://json.schemastore.org/dotnetcli.host',
             symbolInfo: {
+                TargetFrameworkOverride: {
+                    isHidden: 'true',
+                    longName: 'target-framework-override',
+                    shortName: ''
+                },
+                Framework: {
+                    longName: 'framework'
+                },
                 skipRestore: {
                     longName: 'no-restore',
                     shortName: ''
-                }
+                },
             }
         }, null, 2));
         
+        const localisedNameId = templateConfig.localizationIdStart + 0;
+        const localisedDescId = templateConfig.localizationIdStart + 1;
+
         fs.writeFileSync(path.join(templateConfigDir, 'vs-2017.3.host.json'), JSON.stringify({
-            name: { text: templateConfig.displayName },
-            description: { text: `Web application built with MVC ASP.NET Core and ${templateConfig.displayName}` },
-            order: 2000,
+            $schema: 'http://json.schemastore.org/vs-2017.3.host',
+            name: { text: templateConfig.displayName, package: webToolsVSPackageGuid, id: localisedNameId.toString() },
+            description: { text: `A project template for creating an ASP.NET Core application with ${templateConfig.displayName}`, package: webToolsVSPackageGuid, id: localisedDescId.toString() },
+            order: 301,
             icon: 'icon.png',
             learnMoreLink: 'https://github.com/aspnet/JavaScriptServices',
-            uiFilters: [ 'oneaspnet' ]
+            uiFilters: [ 'oneaspnet' ],
+            minFullFrameworkVersion: '4.6.1'
         }, null, 2));
     });
 

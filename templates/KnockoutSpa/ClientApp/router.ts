@@ -1,7 +1,7 @@
 import * as ko from 'knockout';
 import * as $ from 'jquery';
 import * as History from 'history';
-import crossroads = require('crossroads');
+import * as crossroads from 'crossroads';
 
 // This module configures crossroads.js, a routing library. If you prefer, you
 // can use any other routing library (or none at all) as Knockout is designed to
@@ -16,13 +16,13 @@ export class Router {
     private disposeHistory: () => void;
     private clickEventListener: EventListener;
 
-    constructor(history: History.History, routes: Route[]) {
+    constructor(private history: History.History, routes: Route[], basename: string) {
         // Reset and configure Crossroads so it matches routes and updates this.currentRoute
         crossroads.removeAllRoutes();
         crossroads.resetState();
-        crossroads.normalizeFn = crossroads.NORM_AS_OBJECT;
+        (crossroads as any).normalizeFn = crossroads.NORM_AS_OBJECT;
         routes.forEach(route => {
-            crossroads.addRoute(route.url, (requestParams) => {
+            crossroads.addRoute(route.url, (requestParams: any) => {
                 this.currentRoute(ko.utils.extend(requestParams, route.params));
             });
         });
@@ -33,8 +33,9 @@ export class Router {
             let target: any = evt.currentTarget;
             if (target && target.tagName === 'A') {
                 let href = target.getAttribute('href');
-                if (href && href.charAt(0) == '/') {
-                    history.push(href);
+                if (href && href.indexOf(basename + '/') === 0) {
+                    const hrefAfterBasename = href.substring(basename.length);
+                    history.push(hrefAfterBasename);
                     evt.preventDefault();
                 }
             }
@@ -42,8 +43,11 @@ export class Router {
         $(document).on('click', 'a', this.clickEventListener);
 
         // Initialize Crossroads with starting location
-        // Need to cast history to 'any' because @types/history is out-of-date
-        crossroads.parse((history as any).location.pathname);
+        crossroads.parse(history.location.pathname);
+    }
+
+    public link(url: string): string {
+        return this.history.createHref({ pathname: url });
     }
 
     public dispose() {

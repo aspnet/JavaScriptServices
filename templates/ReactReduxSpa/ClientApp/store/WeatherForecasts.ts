@@ -7,7 +7,7 @@ import { AppThunkAction } from './';
 
 export interface WeatherForecastsState {
     isLoading: boolean;
-    startDateIndex: number;
+    startDateIndex?: number;
     forecasts: WeatherForecast[];
 }
 
@@ -23,14 +23,14 @@ export interface WeatherForecast {
 // They do not themselves have any side-effects; they just describe something that is going to happen.
 
 interface RequestWeatherForecastsAction {
-    type: 'REQUEST_WEATHER_FORECASTS',
+    type: 'REQUEST_WEATHER_FORECASTS';
     startDateIndex: number;
 }
 
 interface ReceiveWeatherForecastsAction {
-    type: 'RECEIVE_WEATHER_FORECASTS',
+    type: 'RECEIVE_WEATHER_FORECASTS';
     startDateIndex: number;
-    forecasts: WeatherForecast[]
+    forecasts: WeatherForecast[];
 }
 
 // Declare a 'discriminated union' type. This guarantees that all references to 'type' properties contain one of the
@@ -45,7 +45,7 @@ export const actionCreators = {
     requestWeatherForecasts: (startDateIndex: number): AppThunkAction<KnownAction> => (dispatch, getState) => {
         // Only load data if it's something we don't already have (and are not already loading)
         if (startDateIndex !== getState().weatherForecasts.startDateIndex) {
-            let fetchTask = fetch(`/api/SampleData/WeatherForecasts?startDateIndex=${ startDateIndex }`)
+            let fetchTask = fetch(`api/SampleData/WeatherForecasts?startDateIndex=${ startDateIndex }`)
                 .then(response => response.json() as Promise<WeatherForecast[]>)
                 .then(data => {
                     dispatch({ type: 'RECEIVE_WEATHER_FORECASTS', startDateIndex: startDateIndex, forecasts: data });
@@ -60,9 +60,10 @@ export const actionCreators = {
 // ----------------
 // REDUCER - For a given state and action, returns the new state. To support time travel, this must not mutate the old state.
 
-const unloadedState: WeatherForecastsState = { startDateIndex: null, forecasts: [], isLoading: false };
+const unloadedState: WeatherForecastsState = { forecasts: [], isLoading: false };
 
-export const reducer: Reducer<WeatherForecastsState> = (state: WeatherForecastsState, action: KnownAction) => {
+export const reducer: Reducer<WeatherForecastsState> = (state: WeatherForecastsState, incomingAction: Action) => {
+    const action = incomingAction as KnownAction;
     switch (action.type) {
         case 'REQUEST_WEATHER_FORECASTS':
             return {

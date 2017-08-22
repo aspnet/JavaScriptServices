@@ -5,11 +5,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as querystring from 'querystring';
 import { requireNewCopy } from './RequireNewCopy';
+import { hasSufficientPermissions } from './WebpackTestPermissions';
 
 export type CreateDevServerResult = {
     Port: number,
-    PublicPaths: string[],
-    PublicPath: string // For backward compatibility with older verions of Microsoft.AspNetCore.SpaServices. Will be removed soon.
+    PublicPaths: string[]
 };
 
 export interface CreateDevServerCallback {
@@ -108,7 +108,7 @@ function attachWebpackDevMiddleware(app: any, webpackConfig: webpack.Configurati
     const compiler = webpack(webpackConfig);
     app.use(require('webpack-dev-middleware')(compiler, {
         noInfo: true,
-        publicPath: webpackConfig.output.publicPath,
+        publicPath: ensureLeadingSlash(webpackConfig.output.publicPath),
         watchOptions: webpackConfig.watchOptions
     }));
 
@@ -195,6 +195,14 @@ function copyRecursiveToRealFsSync(from: typeof fs, rootDir: string, exclude: Re
     });
 }
 
+function ensureLeadingSlash(value: string) {
+    if (value !== null && value.substring(0, 1) !== '/') {
+        value = '/' + value;
+    }
+
+    return value;
+}
+
 function pathJoinSafe(rootPath: string, filePath: string) {
     // On Windows, MemoryFileSystem's readdirSync output produces directory entries like 'C:'
     // which then trigger errors if you call statSync for them. Avoid this by detecting drive
@@ -215,6 +223,16 @@ function beginWebpackWatcher(webpackConfig: webpack.Configuration) {
 
 export function createWebpackDevServer(callback: CreateDevServerCallback, optionsJson: string) {
     const options: CreateDevServerOptions = JSON.parse(optionsJson);
+
+    // See the large comment in WebpackTestPermissions.ts for details about this
+    if (!hasSufficientPermissions()) {
+        console.log('WARNING: Webpack dev middleware is not enabled because the server process does not have sufficient permissions. You should either remove the UseWebpackDevMiddleware call from your code, or to make it work, give your server process user account permission to write to your application directory and to read all ancestor-level directories.');
+        callback(null, {
+            Port: 0,
+            PublicPaths: []
+        });
+        return;
+    }
 
     // Read the webpack config's export, and normalize it into the more general 'array of configs' format
     let webpackConfigExport: WebpackConfigFileExport = requireNewCopy(options.webpackConfigPath);
@@ -257,21 +275,31 @@ export function createWebpackDevServer(callback: CreateDevServerCallback, option
                     if (!publicPath) {
                         throw new Error('To use the Webpack dev server, you must specify a value for \'publicPath\' on the \'output\' section of your webpack config (for any configuration that targets browsers)');
                     }
-                    normalizedPublicPaths.push(removeTrailingSlash(publicPath));
+                    const publicPathNoTrailingSlash = removeTrailingSlash(publicPath);
+                    normalizedPublicPaths.push(publicPathNoTrailingSlash);
 
-                    // Newer versions of Microsoft.AspNetCore.SpaServices will explicitly pass an HMR endpoint URL
-                    // (because it's relative to the app's URL space root, which the client doesn't otherwise know).
-                    // For back-compatibility, fall back on connecting directly to the underlying HMR server (though
-                    // that won't work if the app is hosted on HTTPS because of the mixed-content rule, and we can't
-                    // run the HMR server itself on HTTPS because in general it has no valid cert).
-                    const hmrClientEndpoint = options.hotModuleReplacementEndpointUrl   // The URL that we'll proxy (e.g., /__asp_webpack_hmr)
-                        || `http://localhost:${listener.address().port}/__webpack_hmr`; // Fall back on absolute URL to bypass proxying
-                    const hmrServerEndpoint = options.hotModuleReplacementEndpointUrl
-                        || '/__webpack_hmr';                                            // URL is relative to webpack dev server root
+                    // This is the URL the client will connect to, except that since it's a relative URL
+                    // (no leading slash), Webpack will resolve it against the runtime <base href> URL
+                    // plus it also adds the publicPath
+                    const hmrClientEndpoint = removeLeadingSlash(options.hotModuleReplacementEndpointUrl);
+
+                    // This is the URL inside the Webpack middleware Node server that we'll proxy to.
+                    // We have to prefix with the public path because Webpack will add the publicPath
+                    // when it resolves hmrClientEndpoint as a relative URL.
+                    const hmrServerEndpoint = ensureLeadingSlash(publicPathNoTrailingSlash + options.hotModuleReplacementEndpointUrl);
 
                     // We always overwrite the 'path' option as it needs to match what the .NET side is expecting
                     const hmrClientOptions = options.suppliedOptions.HotModuleReplacementClientOptions || <StringMap<string>>{};
                     hmrClientOptions['path'] = hmrClientEndpoint;
+
+                    const dynamicPublicPathKey = 'dynamicPublicPath';
+                    if (!(dynamicPublicPathKey in hmrClientOptions)) {
+                        // dynamicPublicPath default to true, so we can work with nonempty pathbases (virtual directories)
+                        hmrClientOptions[dynamicPublicPathKey] = true;
+                    } else {
+                        // ... but you can set it to any other value explicitly if you want (e.g., false)
+                        hmrClientOptions[dynamicPublicPathKey] = JSON.parse(hmrClientOptions[dynamicPublicPathKey]);
+                    }
 
                     attachWebpackDevMiddleware(app, webpackConfig, enableHotModuleReplacement, enableReactHotModuleReplacement, hmrClientOptions, hmrServerEndpoint);
                 }
@@ -280,16 +308,20 @@ export function createWebpackDevServer(callback: CreateDevServerCallback, option
             // Tell the ASP.NET app what addresses we're listening on, so that it can proxy requests here
             callback(null, {
                 Port: listener.address().port,
-                PublicPaths: normalizedPublicPaths,
-
-                // For back-compatibility with older versions of Microsoft.AspNetCore.SpaServices, in the case where
-                // you have exactly one webpackConfigArray entry. This will be removed soon.
-                PublicPath: normalizedPublicPaths[0]
+                PublicPaths: normalizedPublicPaths
             });
         } catch (ex) {
             callback(ex.stack, null);
         }
     });
+}
+
+function removeLeadingSlash(str: string) {
+    if (str.indexOf('/') === 0) {
+        str = str.substring(1);
+    }
+
+    return str;
 }
 
 function removeTrailingSlash(str: string) {

@@ -7,7 +7,6 @@ const bundleOutputDir = './wwwroot/dist';
 module.exports = (env) => {
     const isDevBuild = !(env && env.prod);
 
-    const bundleOutputDir = './wwwroot/dist';
     return [{
         stats: { modules: false },
         context: __dirname,
@@ -24,7 +23,7 @@ module.exports = (env) => {
         output: {
             path: path.join(__dirname, bundleOutputDir),
             filename: '[name].js',
-            publicPath: '/dist/'
+            publicPath: 'dist/'
         },
         plugins: [
             new CheckerPlugin(),

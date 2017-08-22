@@ -1,5 +1,6 @@
 // Limit dependencies to core Node modules. This means the code in this file has to be very low-level and unattractive,
 // but simplifies things for the consumer of this module.
+import './Util/PatchModuleResolutionLStat';
 import './Util/OverrideStdOutputs';
 import * as http from 'http';
 import * as path from 'path';
@@ -86,5 +87,8 @@ function readRequestBodyAsJson(request, callback) {
 
 function respondWithError(res: http.ServerResponse, errorValue: any) {
     res.statusCode = 500;
-    res.end(errorValue.stack || errorValue.toString());
+    res.end(JSON.stringify({
+        errorMessage: errorValue.message || errorValue,
+        errorDetails: errorValue.stack || null
+    }));
 }

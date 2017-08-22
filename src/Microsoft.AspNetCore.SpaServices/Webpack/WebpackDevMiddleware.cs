@@ -4,6 +4,7 @@ using System.Threading;
 using Microsoft.AspNetCore.NodeServices;
 using Microsoft.AspNetCore.SpaServices.Webpack;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Microsoft.AspNetCore.Builder
 {
@@ -13,6 +14,12 @@ namespace Microsoft.AspNetCore.Builder
     public static class WebpackDevMiddleware
     {
         private const string DefaultConfigFile = "webpack.config.js";
+
+        private static readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
+        {
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            TypeNameHandling = TypeNameHandling.None
+        };
 
         /// <summary>
         /// Enables Webpack dev middleware support. This hosts an instance of the Webpack compiler in memory
@@ -68,7 +75,7 @@ namespace Microsoft.AspNetCore.Builder
             // Get a filename matching the middleware Node script
             var script = EmbeddedResourceReader.Read(typeof(WebpackDevMiddleware),
                 "/Content/Node/webpack-dev-middleware.js");
-            var nodeScript = new StringAsTempFile(script); // Will be cleaned up on process exit
+            var nodeScript = new StringAsTempFile(script, nodeServicesOptions.ApplicationStoppingToken); // Will be cleaned up on process exit
 
             // Ideally, this would be relative to the application's PathBase (so it could work in virtual directories)
             // but it's not clear that such information exists during application startup, as opposed to within the context
@@ -87,7 +94,7 @@ namespace Microsoft.AspNetCore.Builder
             };
             var devServerInfo =
                 nodeServices.InvokeExportAsync<WebpackDevServerInfo>(nodeScript.FileName, "createWebpackDevServer",
-                    JsonConvert.SerializeObject(devServerOptions)).Result;
+                    JsonConvert.SerializeObject(devServerOptions, jsonSerializerSettings)).Result;
 
             // If we're talking to an older version of aspnet-webpack, it will return only a single PublicPath,
             // not an array of PublicPaths. Handle that scenario.
@@ -101,9 +108,9 @@ namespace Microsoft.AspNetCore.Builder
             // plus /__webpack_hmr is proxied with infinite timeout, because it's an EventSource (long-lived request).
             foreach (var publicPath in devServerInfo.PublicPaths)
             {
+                appBuilder.UseProxyToLocalWebpackDevMiddleware(publicPath + hmrEndpoint, devServerInfo.Port, Timeout.InfiniteTimeSpan);
                 appBuilder.UseProxyToLocalWebpackDevMiddleware(publicPath, devServerInfo.Port, TimeSpan.FromSeconds(100));
             }
-            appBuilder.UseProxyToLocalWebpackDevMiddleware(hmrEndpoint, devServerInfo.Port, Timeout.InfiniteTimeSpan);
         }
 
         private static void UseProxyToLocalWebpackDevMiddleware(this IApplicationBuilder appBuilder, string publicPath, int proxyToPort, TimeSpan requestTimeout)

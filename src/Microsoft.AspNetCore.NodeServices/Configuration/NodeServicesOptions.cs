@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading;
 using Microsoft.AspNetCore.NodeServices.HostingModels;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,13 +35,23 @@ namespace Microsoft.AspNetCore.NodeServices
             InvocationTimeoutMilliseconds = DefaultInvocationTimeoutMilliseconds;
             WatchFileExtensions = (string[])DefaultWatchFileExtensions.Clone();
 
-            // In an ASP.NET environment, we can use the IHostingEnvironment data to auto-populate a few
-            // things that you'd otherwise have to specify manually
             var hostEnv = serviceProvider.GetService<IHostingEnvironment>();
             if (hostEnv != null)
             {
+                // In an ASP.NET environment, we can use the IHostingEnvironment data to auto-populate a few
+                // things that you'd otherwise have to specify manually
                 ProjectPath = hostEnv.ContentRootPath;
                 EnvironmentVariables["NODE_ENV"] = hostEnv.IsDevelopment() ? "development" : "production"; // De-facto standard values for Node
+            }
+            else
+            {
+                ProjectPath = Directory.GetCurrentDirectory();
+            }
+
+            var applicationLifetime = serviceProvider.GetService<IApplicationLifetime>();
+            if (applicationLifetime != null)
+            {
+                ApplicationStoppingToken = applicationLifetime.ApplicationStopping;
             }
 
             // If the DI system gives us a logger, use it. Otherwise, set up a default one.
@@ -93,5 +105,10 @@ namespace Microsoft.AspNetCore.NodeServices
         /// Specifies the maximum duration, in milliseconds, that your .NET code should wait for Node.js RPC calls to return.
         /// </summary>
         public int InvocationTimeoutMilliseconds { get; set; }
+
+        /// <summary>
+        /// A token that indicates when the host application is stopping.
+        /// </summary>
+        public CancellationToken ApplicationStoppingToken { get; set; }
     }
 }
