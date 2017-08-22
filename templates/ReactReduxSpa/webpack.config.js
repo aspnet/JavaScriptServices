@@ -10,7 +10,13 @@ module.exports = (env) => {
     // Configuration in common to both client-side and server-side bundles
     const sharedConfig = () => ({
         stats: { modules: false },
-        resolve: { extensions: ['.js', '.jsx', '.ts', '.tsx'] },
+        resolve: { 
+            extensions: ['.js', '.jsx', '.ts', '.tsx'],
+            modules: [
+                path.resolve('./ClientApp'),
+                path.resolve('./node_modules')                
+            ]
+        },
         output: {
             filename: '[name].js',
             publicPath: '/dist/' // Webpack dev middleware, if enabled, handles requests for this URL prefix
