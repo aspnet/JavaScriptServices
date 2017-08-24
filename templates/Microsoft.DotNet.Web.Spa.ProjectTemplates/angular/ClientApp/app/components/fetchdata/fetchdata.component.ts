@@ -1,9 +1,18 @@
 import { Component, Inject } from '@angular/core';
 import { Http } from '@angular/http';
+import { trigger, style, transition, animate } from '@angular/animations';
 
 @Component({
     selector: 'fetchdata',
-    templateUrl: './fetchdata.component.html'
+    templateUrl: './fetchdata.component.html',
+    animations: [
+        trigger('itemAnim', [
+            transition(':enter', [
+                style({ transform: 'translateX(-100%)' }),
+                animate(350)
+            ])
+        ])
+    ]
 })
 export class FetchDataComponent {
     public forecasts: WeatherForecast[];
