@@ -1,0 +1,18 @@
+﻿<Project>
+  <Import Project="..\Directory.Build.props" />
+
+  <PropertyGroup>
+    <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageTags>aspnetcore;aspnetcoremvc;nodeservices</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="node_modules\**\*" />
+    <EmbeddedResource Include="Content\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Internal.AspNetCore.Sdk" Version="$(InternalAspNetCoreSdkVersion)" PrivateAssets="All" />
+  </ItemGroup>
+</Project>
