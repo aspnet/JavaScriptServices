@@ -1,4 +1,11 @@
-﻿<Project>
+<Project>
+  <Import Project="..\version.xml" />
+
+  <PropertyGroup>
+    <Version>$(VersionPrefix)</Version>
+    <Version Condition="'$(VersionSuffix)' != '' ">$(Version)-$(VersionSuffix)</Version>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageLineup Include="Internal.AspNetCore.Universe.Lineup" Version="2.1.0-*" />
     <PackageLineup Include="Internal.AspNetCore.Partners.Lineup" Version="2.1.0-*" />

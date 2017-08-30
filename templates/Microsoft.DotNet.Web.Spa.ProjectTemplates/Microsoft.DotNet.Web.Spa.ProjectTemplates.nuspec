@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>Microsoft.DotNet.Web.Spa.ProjectTemplates</id>
-        <version>0.0.0</version>
+        <version>$version$</version>
         <description>Single Page Application templates for ASP.NET Core</description>
         <authors>Microsoft</authors>
         <language>en-US</language>
@@ -15,7 +15,7 @@
         </packageTypes>
     </metadata>
     <files>
-        <file 
+        <file
             src="**/*"
             exclude="*/node_modules/**;*/bin/**;*/obj/**;*/.vs/**;*/.vscode/**;*/ClientApp/dist/**;*/wwwroot/dist/**"
             target="Content" />

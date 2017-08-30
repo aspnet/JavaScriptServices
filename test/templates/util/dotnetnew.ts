@@ -5,7 +5,7 @@ import * as rimraf from 'rimraf';
 import * as mkdirp from 'mkdirp';
 
 const templatePackageName = 'Microsoft.DotNet.Web.Spa.ProjectTemplates';
-const templatePackageArtifactsDir = '../templates/package-builder/artifacts';
+const templatePackageArtifactsDir = '../artifacts/build';
 
 export function generateProjectSync(targetDir: string, templateName: string) {
     installTemplatePackage(targetDir, templatePackageName, templateName);
@@ -32,7 +32,7 @@ function installTemplatePackage(targetDir: string, packageName: string, template
         executeCommand(`dotnet new --uninstall ${packageName}`, /* quiet */ true);
     } catch (ex) {
         // Either no prior version existed, or we failed to uninstall. We'll determine
-        // which it was next. 
+        // which it was next.
     }
     try {
         console.log(`Verifying that no prior version of ${packageName} is still installed...`);

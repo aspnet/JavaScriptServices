@@ -1,0 +1,20 @@
+<Project>
+
+  <Target Name="PackageTemplates" BeforeTargets="Package">
+    <ItemGroup>
+      <TemplateProjects Include="$(RepositoryRoot)templates\Microsoft.AspNetCore.SpaTemplates\Microsoft.AspNetCore.SpaTemplates.nuspec" />
+      <TemplateProjects Include="$(RepositoryRoot)templates\Microsoft.DotNet.Web.Spa.ProjectTemplates\Microsoft.DotNet.Web.Spa.ProjectTemplates.nuspec" />
+    </ItemGroup>
+
+    <PackNuSpec
+      NuspecPath="%(TemplateProjects.Identity)"
+      Properties="version=$(Version)"
+      DestinationFolder="$(BuildDir)" />
+  </Target>
+
+  <Target Name="TestTemplates" DependsOnTargets="Package" Condition=" '$(OS)' == 'Windows_NT'">
+    <Exec Command="npm install" WorkingDirectory="$(RepositoryRoot)test\"/>
+    <Exec Command="npm test" WorkingDirectory="$(RepositoryRoot)test\"/>
+  </Target>
+
+</Project>
