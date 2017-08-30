@@ -6,9 +6,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="node_modules\**\*" />
+    <EmbeddedResource Include="Content\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="$(AspNetCoreVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="$(AspNetCoreVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(JsonNetVersion)" />
   </ItemGroup>
+
+  <Target Name="PrepublishScript" BeforeTargets="PrepareForPublish" Condition=" '$(IsCrossTargetingBuild)' != 'true' ">
+    <Exec Command="npm install" />
+    <Exec Command="node node_modules/webpack/bin/webpack.js" />
+  </Target>
 
 </Project>

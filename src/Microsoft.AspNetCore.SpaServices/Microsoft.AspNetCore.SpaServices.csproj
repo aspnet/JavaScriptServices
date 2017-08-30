@@ -6,12 +6,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="node_modules\**\*" />
+    <EmbeddedResource Include="Content\**\*" />
     <ProjectReference Include="..\Microsoft.AspNetCore.NodeServices\Microsoft.AspNetCore.NodeServices.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.TagHelpers" Version="$(AspNetCoreVersion)" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="$(AspNetCoreVersion)" />
   </ItemGroup>
+
+  <Target Name="PrepublishScript" BeforeTargets="PrepareForPublish" Condition=" '$(IsCrossTargetingBuild)' != 'true' ">
+    <Exec Command="npm install" />
+    <Exec Command="node node_modules/webpack/bin/webpack.js" />
+  </Target>
 
 </Project>
