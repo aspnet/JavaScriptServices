@@ -4,7 +4,7 @@
   "description": "Integration tests for the templates in JavaScriptServices. This is not really an NPM package and will not be published.",
   "main": "index.js",
   "scripts": {
-    "test": "tsc && wdio"
+    "test": "tsc && node test.js"
   },
   "author": "Microsoft",
   "license": "Apache-2.0",
@@ -20,14 +20,17 @@
     "mkdirp": "^0.5.1",
     "portastic": "^1.0.1",
     "rimraf": "^2.5.4",
-    "selenium-standalone": "^5.9.0",
+    "selenium-standalone": "^5.11.2",
     "tree-kill": "^1.1.0",
     "typescript": "^2.1.4",
-    "webdriverio": "^4.5.0"
+    "webdriverio": "^4.5.0",
+    "which": "^1.3.0"
   },
   "devDependencies": {
     "wdio-junit-reporter": "^0.2.0",
     "wdio-mocha-framework": "^0.5.7",
-    "wdio-selenium-standalone-service": "0.0.7"
+    "wdio-selenium-standalone-service": "0.0.7",
+    "wdio-spec-reporter": "^0.1.2",
+    "wdio-teamcity-reporter": "^1.1.1"
   }
 }
