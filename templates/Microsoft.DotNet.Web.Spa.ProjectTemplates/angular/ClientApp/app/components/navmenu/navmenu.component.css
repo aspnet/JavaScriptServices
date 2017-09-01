@@ -20,7 +20,7 @@ li.link-active a:focus {
 }
 
 @media (min-width: 768px) {
-    /* On small screens, convert the nav menu to a vertical sidebar */
+    /* On large screens, convert the nav menu to a vertical sidebar */
     .main-nav {
         height: 100%;
         width: calc(25% - 20px);
