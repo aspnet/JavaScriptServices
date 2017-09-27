@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Builder
     /// </summary>
     public static class WebpackDevMiddleware
     {
-        private const string DefaultConfigFile = "webpack.config.js";
+        private const string DefaultConfigFileNoExtension = "webpack.config";
 
         private static readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
         {
@@ -87,10 +87,14 @@ namespace Microsoft.AspNetCore.Builder
                 ? options.HotModuleReplacementEndpoint
                 : "/__webpack_hmr"; // Matches webpack's built-in default
 
+            var defaultConfigFileExtension = options.UseTypeScriptConfig ? "ts" : "js";
+            var defaultConfigFile = $"{DefaultConfigFileNoExtension}.{defaultConfigFileExtension}";
+
             // Tell Node to start the server hosting webpack-dev-middleware
             var devServerOptions = new
             {
-                webpackConfigPath = Path.Combine(nodeServicesOptions.ProjectPath, options.ConfigFile ?? DefaultConfigFile),
+                webpackConfigPath = Path.Combine(nodeServicesOptions.ProjectPath, options.ConfigFile ?? defaultConfigFile),
+                useTypeScriptConfig = options.UseTypeScriptConfig,
                 suppliedOptions = options,
                 understandsMultiplePublicPaths = true,
                 hotModuleReplacementEndpointUrl = hmrEndpoint

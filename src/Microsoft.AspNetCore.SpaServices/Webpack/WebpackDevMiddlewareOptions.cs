@@ -36,9 +36,14 @@ namespace Microsoft.AspNetCore.SpaServices.Webpack
         public IDictionary<string, string> HotModuleReplacementClientOptions { get; set; } 
 
         /// <summary>
-        /// Specifies the Webpack configuration file to be used. If not set, defaults to 'webpack.config.js'.
+        /// Specifies the Webpack configuration file to be used. If not set, defaults to 'webpack.config.(js|ts) dependent upon UseTypeScriptConfig option'.
         /// </summary>
         public string ConfigFile { get; set; }
+
+        /// <summary>
+        /// Specifies the Webpack configuration is written in typescript and must be transpiled.
+        /// </summary>
+        public bool UseTypeScriptConfig { get; set; }
 
         /// <summary>
         /// The root path of your project. Webpack runs in this context.
