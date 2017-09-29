@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.NodeServices;
 using System.Threading.Tasks;
+using System;
 
 namespace Microsoft.AspNetCore.SpaServices.Prerendering
 {
@@ -17,6 +18,17 @@ namespace Microsoft.AspNetCore.SpaServices.Prerendering
         private readonly CancellationToken _applicationStoppingToken;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly INodeServices _nodeServices;
+
+        public DefaultSpaPrerenderer(
+            INodeServices nodeServices,
+            IServiceProvider serviceProvider)
+            : this(
+                nodeServices,
+                (IApplicationLifetime)serviceProvider.GetService(typeof(IApplicationLifetime)),
+                (IHostingEnvironment)serviceProvider.GetService(typeof(IHostingEnvironment)),
+                (IHttpContextAccessor)serviceProvider.GetService(typeof(IHttpContextAccessor)))
+        {
+        }
 
         public DefaultSpaPrerenderer(
             INodeServices nodeServices,

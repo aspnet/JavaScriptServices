@@ -1,18 +1,20 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 
-namespace Microsoft.AspNetCore.SpaServices.Webpack
+namespace Microsoft.AspNetCore.SpaServices.Proxy
 {
     /// <summary>
     /// Based on https://github.com/aspnet/Proxy/blob/dev/src/Microsoft.AspNetCore.Proxy/ProxyMiddleware.cs
     /// Differs in that, if the proxied request returns a 404, we pass through to the next middleware in the chain
-    /// This is useful for Webpack middleware, because it lets you fall back on prebuilt files on disk for
-    /// chunks not exposed by the current Webpack config (e.g., DLL/vendor chunks).
+    /// This is useful for Webpack/Angular CLI middleware, because it lets you fall back on prebuilt files on disk
+    /// for files not served by that middleware.
     /// </summary>
     internal class ConditionalProxyMiddleware
     {
@@ -20,14 +22,15 @@ namespace Microsoft.AspNetCore.SpaServices.Webpack
 
         private readonly HttpClient _httpClient;
         private readonly RequestDelegate _next;
-        private readonly ConditionalProxyMiddlewareOptions _options;
+        private readonly Task<ConditionalProxyMiddlewareTarget> _targetTask;
         private readonly string _pathPrefix;
         private readonly bool _pathPrefixIsRoot;
 
         public ConditionalProxyMiddleware(
             RequestDelegate next,
             string pathPrefix,
-            ConditionalProxyMiddlewareOptions options)
+            TimeSpan requestTimeout,
+            Task<ConditionalProxyMiddlewareTarget> targetTask)
         {
             if (!pathPrefix.StartsWith("/"))
             {
@@ -37,9 +40,9 @@ namespace Microsoft.AspNetCore.SpaServices.Webpack
             _next = next;
             _pathPrefix = pathPrefix;
             _pathPrefixIsRoot = string.Equals(_pathPrefix, "/", StringComparison.Ordinal);
-            _options = options;
+            _targetTask = targetTask;
             _httpClient = new HttpClient(new HttpClientHandler());
-            _httpClient.Timeout = _options.RequestTimeout;
+            _httpClient.Timeout = requestTimeout;
         }
 
         public async Task Invoke(HttpContext context)
@@ -59,6 +62,12 @@ namespace Microsoft.AspNetCore.SpaServices.Webpack
 
         private async Task<bool> PerformProxyRequest(HttpContext context)
         {
+            // We allow for the case where the target isn't known ahead of time, and want to
+            // delay proxied requests until the target becomes known. This is useful, for example,
+            // when proxying to Angular CLI middleware: we won't know what port it's listening
+            // on until it finishes starting up.
+            var target = await _targetTask;
+
             var requestMessage = new HttpRequestMessage();
 
             // Copy the request headers
@@ -70,9 +79,9 @@ namespace Microsoft.AspNetCore.SpaServices.Webpack
                 }
             }
 
-            requestMessage.Headers.Host = _options.Host + ":" + _options.Port;
+            requestMessage.Headers.Host = target.Host + ":" + target.Port;
             var uriString =
-                $"{_options.Scheme}://{_options.Host}:{_options.Port}{context.Request.Path}{context.Request.QueryString}";
+                $"{target.Scheme}://{target.Host}:{target.Port}{context.Request.Path}{context.Request.QueryString}";
             requestMessage.RequestUri = new Uri(uriString);
             requestMessage.Method = new HttpMethod(context.Request.Method);
 
