@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.NodeServices;
@@ -36,8 +37,15 @@ namespace Microsoft.AspNetCore.Builder
             // a request comes in (because we need to wait for all middleware to be configured)
             var lazyBuildOnDemandTask = new Lazy<Task>(() => buildOnDemand?.Build(spaBuilder));
 
+            // Get all the necessary context info that will be used for each prerendering call
             var appBuilder = spaBuilder.AppBuilder;
-            var prerenderer = GetPrerenderer(appBuilder.ApplicationServices);
+            var serviceProvider = appBuilder.ApplicationServices;
+            var nodeServices = GetNodeServices(serviceProvider);
+            var applicationStoppingToken = GetRequiredService<IApplicationLifetime>(serviceProvider)
+                .ApplicationStopping;
+            var applicationBasePath = GetRequiredService<IHostingEnvironment>(serviceProvider)
+                .ContentRootPath;
+            var moduleExport = new JavaScriptModuleExport(entryPoint);
 
             // Add the actual middleware that intercepts requests for the SPA default file
             // and invokes the prerendering code
@@ -71,11 +79,23 @@ namespace Microsoft.AspNetCore.Builder
                 // TODO: Add an optional "supplyCustomData" callback param so people using
                 //       UsePrerendering() can, for example, pass through cookies into the .ts code
 
-                var renderResult = await prerenderer.RenderToString(
-                    entryPoint,
-                    customDataParameter: customData);
+                var renderResult = await Prerenderer.RenderToString(
+                    applicationBasePath,
+                    nodeServices,
+                    applicationStoppingToken,
+                    moduleExport,
+                    context,
+                    customDataParameter: customData,
+                    timeoutMilliseconds: 0);
+
                 await ApplyRenderResult(context, renderResult);
             });
+        }
+
+        private static T GetRequiredService<T>(IServiceProvider serviceProvider) where T: class
+        {
+            return (T)serviceProvider.GetService(typeof(T))
+                ?? throw new Exception($"Could not resolve service of type {typeof(T).FullName} in service provider.");
         }
 
         private static async Task ApplyRenderResult(HttpContext context, RenderToStringResult renderResult)
@@ -104,15 +124,6 @@ namespace Microsoft.AspNetCore.Builder
             var defaultFileAbsoluteUrl = UriHelper.BuildAbsolute(
                 req.Scheme, req.Host, req.PathBase, spaBuilder.DefaultFilePath);
             return defaultFileAbsoluteUrl;
-        }
-
-        private static ISpaPrerenderer GetPrerenderer(IServiceProvider serviceProvider)
-        {
-            // Use the registered instance, or create a new private instance if none is registered
-            var instance = (ISpaPrerenderer)serviceProvider.GetService(typeof(ISpaPrerenderer));
-            return instance ?? new DefaultSpaPrerenderer(
-                GetNodeServices(serviceProvider),
-                serviceProvider);
         }
 
         private static INodeServices GetNodeServices(IServiceProvider serviceProvider)

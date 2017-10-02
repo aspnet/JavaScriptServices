@@ -21,17 +21,6 @@ namespace Microsoft.AspNetCore.SpaServices.Prerendering
 
         public DefaultSpaPrerenderer(
             INodeServices nodeServices,
-            IServiceProvider serviceProvider)
-            : this(
-                nodeServices,
-                (IApplicationLifetime)serviceProvider.GetService(typeof(IApplicationLifetime)),
-                (IHostingEnvironment)serviceProvider.GetService(typeof(IHostingEnvironment)),
-                (IHttpContextAccessor)serviceProvider.GetService(typeof(IHttpContextAccessor)))
-        {
-        }
-
-        public DefaultSpaPrerenderer(
-            INodeServices nodeServices,
             IApplicationLifetime applicationLifetime,
             IHostingEnvironment hostingEnvironment,
             IHttpContextAccessor httpContextAccessor)
