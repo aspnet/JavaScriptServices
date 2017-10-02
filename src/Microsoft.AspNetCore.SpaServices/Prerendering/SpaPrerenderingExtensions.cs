@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.NodeServices;
 using Microsoft.AspNetCore.SpaServices;
 using Microsoft.AspNetCore.SpaServices.Prerendering;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
 
@@ -41,9 +42,9 @@ namespace Microsoft.AspNetCore.Builder
             var appBuilder = spaBuilder.AppBuilder;
             var serviceProvider = appBuilder.ApplicationServices;
             var nodeServices = GetNodeServices(serviceProvider);
-            var applicationStoppingToken = GetRequiredService<IApplicationLifetime>(serviceProvider)
+            var applicationStoppingToken = serviceProvider.GetRequiredService<IApplicationLifetime>()
                 .ApplicationStopping;
-            var applicationBasePath = GetRequiredService<IHostingEnvironment>(serviceProvider)
+            var applicationBasePath = serviceProvider.GetRequiredService<IHostingEnvironment>()
                 .ContentRootPath;
             var moduleExport = new JavaScriptModuleExport(entryPoint);
 
@@ -90,12 +91,6 @@ namespace Microsoft.AspNetCore.Builder
 
                 await ApplyRenderResult(context, renderResult);
             });
-        }
-
-        private static T GetRequiredService<T>(IServiceProvider serviceProvider) where T: class
-        {
-            return (T)serviceProvider.GetService(typeof(T))
-                ?? throw new Exception($"Could not resolve service of type {typeof(T).FullName} in service provider.");
         }
 
         private static async Task ApplyRenderResult(HttpContext context, RenderToStringResult renderResult)
