@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.NodeServices;
+using Microsoft.AspNetCore.SpaServices;
 using Microsoft.AspNetCore.SpaServices.Prerendering;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -22,21 +23,24 @@ namespace Microsoft.AspNetCore.Builder
         /// </summary>
         /// <param name="appBuilder">The <see cref="IApplicationBuilder"/>.</param>
         /// <param name="entryPoint">The path, relative to your application root, of the JavaScript file containing prerendering logic.</param>
-        /// <param name="urlPrefix">The URL prefix from which your SPA's files are served.</param>
         /// <param name="buildOnDemand">Optional. If specified, executes the supplied <see cref="ISpaPrerendererBuilder"/> before looking for the <paramref name="entryPoint"/> file. This is only intended to be used during development.</param>
-        /// <param name="defaultPage">Optional. Specifies the URL, relative to <paramref name="urlPrefix"/>, of the default HTML page that starts up your SPA. Defaults to <c>index.html</c>.</param>
         public static void UseSpaPrerendering(
             this IApplicationBuilder appBuilder,
             string entryPoint,
-            string urlPrefix,
-            ISpaPrerendererBuilder buildOnDemand = null,
-            string defaultPage = null)
+            ISpaPrerendererBuilder buildOnDemand = null)
         {
             if (string.IsNullOrEmpty(entryPoint))
             {
                 throw new ArgumentException("Cannot be null or empty", nameof(entryPoint));
             }
 
+            var defaultPageMiddleware = SpaDefaultPageMiddleware.FindInPipeline(appBuilder);
+            if (defaultPageMiddleware == null)
+            {
+                throw new Exception($"{nameof(UseSpaPrerendering)} should be called inside the 'configure' callback of a call to {nameof(SpaApplicationBuilderExtensions.UseSpa)}.");
+            }
+
+            var urlPrefix = defaultPageMiddleware.UrlPrefix;
             if (urlPrefix == null || urlPrefix.Length < 2)
             {
                 throw new ArgumentException(
@@ -59,8 +63,6 @@ namespace Microsoft.AspNetCore.Builder
             var applicationBasePath = serviceProvider.GetRequiredService<IHostingEnvironment>()
                 .ContentRootPath;
             var moduleExport = new JavaScriptModuleExport(entryPoint);
-            var defaultPageUrl = SpaDefaultPageExtensions.GetDefaultPageUrl(
-                urlPrefix, defaultPage);
             var urlPrefixAsPathString = new PathString(urlPrefix);
 
             // Add the actual middleware that intercepts requests for the SPA default file
@@ -87,7 +89,7 @@ namespace Microsoft.AspNetCore.Builder
                 // remove this.
                 var customData = new
                 {
-                    templateUrl = GetDefaultFileAbsoluteUrl(context, defaultPageUrl)
+                    templateUrl = GetDefaultFileAbsoluteUrl(context, defaultPageMiddleware.DefaultPageUrl)
                 };
 
                 // TODO: Add an optional "supplyCustomData" callback param so people using

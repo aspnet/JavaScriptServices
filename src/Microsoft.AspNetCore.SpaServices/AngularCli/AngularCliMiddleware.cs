@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
         private readonly INodeServices _nodeServices;
         private readonly string _middlewareScriptPath;
 
-        public AngularCliMiddleware(IApplicationBuilder appBuilder, string sourcePath, string urlPrefix, string defaultPage)
+        public AngularCliMiddleware(IApplicationBuilder appBuilder, string sourcePath, SpaDefaultPageMiddleware defaultPageMiddleware)
         {
             if (string.IsNullOrEmpty(sourcePath))
             {
@@ -39,7 +39,7 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
             // Proxy the corresponding requests through ASP.NET and into the Node listener
             // Anything under /<publicpath> (e.g., /dist) is proxied as a normal HTTP request
             // with a typical timeout (100s is the default from HttpClient).
-            UseProxyToLocalAngularCliMiddleware(appBuilder, urlPrefix, defaultPage,
+            UseProxyToLocalAngularCliMiddleware(appBuilder, defaultPageMiddleware,
                 angularCliServerInfoTask, TimeSpan.FromSeconds(100));
 
             // Advertise the availability of this feature to other SPA middleware
@@ -105,7 +105,7 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
         }
 
         private static void UseProxyToLocalAngularCliMiddleware(
-            IApplicationBuilder appBuilder, string urlPrefix, string defaultPage,
+            IApplicationBuilder appBuilder, SpaDefaultPageMiddleware defaultPageMiddleware,
             Task<AngularCliServerInfo> serverInfoTask, TimeSpan requestTimeout)
         {
             // This is hardcoded to use http://localhost because:
@@ -119,8 +119,8 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
 
             // Requests outside /<urlPrefix> are proxied to the default page
             var hasRewrittenUrlMarker = new object();
-            var defaultPageUrl = SpaDefaultPageExtensions.GetDefaultPageUrl(
-                urlPrefix, defaultPage);
+            var defaultPageUrl = defaultPageMiddleware.DefaultPageUrl;
+            var urlPrefix = defaultPageMiddleware.UrlPrefix;
             var urlPrefixIsRoot = string.IsNullOrEmpty(urlPrefix) || urlPrefix == "/";
             appBuilder.Use((context, next) =>
             {

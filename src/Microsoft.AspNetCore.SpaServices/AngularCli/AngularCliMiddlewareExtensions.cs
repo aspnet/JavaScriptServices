@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Builder;
+using System;
 
 namespace Microsoft.AspNetCore.SpaServices.AngularCli
 {
@@ -19,16 +20,18 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
         /// sure not to enable the Angular CLI server.
         /// </summary>
         /// <param name="app">The <see cref="IApplicationBuilder"/>.</param>
-        /// <param name="urlPrefix">The URL prefix from which your SPA's files are served. This needs to match the <c>--deploy-url</c> option passed to Angular CLI.</param>
         /// <param name="sourcePath">The disk path, relative to the current directory, of the directory containing the SPA source files. When Angular CLI executes, this will be its working directory.</param>
-        /// <param name="defaultPage">Optional. Specifies the URL, relative to <paramref name="urlPrefix"/>, of the default HTML page that starts up your SPA. Defaults to <c>index.html</c>.</param>
         public static void UseAngularCliServer(
             this IApplicationBuilder app,
-            string urlPrefix,
-            string sourcePath,
-            string defaultPage = null)
+            string sourcePath)
         {
-            new AngularCliMiddleware(app, sourcePath, urlPrefix, defaultPage);
+            var defaultPageMiddleware = SpaDefaultPageMiddleware.FindInPipeline(app);
+            if (defaultPageMiddleware == null)
+            {
+                throw new Exception($"{nameof(UseAngularCliServer)} should be called inside the 'configue' callback of a call to {nameof(SpaApplicationBuilderExtensions.UseSpa)}.");
+            }
+
+            new AngularCliMiddleware(app, sourcePath, defaultPageMiddleware);
         }
     }
 }
