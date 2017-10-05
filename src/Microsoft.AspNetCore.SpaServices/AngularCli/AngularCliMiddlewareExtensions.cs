@@ -19,13 +19,13 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
         /// sure not to enable the Angular CLI server.
         /// </summary>
         /// <param name="app">The <see cref="IApplicationBuilder"/>.</param>
-        /// <param name="sourcePath">The disk path, relative to the current directory, of the directory containing the SPA source files. When Angular CLI executes, this will be its working directory.</param>
         /// <param name="urlPrefix">The URL prefix from which your SPA's files are served. This needs to match the <c>--deploy-url</c> option passed to Angular CLI.</param>
+        /// <param name="sourcePath">The disk path, relative to the current directory, of the directory containing the SPA source files. When Angular CLI executes, this will be its working directory.</param>
         /// <param name="defaultPage">Optional. Specifies the URL, relative to <paramref name="urlPrefix"/>, of the default HTML page that starts up your SPA. Defaults to <c>index.html</c>.</param>
         public static void UseAngularCliServer(
             this IApplicationBuilder app,
-            string sourcePath,
             string urlPrefix,
+            string sourcePath,
             string defaultPage = null)
         {
             new AngularCliMiddleware(app, sourcePath, urlPrefix, defaultPage);
