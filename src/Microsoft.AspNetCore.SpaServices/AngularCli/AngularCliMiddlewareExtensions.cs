@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.AspNetCore.Builder;
+
 namespace Microsoft.AspNetCore.SpaServices.AngularCli
 {
     /// <summary>
@@ -9,23 +11,24 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
     public static class AngularCliMiddlewareExtensions
     {
         /// <summary>
-        /// Enables Angular CLI middleware support. This hosts an instance of the Angular CLI in memory in
-        /// your application so that you can always serve up-to-date CLI-built resources without having
-        /// to run CLI server manually.
+        /// Handles requests by passing them through to an instance of the Angular CLI server.
+        /// This means you can always serve up-to-date CLI-built resources without having
+        /// to run the Angular CLI server manually.
         ///
-        /// Incoming requests that match Angular CLI-built files will be handled by returning the CLI server
-        /// output directly.
-        ///
-        /// This feature should only be used in development. For production deployments, be sure not to
-        /// enable Angular CLI middleware.
+        /// This feature should only be used in development. For production deployments, be
+        /// sure not to enable the Angular CLI server.
         /// </summary>
-        /// <param name="spaBuilder">The <see cref="ISpaBuilder"/>.</param>
-        /// <param name="sourcePath">The path, relative to the application root, of the directory containing the SPA source files.</param>
-        public static void UseAngularCliMiddleware(
-            this ISpaBuilder spaBuilder,
-            string sourcePath)
+        /// <param name="app">The <see cref="IApplicationBuilder"/>.</param>
+        /// <param name="sourcePath">The disk path, relative to the current directory, of the directory containing the SPA source files. When Angular CLI executes, this will be its working directory.</param>
+        /// <param name="urlPrefix">The URL prefix from which your SPA's files are served. This needs to match the <c>--deploy-url</c> option passed to Angular CLI.</param>
+        /// <param name="defaultPage">Optional. Specifies the URL, relative to <paramref name="urlPrefix"/>, of the default HTML page that starts up your SPA. Defaults to <c>index.html</c>.</param>
+        public static void UseAngularCliServer(
+            this IApplicationBuilder app,
+            string sourcePath,
+            string urlPrefix,
+            string defaultPage = null)
         {
-            new AngularCliMiddleware(spaBuilder, sourcePath);
+            new AngularCliMiddleware(app, sourcePath, urlPrefix, defaultPage);
         }
     }
 }

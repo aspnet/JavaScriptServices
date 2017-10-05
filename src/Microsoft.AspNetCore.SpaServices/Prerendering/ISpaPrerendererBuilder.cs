@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.AspNetCore.Builder;
 using System.Threading.Tasks;
 
 namespace Microsoft.AspNetCore.SpaServices.Prerendering
@@ -17,8 +18,8 @@ namespace Microsoft.AspNetCore.SpaServices.Prerendering
         /// exists on disk. Prerendering middleware can then execute that file in
         /// a Node environment.
         /// </summary>
-        /// <param name="spaBuilder">The <see cref="ISpaBuilder"/>.</param>
+        /// <param name="appBuilder">The <see cref="IApplicationBuilder"/>.</param>
         /// <returns>A <see cref="Task"/> representing completion of the build process.</returns>
-        Task Build(ISpaBuilder spaBuilder);
+        Task Build(IApplicationBuilder appBuilder);
     }
 }

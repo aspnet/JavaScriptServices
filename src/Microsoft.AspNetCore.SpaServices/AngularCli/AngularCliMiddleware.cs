@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using System.Threading;
 using Microsoft.AspNetCore.SpaServices.Proxy;
+using Microsoft.AspNetCore.Http;
 
 namespace Microsoft.AspNetCore.SpaServices.AngularCli
 {
@@ -16,10 +17,12 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
     {
         private const string _middlewareResourceName = "/Content/Node/angular-cli-middleware.js";
 
+        internal readonly static string AngularCliMiddlewareKey = Guid.NewGuid().ToString();
+
         private readonly INodeServices _nodeServices;
         private readonly string _middlewareScriptPath;
 
-        public AngularCliMiddleware(ISpaBuilder spaBuilder, string sourcePath)
+        public AngularCliMiddleware(IApplicationBuilder appBuilder, string sourcePath, string urlPrefix, string defaultPage)
         {
             if (string.IsNullOrEmpty(sourcePath))
             {
@@ -27,22 +30,20 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
             }
 
             // Prepare to make calls into Node
-            var appBuilder = spaBuilder.AppBuilder;
             _nodeServices = CreateNodeServicesInstance(appBuilder, sourcePath);
             _middlewareScriptPath = GetAngularCliMiddlewareScriptPath(appBuilder);
 
             // Start Angular CLI and attach to middleware pipeline
             var angularCliServerInfoTask = StartAngularCliServerAsync();
-            spaBuilder.AddStartupTask(angularCliServerInfoTask);
 
             // Proxy the corresponding requests through ASP.NET and into the Node listener
             // Anything under /<publicpath> (e.g., /dist) is proxied as a normal HTTP request
             // with a typical timeout (100s is the default from HttpClient).
-            UseProxyToLocalAngularCliMiddleware(appBuilder, spaBuilder.PublicPath,
+            UseProxyToLocalAngularCliMiddleware(appBuilder, urlPrefix, defaultPage,
                 angularCliServerInfoTask, TimeSpan.FromSeconds(100));
 
             // Advertise the availability of this feature to other SPA middleware
-            spaBuilder.Properties.Add(this, null);
+            appBuilder.Properties.Add(AngularCliMiddlewareKey, this);
         }
 
         public Task StartAngularCliBuilderAsync(string cliAppName)
@@ -64,6 +65,11 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
                 WatchFileExtensions = new string[] { }, // Don't watch anything
                 ProjectPath = Path.Combine(Directory.GetCurrentDirectory(), sourcePath),
             };
+
+            if (!Directory.Exists(nodeServicesOptions.ProjectPath))
+            {
+                throw new DirectoryNotFoundException($"Directory not found: {nodeServicesOptions.ProjectPath}");
+            }
 
             return NodeServicesFactory.CreateNodeServices(nodeServicesOptions);
         }
@@ -99,7 +105,7 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
         }
 
         private static void UseProxyToLocalAngularCliMiddleware(
-            IApplicationBuilder appBuilder, string publicPath,
+            IApplicationBuilder appBuilder, string urlPrefix, string defaultPage,
             Task<AngularCliServerInfo> serverInfoTask, TimeSpan requestTimeout)
         {
             // This is hardcoded to use http://localhost because:
@@ -110,7 +116,37 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
             var proxyOptionsTask = serverInfoTask.ContinueWith(
                 task => new ConditionalProxyMiddlewareTarget(
                     "http", "localhost", task.Result.Port.ToString()));
-            appBuilder.UseMiddleware<ConditionalProxyMiddleware>(publicPath, requestTimeout, proxyOptionsTask);
+
+            // Requests outside /<urlPrefix> are proxied to the default page
+            var hasRewrittenUrlMarker = new object();
+            var defaultPageUrl = SpaDefaultPageExtensions.GetDefaultPageUrl(
+                urlPrefix, defaultPage);
+            var urlPrefixIsRoot = string.IsNullOrEmpty(urlPrefix) || urlPrefix == "/";
+            appBuilder.Use((context, next) =>
+            {
+                if (!urlPrefixIsRoot && !context.Request.Path.StartsWithSegments(urlPrefix))
+                {
+                    context.Items[hasRewrittenUrlMarker] = context.Request.Path;
+                    context.Request.Path = defaultPageUrl;
+                }
+
+                return next();
+            });
+
+            appBuilder.UseMiddleware<ConditionalProxyMiddleware>(urlPrefix, requestTimeout, proxyOptionsTask);
+
+            // If we rewrote the path, rewrite it back. Don't want to interfere with
+            // any other middleware.
+            appBuilder.Use((context, next) =>
+            {
+                if (context.Items.ContainsKey(hasRewrittenUrlMarker))
+                {
+                    context.Request.Path = (PathString)context.Items[hasRewrittenUrlMarker];
+                    context.Items.Remove(hasRewrittenUrlMarker);
+                }
+
+                return next();
+            });
         }
 
 #pragma warning disable CS0649

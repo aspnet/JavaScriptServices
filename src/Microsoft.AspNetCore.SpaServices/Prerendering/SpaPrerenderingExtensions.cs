@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.NodeServices;
-using Microsoft.AspNetCore.SpaServices;
 using Microsoft.AspNetCore.SpaServices.Prerendering;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -19,27 +18,40 @@ namespace Microsoft.AspNetCore.Builder
     public static class SpaPrerenderingExtensions
     {
         /// <summary>
-        /// Adds middleware for server-side prerendering of a Single Page Application.
+        /// Enables server-side prerendering middleware for a Single Page Application.
         /// </summary>
-        /// <param name="spaBuilder">The <see cref="ISpaBuilder"/>.</param>
+        /// <param name="appBuilder">The <see cref="IApplicationBuilder"/>.</param>
         /// <param name="entryPoint">The path, relative to your application root, of the JavaScript file containing prerendering logic.</param>
+        /// <param name="urlPrefix">The URL prefix from which your SPA's files are served.</param>
         /// <param name="buildOnDemand">Optional. If specified, executes the supplied <see cref="ISpaPrerendererBuilder"/> before looking for the <paramref name="entryPoint"/> file. This is only intended to be used during development.</param>
-        public static void UsePrerendering(
-            this ISpaBuilder spaBuilder,
+        /// <param name="defaultPage">Optional. Specifies the URL, relative to <paramref name="urlPrefix"/>, of the default HTML page that starts up your SPA. Defaults to <c>index.html</c>.</param>
+        public static void UseSpaPrerendering(
+            this IApplicationBuilder appBuilder,
             string entryPoint,
-            ISpaPrerendererBuilder buildOnDemand = null)
+            string urlPrefix,
+            ISpaPrerendererBuilder buildOnDemand = null,
+            string defaultPage = null)
         {
             if (string.IsNullOrEmpty(entryPoint))
             {
                 throw new ArgumentException("Cannot be null or empty", nameof(entryPoint));
             }
 
+            if (urlPrefix == null || urlPrefix.Length < 2)
+            {
+                throw new ArgumentException(
+                    "If you are using server-side prerendering, the SPA's public path must be " +
+                    "set to a non-empty and non-root value. This makes it possible to identify " +
+                    "requests for the SPA's internal static resources, so the prerenderer knows " +
+                    "not to return prerendered HTML for those requests.",
+                    nameof(urlPrefix));
+            }
+
             // We only want to start one build-on-demand task, but it can't commence until
             // a request comes in (because we need to wait for all middleware to be configured)
-            var lazyBuildOnDemandTask = new Lazy<Task>(() => buildOnDemand?.Build(spaBuilder));
+            var lazyBuildOnDemandTask = new Lazy<Task>(() => buildOnDemand?.Build(appBuilder));
 
             // Get all the necessary context info that will be used for each prerendering call
-            var appBuilder = spaBuilder.AppBuilder;
             var serviceProvider = appBuilder.ApplicationServices;
             var nodeServices = GetNodeServices(serviceProvider);
             var applicationStoppingToken = serviceProvider.GetRequiredService<IApplicationLifetime>()
@@ -47,13 +59,17 @@ namespace Microsoft.AspNetCore.Builder
             var applicationBasePath = serviceProvider.GetRequiredService<IHostingEnvironment>()
                 .ContentRootPath;
             var moduleExport = new JavaScriptModuleExport(entryPoint);
+            var defaultPageUrl = SpaDefaultPageExtensions.GetDefaultPageUrl(
+                urlPrefix, defaultPage);
+            var urlPrefixAsPathString = new PathString(urlPrefix);
 
             // Add the actual middleware that intercepts requests for the SPA default file
             // and invokes the prerendering code
             appBuilder.Use(async (context, next) =>
             {
-                // Don't interfere with requests that aren't meant to render the SPA default file
-                if (!context.Items.ContainsKey(SpaExtensions.IsSpaFallbackRequestTag))
+                // Don't interfere with requests that are within the SPA's urlPrefix, because
+                // these requests are meant to serve its internal resources (.js, .css, etc.)
+                if (context.Request.Path.StartsWithSegments(urlPrefixAsPathString))
                 {
                     await next();
                     return;
@@ -66,15 +82,12 @@ namespace Microsoft.AspNetCore.Builder
                     await buildOnDemandTask;
                 }
 
-                // If we're waiting for other SPA initialization tasks, do that first.
-                await spaBuilder.StartupTasks;
-
                 // As a workaround for @angular/cli not emitting the index.html in 'server'
                 // builds, pass through a URL that can be used for obtaining it. Longer term,
                 // remove this.
                 var customData = new
                 {
-                    templateUrl = GetDefaultFileAbsoluteUrl(spaBuilder, context)
+                    templateUrl = GetDefaultFileAbsoluteUrl(context, defaultPageUrl)
                 };
 
                 // TODO: Add an optional "supplyCustomData" callback param so people using
@@ -105,7 +118,7 @@ namespace Microsoft.AspNetCore.Builder
                 // for prerendering that returns complete HTML pages
                 if (renderResult.Globals != null)
                 {
-                    throw new Exception($"{nameof(renderResult.Globals)} is not supported when prerendering via {nameof(UsePrerendering)}(). Instead, your prerendering logic should return a complete HTML page, in which you embed any information you wish to return to the client.");
+                    throw new Exception($"{nameof(renderResult.Globals)} is not supported when prerendering via {nameof(UseSpaPrerendering)}(). Instead, your prerendering logic should return a complete HTML page, in which you embed any information you wish to return to the client.");
                 }
 
                 context.Response.ContentType = "text/html";
@@ -113,11 +126,11 @@ namespace Microsoft.AspNetCore.Builder
             }
         }
 
-        private static string GetDefaultFileAbsoluteUrl(ISpaBuilder spaBuilder, HttpContext context)
+        private static string GetDefaultFileAbsoluteUrl(HttpContext context, string defaultPageUrl)
         {
             var req = context.Request;
             var defaultFileAbsoluteUrl = UriHelper.BuildAbsolute(
-                req.Scheme, req.Host, req.PathBase, spaBuilder.DefaultFilePath);
+                req.Scheme, req.Host, req.PathBase, defaultPageUrl);
             return defaultFileAbsoluteUrl;
         }
 
