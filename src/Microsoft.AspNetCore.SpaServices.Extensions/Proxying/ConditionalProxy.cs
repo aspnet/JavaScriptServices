@@ -249,8 +249,26 @@ namespace Microsoft.AspNetCore.SpaServices.Extensions.Proxy
 
             while (true)
             {
-                var result = await source.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+                // Because WebSocket.ReceiveAsync doesn't work well with CancellationToken (it doesn't
+                // actually exit when the token notifies, at least not in the 'server' case), use
+                // polling. The perf might not be ideal, but this is a dev-time feature only.
+                var resultTask = source.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+                while (true)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        return;
+                    }
 
+                    if (resultTask.IsCompleted)
+                    {
+                        break;
+                    }
+
+                    await Task.Delay(250);
+                }
+
+                var result = resultTask.Result; // We know it's completed already
                 if (result.MessageType == WebSocketMessageType.Close)
                 {
                     if (destination.State == WebSocketState.Open || destination.State == WebSocketState.CloseReceived)
