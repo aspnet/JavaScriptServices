@@ -30,11 +30,13 @@ namespace Microsoft.AspNetCore.Builder
         /// <param name="entryPoint">The path, relative to your application root, of the JavaScript file containing prerendering logic.</param>
         /// <param name="buildOnDemand">Optional. If specified, executes the supplied <see cref="ISpaPrerendererBuilder"/> before looking for the <paramref name="entryPoint"/> file. This is only intended to be used during development.</param>
         /// <param name="excludeUrls">Optional. If specified, requests within these URL paths will bypass the prerenderer.</param>
+        /// <param name="supplyData">Optional. If specified, this callback will be invoked during prerendering, allowing you to pass additional data to the prerendering entrypoint code.</param>
         public static void UseSpaPrerendering(
             this IApplicationBuilder appBuilder,
             string entryPoint,
             ISpaPrerendererBuilder buildOnDemand = null,
-            string[] excludeUrls = null)
+            string[] excludeUrls = null,
+            Action<HttpContext, IDictionary<string, object>> supplyData = null)
         {
             if (string.IsNullOrEmpty(entryPoint))
             {
@@ -107,8 +109,7 @@ namespace Microsoft.AspNetCore.Builder
                         { "originalHtml", Encoding.UTF8.GetString(outputBuffer.GetBuffer()) }
                     };
 
-                    // TODO: Add an optional "supplyCustomData" callback param so people using
-                    //       UsePrerendering() can, for example, pass through cookies into the .ts code
+                    supplyData?.Invoke(context, customData);
 
                     var (unencodedAbsoluteUrl, unencodedPathAndQuery) = GetUnencodedUrlAndPathQuery(context);
                     var renderResult = await Prerenderer.RenderToString(
