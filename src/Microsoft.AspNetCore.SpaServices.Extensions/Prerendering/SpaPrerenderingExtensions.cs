@@ -6,10 +6,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.NodeServices;
-using Microsoft.AspNetCore.SpaServices;
 using Microsoft.AspNetCore.SpaServices.Prerendering;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Net.Http.Headers;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Microsoft.AspNetCore.Builder
@@ -25,31 +29,16 @@ namespace Microsoft.AspNetCore.Builder
         /// <param name="appBuilder">The <see cref="IApplicationBuilder"/>.</param>
         /// <param name="entryPoint">The path, relative to your application root, of the JavaScript file containing prerendering logic.</param>
         /// <param name="buildOnDemand">Optional. If specified, executes the supplied <see cref="ISpaPrerendererBuilder"/> before looking for the <paramref name="entryPoint"/> file. This is only intended to be used during development.</param>
+        /// <param name="excludeUrls">Optional. If specified, requests within these URL paths will bypass the prerenderer.</param>
         public static void UseSpaPrerendering(
             this IApplicationBuilder appBuilder,
             string entryPoint,
-            ISpaPrerendererBuilder buildOnDemand = null)
+            ISpaPrerendererBuilder buildOnDemand = null,
+            string[] excludeUrls = null)
         {
             if (string.IsNullOrEmpty(entryPoint))
             {
                 throw new ArgumentException("Cannot be null or empty", nameof(entryPoint));
-            }
-
-            var defaultPageMiddleware = SpaDefaultPageMiddleware.FindInPipeline(appBuilder);
-            if (defaultPageMiddleware == null)
-            {
-                throw new Exception($"{nameof(UseSpaPrerendering)} should be called inside the 'configure' callback of a call to {nameof(SpaApplicationBuilderExtensions.UseSpa)}.");
-            }
-
-            var urlPrefix = defaultPageMiddleware.UrlPrefix;
-            if (urlPrefix == null || urlPrefix.Length < 2)
-            {
-                throw new ArgumentException(
-                    "If you are using server-side prerendering, the SPA's public path must be " +
-                    "set to a non-empty and non-root value. This makes it possible to identify " +
-                    "requests for the SPA's internal static resources, so the prerenderer knows " +
-                    "not to return prerendered HTML for those requests.",
-                    nameof(urlPrefix));
             }
 
             // We only want to start one build-on-demand task, but it can't commence until
@@ -64,52 +53,87 @@ namespace Microsoft.AspNetCore.Builder
             var applicationBasePath = serviceProvider.GetRequiredService<IHostingEnvironment>()
                 .ContentRootPath;
             var moduleExport = new JavaScriptModuleExport(entryPoint);
-            var urlPrefixAsPathString = new PathString(urlPrefix);
+            var excludePathStrings = (excludeUrls ?? Array.Empty<string>())
+                .Select(url => new PathString(url))
+                .ToArray();
 
-            // Add the actual middleware that intercepts requests for the SPA default file
-            // and invokes the prerendering code
+            // Capture the non-prerendered responses, which in production will typically only
+            // be returning the default SPA index.html page (because other resources will be
+            // served statically from disk). We will use this as a template in which to inject
+            // the prerendered output.
             appBuilder.Use(async (context, next) =>
             {
-                // Don't interfere with requests that are within the SPA's urlPrefix, because
-                // these requests are meant to serve its internal resources (.js, .css, etc.)
-                if (context.Request.Path.StartsWithSegments(urlPrefixAsPathString))
+                // If this URL is excluded, skip prerendering
+                foreach (var excludePathString in excludePathStrings)
                 {
-                    await next();
-                    return;
+                    if (context.Request.Path.StartsWithSegments(excludePathString))
+                    {
+                        await next();
+                        return;
+                    }
                 }
 
-                // If we're building on demand, do that first
-                var buildOnDemandTask = lazyBuildOnDemandTask.Value;
-                if (buildOnDemandTask != null && !buildOnDemandTask.IsCompleted)
+                // It's no good if we try to return a 304. We need to capture the actual
+                // HTML content so it can be passed as a template to the prerenderer.
+                RemoveConditionalRequestHeaders(context.Request);
+
+                using (var outputBuffer = new MemoryStream())
                 {
-                    await buildOnDemandTask;
+                    var originalResponseStream = context.Response.Body;
+                    context.Response.Body = outputBuffer;
+
+                    try
+                    {
+                        await next();
+                        outputBuffer.Seek(0, SeekOrigin.Begin);
+                    }
+                    finally
+                    {
+                        context.Response.Body = originalResponseStream;
+                    }
+
+                    // If we're building on demand, do that first
+                    var buildOnDemandTask = lazyBuildOnDemandTask.Value;
+                    if (buildOnDemandTask != null && !buildOnDemandTask.IsCompleted)
+                    {
+                        await buildOnDemandTask;
+                    }
+
+                    // Most prerendering logic will want to know about the original, unprerendered
+                    // HTML that the client would be getting otherwise. Typically this is used as
+                    // a template from which the fully prerendered page can be generated.
+                    var customData = new Dictionary<string, object>
+                    {
+                        { "originalHtml", Encoding.UTF8.GetString(outputBuffer.GetBuffer()) }
+                    };
+
+                    // TODO: Add an optional "supplyCustomData" callback param so people using
+                    //       UsePrerendering() can, for example, pass through cookies into the .ts code
+
+                    var (unencodedAbsoluteUrl, unencodedPathAndQuery) = GetUnencodedUrlAndPathQuery(context);
+                    var renderResult = await Prerenderer.RenderToString(
+                        applicationBasePath,
+                        nodeServices,
+                        applicationStoppingToken,
+                        moduleExport,
+                        unencodedAbsoluteUrl,
+                        unencodedPathAndQuery,
+                        customDataParameter: customData,
+                        timeoutMilliseconds: 0,
+                        requestPathBase: context.Request.PathBase.ToString());
+
+                    await ApplyRenderResult(context, renderResult);
                 }
-
-                // As a workaround for @angular/cli not emitting the index.html in 'server'
-                // builds, pass through a URL that can be used for obtaining it. Longer term,
-                // remove this.
-                var customData = new
-                {
-                    templateUrl = GetDefaultFileAbsoluteUrl(context, defaultPageMiddleware.DefaultPageUrl)
-                };
-
-                // TODO: Add an optional "supplyCustomData" callback param so people using
-                //       UsePrerendering() can, for example, pass through cookies into the .ts code
-
-                var (unencodedAbsoluteUrl, unencodedPathAndQuery) = GetUnencodedUrlAndPathQuery(context);
-                var renderResult = await Prerenderer.RenderToString(
-                    applicationBasePath,
-                    nodeServices,
-                    applicationStoppingToken,
-                    moduleExport,
-                    unencodedAbsoluteUrl,
-                    unencodedPathAndQuery,
-                    customDataParameter: customData,
-                    timeoutMilliseconds: 0,
-                    requestPathBase: context.Request.PathBase.ToString());
-
-                await ApplyRenderResult(context, renderResult);
             });
+        }
+
+        private static void RemoveConditionalRequestHeaders(HttpRequest request)
+        {
+            request.Headers.Remove(HeaderNames.IfMatch);
+            request.Headers.Remove(HeaderNames.IfModifiedSince);
+            request.Headers.Remove(HeaderNames.IfNoneMatch);
+            request.Headers.Remove(HeaderNames.IfUnmodifiedSince);
+            request.Headers.Remove(HeaderNames.IfRange);
         }
 
         private static (string, string) GetUnencodedUrlAndPathQuery(HttpContext httpContext)
@@ -128,6 +152,8 @@ namespace Microsoft.AspNetCore.Builder
 
         private static async Task ApplyRenderResult(HttpContext context, RenderToStringResult renderResult)
         {
+            context.Response.Clear();
+
             if (!string.IsNullOrEmpty(renderResult.RedirectUrl))
             {
                 context.Response.Redirect(renderResult.RedirectUrl);
