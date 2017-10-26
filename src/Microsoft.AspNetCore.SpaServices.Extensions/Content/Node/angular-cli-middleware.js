@@ -5,6 +5,7 @@ var childProcess = require('child_process');
 var net = require('net');
 var readline = require('readline');
 var url = require('url');
+var timeoutSeconds = 50;
 
 module.exports = {
     startAngularCliBuilder: function startAngularCliBuilder(callback, appName) {    
@@ -14,7 +15,9 @@ module.exports = {
             '--watch'
         ]);
         proc.stdout.pipe(process.stdout);
-        waitForLine(proc.stdout, /chunk/, function () { callback() });
+        waitForLine(proc.stdout, /chunk/, function () { callback() }, timeoutSeconds * 1000, function () {
+            callback('The ng build process timed out after ' + timeoutSeconds + ' seconds. Check the output log for error information.');
+        });
     },
 
     startAngularCliServer: function startAngularCliServer(callback, options) {
@@ -42,20 +45,36 @@ module.exports = {
                 callback(null, {
                     Port: parseInt(devServerUrl.port)
                 });
+            }, timeoutSeconds * 1000, function () {
+                callback('The @angular/cli service did not start within the timeout period of ' + timeoutSeconds + ' seconds. Check the output log for error information.');
             });
         });
     }
 };
 
-function waitForLine(stream, regex, callback) {
+function waitForLine(stream, regex, successCallback, timeoutMilliseconds, timeoutCallback) {
     var lineReader = readline.createInterface({ input: stream });
     var listener = function (line) {
         var matches = regex.exec(line);
         if (matches) {
             lineReader.removeListener('line', listener);
-            callback(matches);
+            if (timeoutId !== null) {
+                clearTimeout(timeoutId);
+            }
+            successCallback(matches);
         }
     };
+
+    var timeoutId = null;
+    if (timeoutMilliseconds > 0) {
+        timeoutId = setTimeout(function () {
+            lineReader.removeListener('line', listener);
+            if (timeoutCallback) {
+                timeoutCallback();
+            }
+        }, timeoutMilliseconds);
+    }
+
     lineReader.addListener('line', listener);
 }
 
