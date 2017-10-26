@@ -75,6 +75,13 @@ namespace Microsoft.AspNetCore.Builder
                     }
                 }
 
+                // If we're building on demand, do that first
+                var buildOnDemandTask = lazyBuildOnDemandTask.Value;
+                if (buildOnDemandTask != null)
+                {
+                    await buildOnDemandTask;
+                }
+
                 // It's no good if we try to return a 304. We need to capture the actual
                 // HTML content so it can be passed as a template to the prerenderer.
                 RemoveConditionalRequestHeaders(context.Request);
@@ -94,11 +101,17 @@ namespace Microsoft.AspNetCore.Builder
                         context.Response.Body = originalResponseStream;
                     }
 
-                    // If we're building on demand, do that first
-                    var buildOnDemandTask = lazyBuildOnDemandTask.Value;
-                    if (buildOnDemandTask != null && !buildOnDemandTask.IsCompleted)
+                    // If it's not a success response, we're not going to have any template HTML
+                    // to pass to the prerenderer.
+                    if (context.Response.StatusCode < 200 || context.Response.StatusCode >= 300)
                     {
-                        await buildOnDemandTask;
+                        var message = $"Prerendering failed because no HTML template could be obtained. Check that your SPA is compiling without errors. The {nameof(SpaApplicationBuilderExtensions.UseSpa)}() middleware returned a response with status code {context.Response.StatusCode}";
+                        if (outputBuffer.Length > 0)
+                        {
+                            message += " and the following content: " + Encoding.UTF8.GetString(outputBuffer.GetBuffer());
+                        }
+
+                        throw new InvalidOperationException(message);
                     }
 
                     // Most prerendering logic will want to know about the original, unprerendered
