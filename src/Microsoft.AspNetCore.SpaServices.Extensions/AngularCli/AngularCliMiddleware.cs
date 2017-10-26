@@ -3,30 +3,38 @@
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.NodeServices;
 using System;
-using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.AspNetCore.SpaServices.Extensions.Proxy;
+using Microsoft.AspNetCore.NodeServices.Npm;
+using System.Text.RegularExpressions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Console;
+using System.Net.Sockets;
+using System.Net;
+using System.Linq;
 
 namespace Microsoft.AspNetCore.SpaServices.AngularCli
 {
     internal class AngularCliMiddleware
     {
-        private const string _middlewareResourceName = "/Content/Node/angular-cli-middleware.js";
+        private const string LogCategoryName = "Microsoft.AspNetCore.SpaServices";
+        private const int TimeoutMilliseconds = 50 * 1000;
 
         internal readonly static string AngularCliMiddlewareKey = Guid.NewGuid().ToString();
 
-        private readonly INodeServices _nodeServices;
-        private readonly string _middlewareScriptPath;
+        private readonly string _sourcePath;
+        private readonly ILogger _logger;
         private readonly HttpClient _neverTimeOutHttpClient =
             ConditionalProxy.CreateHttpClientForProxy(Timeout.InfiniteTimeSpan);
 
         public AngularCliMiddleware(
             IApplicationBuilder appBuilder,
             string sourcePath,
+            string npmScriptName,
             SpaDefaultPageMiddleware defaultPageMiddleware)
         {
             if (string.IsNullOrEmpty(sourcePath))
@@ -34,12 +42,21 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
                 throw new ArgumentException("Cannot be null or empty", nameof(sourcePath));
             }
 
-            // Prepare to make calls into Node
-            _nodeServices = CreateNodeServicesInstance(appBuilder, sourcePath);
-            _middlewareScriptPath = GetAngularCliMiddlewareScriptPath(appBuilder);
+            if (string.IsNullOrEmpty(npmScriptName))
+            {
+                throw new ArgumentException("Cannot be null or empty", nameof(npmScriptName));
+            }
+
+            _sourcePath = sourcePath;
+
+            // If the DI system gives us a logger, use it. Otherwise, set up a default one.
+            var loggerFactory = appBuilder.ApplicationServices.GetService<ILoggerFactory>();
+            _logger = loggerFactory != null
+                ? loggerFactory.CreateLogger(LogCategoryName)
+                : new ConsoleLogger(LogCategoryName, null, false);
 
             // Start Angular CLI and attach to middleware pipeline
-            var angularCliServerInfoTask = StartAngularCliServerAsync();
+            var angularCliServerInfoTask = StartAngularCliServerAsync(npmScriptName);
 
             // Everything we proxy is hardcoded to target http://localhost because:
             // - the requests are always from the local machine (we're not accepting remote
@@ -55,14 +72,27 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
             // Proxy all requests into the Angular CLI server
             appBuilder.Use(async (context, next) =>
             {
-                var didProxyRequest = await ConditionalProxy.PerformProxyRequest(
-                    context, _neverTimeOutHttpClient, proxyOptionsTask, applicationStoppingToken);
-
-                // Since we are proxying everything, this is the end of the middleware pipeline.
-                // We won't call next().
-                if (!didProxyRequest)
+                try
                 {
-                    context.Response.StatusCode = 404;
+                    var didProxyRequest = await ConditionalProxy.PerformProxyRequest(
+                        context, _neverTimeOutHttpClient, proxyOptionsTask, applicationStoppingToken);
+
+                    // Since we are proxying everything, this is the end of the middleware pipeline.
+                    // We won't call next().
+                    if (!didProxyRequest)
+                    {
+                        context.Response.StatusCode = 404;
+                    }
+                }
+                catch (AggregateException)
+                {
+                    ThrowIfTaskCancelled(angularCliServerInfoTask);
+                    throw;
+                }
+                catch (TaskCanceledException)
+                {
+                    ThrowIfTaskCancelled(angularCliServerInfoTask);
+                    throw;
                 }
             });
 
@@ -70,39 +100,25 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
             appBuilder.Properties.Add(AngularCliMiddlewareKey, this);
         }
 
-        internal Task StartAngularCliBuilderAsync(string cliAppName)
+        private void ThrowIfTaskCancelled(Task task)
         {
-            return _nodeServices.InvokeExportAsync<AngularCliServerInfo>(
-                _middlewareScriptPath,
-                "startAngularCliBuilder",
-                cliAppName);
-        }
-
-        private static INodeServices CreateNodeServicesInstance(
-            IApplicationBuilder appBuilder, string sourcePath)
-        {
-            // Unlike other consumers of NodeServices, AngularCliMiddleware dosen't share Node instances, nor does it
-            // use your DI configuration. It's important for AngularCliMiddleware to have its own private Node instance
-            // because it must *not* restart when files change (it's designed to watch for changes and rebuild).
-            var nodeServicesOptions = new NodeServicesOptions(appBuilder.ApplicationServices)
+            if (task.IsCanceled)
             {
-                WatchFileExtensions = new string[] { }, // Don't watch anything
-                ProjectPath = Path.Combine(Directory.GetCurrentDirectory(), sourcePath),
-            };
-
-            if (!Directory.Exists(nodeServicesOptions.ProjectPath))
-            {
-                throw new DirectoryNotFoundException($"Directory not found: {nodeServicesOptions.ProjectPath}");
+                throw new InvalidOperationException(
+                    $"The Angular CLI process did not start listening for requests " +
+                    $"within the timeout period of {TimeoutMilliseconds / 1000} seconds. " +
+                    $"Check the log output for error information.");
             }
-
-            return NodeServicesFactory.CreateNodeServices(nodeServicesOptions);
         }
 
-        private static string GetAngularCliMiddlewareScriptPath(IApplicationBuilder appBuilder)
+        internal Task StartAngularCliBuilderAsync(string npmScriptName)
         {
-            var script = EmbeddedResourceReader.Read(typeof(AngularCliMiddleware), _middlewareResourceName);
-            var nodeScript = new StringAsTempFile(script, GetStoppingToken(appBuilder));
-            return nodeScript.FileName;
+            var npmScriptRunner = new NpmScriptRunner(
+                _sourcePath, npmScriptName, "--watch");
+            AttachToLogger(_logger, npmScriptRunner);
+
+            return npmScriptRunner.StdOut.WaitForMatch(
+                new Regex("chunk"), TimeoutMilliseconds);
         }
 
         private static CancellationToken GetStoppingToken(IApplicationBuilder appBuilder)
@@ -113,19 +129,59 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
             return ((IApplicationLifetime)applicationLifetime).ApplicationStopping;
         }
 
-        private async Task<AngularCliServerInfo> StartAngularCliServerAsync()
+        private async Task<AngularCliServerInfo> StartAngularCliServerAsync(string npmScriptName)
         {
-            // Tell Node to start the server hosting the Angular CLI
-            var angularCliServerInfo = await _nodeServices.InvokeExportAsync<AngularCliServerInfo>(
-                _middlewareScriptPath,
-                "startAngularCliServer");
+            var portNumber = FindAvailablePort();
+            _logger.LogInformation($"Starting @angular/cli on port {portNumber}...");
+
+            var npmScriptRunner = new NpmScriptRunner(
+                _sourcePath, npmScriptName, $"--port {portNumber}");
+            AttachToLogger(_logger, npmScriptRunner);
+
+            var openBrowserLine = await npmScriptRunner.StdOut.WaitForMatch(
+                new Regex("open your browser on (http\\S+)"),
+                TimeoutMilliseconds);
+            var uri = new Uri(openBrowserLine.Groups[1].Value);
+            var serverInfo = new AngularCliServerInfo { Port = uri.Port };
 
             // Even after the Angular CLI claims to be listening for requests, there's a short
             // period where it will give an error if you make a request too quickly. Give it
             // a moment to finish starting up.
             await Task.Delay(500);
 
-            return angularCliServerInfo;
+            return serverInfo;
+        }
+
+        private static void AttachToLogger(ILogger logger, NpmScriptRunner npmScriptRunner)
+        {
+            // When the NPM task emits complete lines, pass them through to the real logger
+            // But when it emits incomplete lines, assume this is progress information and
+            // hence just pass it through to StdOut regardless of logger config.
+            npmScriptRunner.CopyOutputToLogger(logger);
+
+            npmScriptRunner.StdErr.OnReceivedChunk += chunk =>
+            {
+                var containsNewline = Array.IndexOf(
+                    chunk.Array, '\n', chunk.Offset, chunk.Count) >= 0;
+                if (!containsNewline)
+                {
+                    Console.Write(chunk.Array, chunk.Offset, chunk.Count);
+                }
+            };
+        }
+
+        private static int FindAvailablePort()
+        {
+            var listener = new TcpListener(IPAddress.Loopback, 0);
+            listener.Start();
+            try
+            {
+                return ((IPEndPoint)listener.LocalEndpoint).Port;
+            }
+            finally
+            {
+                listener.Stop();
+            }
         }
 
 #pragma warning disable CS0649
