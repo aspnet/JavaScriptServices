@@ -14,15 +14,15 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
     /// </summary>
     public class AngularCliBuilder : ISpaPrerendererBuilder
     {
-        private readonly string _cliAppName;
+        private readonly string _npmScriptName;
 
         /// <summary>
         /// Constructs an instance of <see cref="AngularCliBuilder"/>.
         /// </summary>
-        /// <param name="cliAppName">The name of the application to be built. This must match an entry in your <c>.angular-cli.json</c> file.</param>
-        public AngularCliBuilder(string cliAppName)
+        /// <param name="npmScriptName">The name of the script in your package.json file that builds the server-side bundle for your Angular application.</param>
+        public AngularCliBuilder(string npmScriptName)
         {
-            _cliAppName = cliAppName;
+            _npmScriptName = npmScriptName;
         }
 
         /// <inheritdoc />
@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
                 out var angularCliMiddleware))
             {
                 return ((AngularCliMiddleware)angularCliMiddleware)
-                    .StartAngularCliBuilderAsync(_cliAppName);
+                    .StartAngularCliBuilderAsync(_npmScriptName);
             }
             else
             {

@@ -21,9 +21,11 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
         /// </summary>
         /// <param name="app">The <see cref="IApplicationBuilder"/>.</param>
         /// <param name="sourcePath">The disk path, relative to the current directory, of the directory containing the SPA source files. When Angular CLI executes, this will be its working directory.</param>
+        /// <param name="npmScriptName">The name of the script in your package.json file that launches the Angular CLI process.</param>
         public static void UseAngularCliServer(
             this IApplicationBuilder app,
-            string sourcePath)
+            string sourcePath,
+            string npmScriptName)
         {
             var defaultPageMiddleware = SpaDefaultPageMiddleware.FindInPipeline(app);
             if (defaultPageMiddleware == null)
@@ -31,7 +33,7 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
                 throw new Exception($"{nameof(UseAngularCliServer)} should be called inside the 'configue' callback of a call to {nameof(SpaApplicationBuilderExtensions.UseSpa)}.");
             }
 
-            new AngularCliMiddleware(app, sourcePath, defaultPageMiddleware);
+            new AngularCliMiddleware(app, sourcePath, npmScriptName, defaultPageMiddleware);
         }
     }
 }
