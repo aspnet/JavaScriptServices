@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using System;
@@ -7,52 +10,24 @@ namespace Microsoft.AspNetCore.SpaServices
 {
     internal class SpaDefaultPageMiddleware
     {
-        private static readonly string _propertiesKey = Guid.NewGuid().ToString();
-
-        public static SpaDefaultPageMiddleware FindInPipeline(IApplicationBuilder app)
-        {
-            return app.Properties.TryGetValue(_propertiesKey, out var instance)
-                ? (SpaDefaultPageMiddleware)instance
-                : null;
-        }
-
-        public string UrlPrefix { get; }
-        public string DefaultPageUrl { get; }
-
-        public SpaDefaultPageMiddleware(IApplicationBuilder app, string urlPrefix,
-            string defaultPage, Action configure)
+        public static void Attach(IApplicationBuilder app, ISpaOptions spaOptions)
         {
             if (app == null)
             {
                 throw new ArgumentNullException(nameof(app));
             }
 
-            UrlPrefix = urlPrefix ?? throw new ArgumentNullException(nameof(urlPrefix));
-            DefaultPageUrl = ConstructDefaultPageUrl(urlPrefix, defaultPage);
-
-            // Attach to pipeline, but invoke 'configure' to give the developer a chance
-            // to insert extra middleware before the 'default page' pipeline entries
-            RegisterSoleInstanceInPipeline(app);
-            configure?.Invoke();
-            AttachMiddlewareToPipeline(app);
-        }
-
-        private void RegisterSoleInstanceInPipeline(IApplicationBuilder app)
-        {
-            if (app.Properties.ContainsKey(_propertiesKey))
+            if (spaOptions == null)
             {
-                throw new Exception($"Only one usage of {nameof(SpaApplicationBuilderExtensions.UseSpa)} is allowed in any single branch of the middleware pipeline. This is because one instance would handle all requests.");
+                throw new ArgumentNullException(nameof(spaOptions));
             }
 
-            app.Properties[_propertiesKey] = this;
-        }
+            var defaultPageUrl = ConstructDefaultPageUrl(spaOptions.UrlPrefix, spaOptions.DefaultPage);
 
-        private void AttachMiddlewareToPipeline(IApplicationBuilder app)
-        {
             // Rewrite all requests to the default page
             app.Use((context, next) =>
             {
-                context.Request.Path = DefaultPageUrl;
+                context.Request.Path = defaultPageUrl;
                 return next();
             });
 
@@ -63,7 +38,7 @@ namespace Microsoft.AspNetCore.SpaServices
             // was not present on disk), the SPA is definitely not going to work.
             app.Use((context, next) =>
             {
-                var message = $"The SPA default page middleware could not return the default page '{DefaultPageUrl}' because it was not found on disk, and no other middleware handled the request.\n";
+                var message = $"The SPA default page middleware could not return the default page '{defaultPageUrl}' because it was not found on disk, and no other middleware handled the request.\n";
 
                 // Try to clarify the common scenario where someone runs an application in
                 // Production environment without first publishing the whole application

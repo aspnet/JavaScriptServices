@@ -265,7 +265,7 @@ namespace Microsoft.AspNetCore.SpaServices.Extensions.Proxy
                         break;
                     }
 
-                    await Task.Delay(250);
+                    await Task.Delay(100);
                 }
 
                 var result = resultTask.Result; // We know it's completed already

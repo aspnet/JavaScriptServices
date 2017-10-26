@@ -43,9 +43,8 @@ namespace Microsoft.AspNetCore.Builder
                 throw new ArgumentException("Cannot be null or empty", nameof(entryPoint));
             }
 
-            // We only want to start one build-on-demand task, but it can't commence until
-            // a request comes in (because we need to wait for all middleware to be configured)
-            var lazyBuildOnDemandTask = new Lazy<Task>(() => buildOnDemand?.Build(appBuilder));
+            // If we're building on demand, start that process now
+            var buildOnDemandTask = buildOnDemand?.Build(appBuilder);
 
             // Get all the necessary context info that will be used for each prerendering call
             var serviceProvider = appBuilder.ApplicationServices;
@@ -76,7 +75,6 @@ namespace Microsoft.AspNetCore.Builder
                 }
 
                 // If we're building on demand, do that first
-                var buildOnDemandTask = lazyBuildOnDemandTask.Value;
                 if (buildOnDemandTask != null)
                 {
                     await buildOnDemandTask;

@@ -46,8 +46,9 @@ namespace Microsoft.AspNetCore.NodeServices.Npm
             StdErr = new EventedStreamReader(process.StandardError);
         }
 
-        public void CopyOutputToLogger(ILogger logger)
+        public void AttachToLogger(ILogger logger)
         {
+            // When the NPM task emits complete lines, pass them through to the real logger
             StdOut.OnReceivedLine += line =>
             {
                 if (!string.IsNullOrWhiteSpace(line))
@@ -61,6 +62,18 @@ namespace Microsoft.AspNetCore.NodeServices.Npm
                 if (!string.IsNullOrWhiteSpace(line))
                 {
                     logger.LogError(line);
+                }
+            };
+
+            // But when it emits incomplete lines, assume this is progress information and
+            // hence just pass it through to StdOut regardless of logger config.
+            StdErr.OnReceivedChunk += chunk =>
+            {
+                var containsNewline = Array.IndexOf(
+                    chunk.Array, '\n', chunk.Offset, chunk.Count) >= 0;
+                if (!containsNewline)
+                {
+                    Console.Write(chunk.Array, chunk.Offset, chunk.Count);
                 }
             };
         }

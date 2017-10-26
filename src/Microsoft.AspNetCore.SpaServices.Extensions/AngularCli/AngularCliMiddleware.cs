@@ -15,7 +15,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Console;
 using System.Net.Sockets;
 using System.Net;
-using System.Linq;
 
 namespace Microsoft.AspNetCore.SpaServices.AngularCli
 {
@@ -23,8 +22,6 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
     {
         private const string LogCategoryName = "Microsoft.AspNetCore.SpaServices";
         private const int TimeoutMilliseconds = 50 * 1000;
-
-        internal readonly static string AngularCliMiddlewareKey = Guid.NewGuid().ToString();
 
         private readonly string _sourcePath;
         private readonly ILogger _logger;
@@ -34,8 +31,7 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
         public AngularCliMiddleware(
             IApplicationBuilder appBuilder,
             string sourcePath,
-            string npmScriptName,
-            SpaDefaultPageMiddleware defaultPageMiddleware)
+            string npmScriptName)
         {
             if (string.IsNullOrEmpty(sourcePath))
             {
@@ -48,12 +44,7 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
             }
 
             _sourcePath = sourcePath;
-
-            // If the DI system gives us a logger, use it. Otherwise, set up a default one.
-            var loggerFactory = appBuilder.ApplicationServices.GetService<ILoggerFactory>();
-            _logger = loggerFactory != null
-                ? loggerFactory.CreateLogger(LogCategoryName)
-                : new ConsoleLogger(LogCategoryName, null, false);
+            _logger = GetOrCreateLogger(appBuilder);
 
             // Start Angular CLI and attach to middleware pipeline
             var angularCliServerInfoTask = StartAngularCliServerAsync(npmScriptName);
@@ -95,9 +86,16 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
                     throw;
                 }
             });
+        }
 
-            // Advertise the availability of this feature to other SPA middleware
-            appBuilder.Properties.Add(AngularCliMiddlewareKey, this);
+        internal static ILogger GetOrCreateLogger(IApplicationBuilder appBuilder)
+        {
+            // If the DI system gives us a logger, use it. Otherwise, set up a default one.
+            var loggerFactory = appBuilder.ApplicationServices.GetService<ILoggerFactory>();
+            var logger = loggerFactory != null
+                ? loggerFactory.CreateLogger(LogCategoryName)
+                : new ConsoleLogger(LogCategoryName, null, false);
+            return logger;
         }
 
         private void ThrowIfTaskCancelled(Task task)
@@ -109,16 +107,6 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
                     $"within the timeout period of {TimeoutMilliseconds / 1000} seconds. " +
                     $"Check the log output for error information.");
             }
-        }
-
-        internal Task StartAngularCliBuilderAsync(string npmScriptName)
-        {
-            var npmScriptRunner = new NpmScriptRunner(
-                _sourcePath, npmScriptName, "--watch");
-            AttachToLogger(_logger, npmScriptRunner);
-
-            return npmScriptRunner.StdOut.WaitForMatch(
-                new Regex("chunk"), TimeoutMilliseconds);
         }
 
         private static CancellationToken GetStoppingToken(IApplicationBuilder appBuilder)
@@ -136,7 +124,7 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
 
             var npmScriptRunner = new NpmScriptRunner(
                 _sourcePath, npmScriptName, $"--port {portNumber}");
-            AttachToLogger(_logger, npmScriptRunner);
+            npmScriptRunner.AttachToLogger(_logger);
 
             var openBrowserLine = await npmScriptRunner.StdOut.WaitForMatch(
                 new Regex("open your browser on (http\\S+)"),
@@ -150,24 +138,6 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
             await Task.Delay(500);
 
             return serverInfo;
-        }
-
-        private static void AttachToLogger(ILogger logger, NpmScriptRunner npmScriptRunner)
-        {
-            // When the NPM task emits complete lines, pass them through to the real logger
-            // But when it emits incomplete lines, assume this is progress information and
-            // hence just pass it through to StdOut regardless of logger config.
-            npmScriptRunner.CopyOutputToLogger(logger);
-
-            npmScriptRunner.StdErr.OnReceivedChunk += chunk =>
-            {
-                var containsNewline = Array.IndexOf(
-                    chunk.Array, '\n', chunk.Offset, chunk.Count) >= 0;
-                if (!containsNewline)
-                {
-                    Console.Write(chunk.Array, chunk.Offset, chunk.Count);
-                }
-            };
         }
 
         private static int FindAvailablePort()
