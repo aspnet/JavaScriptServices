@@ -14,17 +14,18 @@ module.exports = {
             '--watch'
         ]);
         proc.stdout.pipe(process.stdout);
-        waitForLine(proc.stdout, /chunk/).then(function () {
-            callback();
-        });
+        waitForLine(proc.stdout, /chunk/, function () { callback() });
     },
 
     startAngularCliServer: function startAngularCliServer(callback, options) {
-        getOSAssignedPortNumber().then(function (portNumber) {
+        getOSAssignedPortNumber(function (err, portNumber) {
+            if (err) {
+                callback(err);
+                return;
+            }
+
             // Start @angular/cli dev server on private port, and pipe its output
-            // back to the ASP.NET host process.
-            // TODO: Support streaming arbitrary chunks to host process's stdout
-            // rather than just full lines, so we can see progress being logged
+            // back to the ASP.NET host process
             var devServerProc = executeAngularCli([
                 'serve',
                 '--port', portNumber.toString(),
@@ -35,7 +36,7 @@ module.exports = {
 
             // Wait until the CLI dev server is listening before letting ASP.NET start the app
             console.log('Waiting for @angular/cli service to start...');
-            waitForLine(devServerProc.stdout, /open your browser on (http\S+)/).then(function (matches) {
+            waitForLine(devServerProc.stdout, /open your browser on (http\S+)/, function (matches) {
                 var devServerUrl = url.parse(matches[1]);
                 console.log('@angular/cli service has started on internal port ' + devServerUrl.port);
                 callback(null, {
@@ -46,18 +47,16 @@ module.exports = {
     }
 };
 
-function waitForLine(stream, regex) {
-    return new Promise(function (resolve, reject) {
-        var lineReader = readline.createInterface({ input: stream });
-        var listener = function (line) {
-            var matches = regex.exec(line);
-            if (matches) {
-                lineReader.removeListener('line', listener);
-                resolve(matches);
-            }
-        };
-        lineReader.addListener('line', listener);
-    });
+function waitForLine(stream, regex, callback) {
+    var lineReader = readline.createInterface({ input: stream });
+    var listener = function (line) {
+        var matches = regex.exec(line);
+        if (matches) {
+            lineReader.removeListener('line', listener);
+            callback(matches);
+        }
+    };
+    lineReader.addListener('line', listener);
 }
 
 function executeAngularCli(args) {
@@ -67,12 +66,14 @@ function executeAngularCli(args) {
     });
 }
 
-function getOSAssignedPortNumber() {
-    return new Promise(function (resolve, reject) {
-        var server = net.createServer();
-        server.listen(0, 'localhost', function () {
+function getOSAssignedPortNumber(callback) {
+    var server = net.createServer();
+    server.listen(0, 'localhost', function (err) {
+        if (err) {
+            callback(err);
+        } else {
             var portNumber = server.address().port;
-            server.close(function () { resolve(portNumber); });
-        });
+            server.close(function () { callback(null, portNumber); });
+        }
     });
 }
