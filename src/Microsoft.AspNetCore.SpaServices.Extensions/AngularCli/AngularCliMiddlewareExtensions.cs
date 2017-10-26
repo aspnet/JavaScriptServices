@@ -20,20 +20,23 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
         /// sure not to enable the Angular CLI server.
         /// </summary>
         /// <param name="app">The <see cref="IApplicationBuilder"/>.</param>
-        /// <param name="sourcePath">The disk path, relative to the current directory, of the directory containing the SPA source files. When Angular CLI executes, this will be its working directory.</param>
-        /// <param name="npmScriptName">The name of the script in your package.json file that launches the Angular CLI process.</param>
+        /// <param name="npmScript">The name of the script in your package.json file that launches the Angular CLI process.</param>
         public static void UseAngularCliServer(
             this IApplicationBuilder app,
-            string sourcePath,
-            string npmScriptName)
+            string npmScript)
         {
-            var defaultPageMiddleware = SpaDefaultPageMiddleware.FindInPipeline(app);
-            if (defaultPageMiddleware == null)
+            var spaOptions = DefaultSpaOptions.FindInPipeline(app);
+            if (spaOptions == null)
             {
-                throw new Exception($"{nameof(UseAngularCliServer)} should be called inside the 'configue' callback of a call to {nameof(SpaApplicationBuilderExtensions.UseSpa)}.");
+                throw new InvalidOperationException($"{nameof(UseAngularCliServer)} should be called inside the 'configure' callback of a call to {nameof(SpaApplicationBuilderExtensions.UseSpa)}.");
             }
 
-            new AngularCliMiddleware(app, sourcePath, npmScriptName, defaultPageMiddleware);
+            if (string.IsNullOrEmpty(spaOptions.SourcePath))
+            {
+                throw new InvalidOperationException($"To use {nameof(UseAngularCliServer)}, you must supply a non-empty value for the {nameof(ISpaOptions.SourcePath)} property of {nameof(ISpaOptions)} when calling {nameof(SpaApplicationBuilderExtensions.UseSpa)}.");
+            }
+
+            new AngularCliMiddleware(app, spaOptions.SourcePath, npmScript);
         }
     }
 }

@@ -28,6 +28,11 @@ namespace Microsoft.AspNetCore.Builder
         /// the value should usually be <c>"dist"</c>, because that is the URL prefix
         /// from which browsers can request those files.
         /// </param>
+        /// <param name="sourcePath">
+        /// Optional. If specified, configures the path (relative to the application working
+        /// directory) of the directory that holds the SPA source files during development.
+        /// The directory need not exist once the application is published.
+        /// </param>
         /// <param name="defaultPage">
         /// Optional. If specified, configures the path (relative to <paramref name="urlPrefix"/>)
         /// of the default page that hosts your SPA user interface.
@@ -40,10 +45,18 @@ namespace Microsoft.AspNetCore.Builder
         public static void UseSpa(
             this IApplicationBuilder app,
             string urlPrefix,
+            string sourcePath = null,
             string defaultPage = null,
-            Action configure = null)
+            Action<ISpaOptions> configure = null)
         {
-            new SpaDefaultPageMiddleware(app, urlPrefix, defaultPage, configure);
+            var spaOptions = new DefaultSpaOptions(sourcePath, urlPrefix);
+            spaOptions.RegisterSoleInstanceInPipeline(app);
+
+            // Invoke 'configure' to give the developer a chance to insert extra
+            // middleware before the 'default page' pipeline entries
+            configure?.Invoke(spaOptions);
+
+            SpaDefaultPageMiddleware.Attach(app, spaOptions);
         }
     }
 }
