@@ -4,7 +4,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using System;
-using System.Net.Http;
 using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.AspNetCore.SpaServices.Extensions.Proxy;
@@ -20,17 +19,12 @@ using Microsoft.AspNetCore.NodeServices.Util;
 
 namespace Microsoft.AspNetCore.SpaServices.AngularCli
 {
-    internal class AngularCliMiddleware
+    internal static class AngularCliMiddleware
     {
         private const string LogCategoryName = "Microsoft.AspNetCore.SpaServices";
         private const int TimeoutMilliseconds = 50 * 1000;
 
-        private readonly string _sourcePath;
-        private readonly ILogger _logger;
-        private readonly HttpClient _neverTimeOutHttpClient =
-            ConditionalProxy.CreateHttpClientForProxy(Timeout.InfiniteTimeSpan);
-
-        public AngularCliMiddleware(
+        public static void Attach(
             IApplicationBuilder appBuilder,
             string sourcePath,
             string npmScriptName)
@@ -45,11 +39,9 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
                 throw new ArgumentException("Cannot be null or empty", nameof(npmScriptName));
             }
 
-            _sourcePath = sourcePath;
-            _logger = GetOrCreateLogger(appBuilder);
-
             // Start Angular CLI and attach to middleware pipeline
-            var angularCliServerInfoTask = StartAngularCliServerAsync(npmScriptName);
+            var logger = GetOrCreateLogger(appBuilder);
+            var angularCliServerInfoTask = StartAngularCliServerAsync(sourcePath, npmScriptName, logger);
 
             // Everything we proxy is hardcoded to target http://localhost because:
             // - the requests are always from the local machine (we're not accepting remote
@@ -61,6 +53,9 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
                     "http", "localhost", task.Result.Port.ToString()));
 
             var applicationStoppingToken = GetStoppingToken(appBuilder);
+            
+            var neverTimeOutHttpClient =
+                ConditionalProxy.CreateHttpClientForProxy(Timeout.InfiniteTimeSpan);
 
             // Proxy all requests into the Angular CLI server
             appBuilder.Use(async (context, next) =>
@@ -68,7 +63,7 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
                 try
                 {
                     var didProxyRequest = await ConditionalProxy.PerformProxyRequest(
-                        context, _neverTimeOutHttpClient, proxyOptionsTask, applicationStoppingToken);
+                        context, neverTimeOutHttpClient, proxyOptionsTask, applicationStoppingToken);
 
                     // Since we are proxying everything, this is the end of the middleware pipeline.
                     // We won't call next().
@@ -100,7 +95,7 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
             return logger;
         }
 
-        private void ThrowIfTaskCancelled(Task task)
+        private static void ThrowIfTaskCancelled(Task task)
         {
             if (task.IsCanceled)
             {
@@ -119,14 +114,15 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
             return ((IApplicationLifetime)applicationLifetime).ApplicationStopping;
         }
 
-        private async Task<AngularCliServerInfo> StartAngularCliServerAsync(string npmScriptName)
+        private static async Task<AngularCliServerInfo> StartAngularCliServerAsync(
+            string sourcePath, string npmScriptName, ILogger logger)
         {
             var portNumber = FindAvailablePort();
-            _logger.LogInformation($"Starting @angular/cli on port {portNumber}...");
+            logger.LogInformation($"Starting @angular/cli on port {portNumber}...");
 
             var npmScriptRunner = new NpmScriptRunner(
-                _sourcePath, npmScriptName, $"--port {portNumber}");
-            npmScriptRunner.AttachToLogger(_logger);
+                sourcePath, npmScriptName, $"--port {portNumber}");
+            npmScriptRunner.AttachToLogger(logger);
 
             Match openBrowserLine;
             using (var stdErrReader = new EventedStreamStringReader(npmScriptRunner.StdErr))
