@@ -42,7 +42,7 @@ namespace Microsoft.AspNetCore.SpaServices.Extensions.Proxy
         public static async Task<bool> PerformProxyRequest(
             HttpContext context,
             HttpClient httpClient,
-            Task<ConditionalProxyMiddlewareTarget> targetTask,
+            Task<Uri> baseUriTask,
             CancellationToken applicationStoppingToken)
         {
             // Stop proxying if either the server or client wants to disconnect
@@ -54,13 +54,10 @@ namespace Microsoft.AspNetCore.SpaServices.Extensions.Proxy
             // delay proxied requests until the target becomes known. This is useful, for example,
             // when proxying to Angular CLI middleware: we won't know what port it's listening
             // on until it finishes starting up.
-            var target = await targetTask;
-            var targetUri = new UriBuilder(
-                target.Scheme,
-                target.Host,
-                int.Parse(target.Port),
-                context.Request.Path,
-                context.Request.QueryString.Value).Uri;
+            var baseUri = await baseUriTask;
+            var targetUri = new Uri(
+                baseUri,
+                context.Request.Path + context.Request.QueryString);
 
             try
             {
@@ -89,6 +86,15 @@ namespace Microsoft.AspNetCore.SpaServices.Extensions.Proxy
                 // This kind of exception can also occur if a proxy read/write gets interrupted
                 // due to the process shutting down.
                 return true;
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new HttpRequestException(
+                    $"Failed to proxy the request to {targetUri.ToString()}, because the request to " +
+                    $"the proxy target failed. Check that the proxy target server is running and " +
+                    $"accepting requests to {baseUri.ToString()}.\n\n" +
+                    $"The underlying exception message was '{ex.Message}'." +
+                    $"Check the InnerException for more details.", ex);
             }
         }
 

@@ -2,11 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using System;
 using System.Threading.Tasks;
-using System.Threading;
-using Microsoft.AspNetCore.SpaServices.Extensions.Proxy;
 using Microsoft.AspNetCore.NodeServices.Npm;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
@@ -48,41 +45,10 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
             //   requests that go directly to the Angular CLI middleware server)
             // - given that, there's no reason to use https, and we couldn't even if we
             //   wanted to, because in general the Angular CLI server has no certificate
-            var proxyOptionsTask = angularCliServerInfoTask.ContinueWith(
-                task => new ConditionalProxyMiddlewareTarget(
-                    "http", "localhost", task.Result.Port.ToString()));
+            var targetUriTask = angularCliServerInfoTask.ContinueWith(
+                task => new UriBuilder("http", "localhost", task.Result.Port).Uri);
 
-            var applicationStoppingToken = GetStoppingToken(appBuilder);
-            
-            var neverTimeOutHttpClient =
-                ConditionalProxy.CreateHttpClientForProxy(Timeout.InfiniteTimeSpan);
-
-            // Proxy all requests into the Angular CLI server
-            appBuilder.Use(async (context, next) =>
-            {
-                try
-                {
-                    var didProxyRequest = await ConditionalProxy.PerformProxyRequest(
-                        context, neverTimeOutHttpClient, proxyOptionsTask, applicationStoppingToken);
-
-                    // Since we are proxying everything, this is the end of the middleware pipeline.
-                    // We won't call next().
-                    if (!didProxyRequest)
-                    {
-                        context.Response.StatusCode = 404;
-                    }
-                }
-                catch (AggregateException)
-                {
-                    ThrowIfTaskCancelled(angularCliServerInfoTask);
-                    throw;
-                }
-                catch (TaskCanceledException)
-                {
-                    ThrowIfTaskCancelled(angularCliServerInfoTask);
-                    throw;
-                }
-            });
+            SpaProxyingExtensions.UseProxyToSpaDevelopmentServer(appBuilder, targetUriTask);
         }
 
         internal static ILogger GetOrCreateLogger(IApplicationBuilder appBuilder)
@@ -93,25 +59,6 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
                 ? loggerFactory.CreateLogger(LogCategoryName)
                 : new ConsoleLogger(LogCategoryName, null, false);
             return logger;
-        }
-
-        private static void ThrowIfTaskCancelled(Task task)
-        {
-            if (task.IsCanceled)
-            {
-                throw new InvalidOperationException(
-                    $"The Angular CLI process did not start listening for requests " +
-                    $"within the timeout period of {TimeoutMilliseconds / 1000} seconds. " +
-                    $"Check the log output for error information.");
-            }
-        }
-
-        private static CancellationToken GetStoppingToken(IApplicationBuilder appBuilder)
-        {
-            var applicationLifetime = appBuilder
-                .ApplicationServices
-                .GetService(typeof(IApplicationLifetime));
-            return ((IApplicationLifetime)applicationLifetime).ApplicationStopping;
         }
 
         private static async Task<AngularCliServerInfo> StartAngularCliServerAsync(
@@ -135,7 +82,17 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
                 }
                 catch (EndOfStreamException ex)
                 {
-                    throw new InvalidOperationException($"The NPM script '{npmScriptName}' exited without indicating that the Angular CLI was listening for requests. The error output was: {stdErrReader.ReadAsString()}", ex);
+                    throw new InvalidOperationException(
+                        $"The NPM script '{npmScriptName}' exited without indicating that the " +
+                        $"Angular CLI was listening for requests. The error output was: " +
+                        $"{stdErrReader.ReadAsString()}", ex);
+                }
+                catch (TaskCanceledException ex)
+                {
+                    throw new InvalidOperationException(
+                        $"The Angular CLI process did not start listening for requests " +
+                        $"within the timeout period of {TimeoutMilliseconds / 1000} seconds. " +
+                        $"Check the log output for error information.", ex);
                 }
             }
 

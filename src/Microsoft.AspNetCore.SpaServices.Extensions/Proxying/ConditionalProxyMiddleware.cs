@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.SpaServices.Extensions.Proxy
     internal class ConditionalProxyMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly Task<ConditionalProxyMiddlewareTarget> _targetTask;
+        private readonly Task<Uri> _baseUriTask;
         private readonly string _pathPrefix;
         private readonly bool _pathPrefixIsRoot;
         private readonly HttpClient _httpClient;
@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.SpaServices.Extensions.Proxy
             RequestDelegate next,
             string pathPrefix,
             TimeSpan requestTimeout,
-            Task<ConditionalProxyMiddlewareTarget> targetTask,
+            Task<Uri> baseUriTask,
             IApplicationLifetime applicationLifetime)
         {
             if (!pathPrefix.StartsWith("/"))
@@ -38,7 +38,7 @@ namespace Microsoft.AspNetCore.SpaServices.Extensions.Proxy
             _next = next;
             _pathPrefix = pathPrefix;
             _pathPrefixIsRoot = string.Equals(_pathPrefix, "/", StringComparison.Ordinal);
-            _targetTask = targetTask;
+            _baseUriTask = baseUriTask;
             _httpClient = ConditionalProxy.CreateHttpClientForProxy(requestTimeout);
             _applicationStoppingToken = applicationLifetime.ApplicationStopping;
         }
@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.SpaServices.Extensions.Proxy
             if (context.Request.Path.StartsWithSegments(_pathPrefix) || _pathPrefixIsRoot)
             {
                 var didProxyRequest = await ConditionalProxy.PerformProxyRequest(
-                    context, _httpClient, _targetTask, _applicationStoppingToken);
+                    context, _httpClient, _baseUriTask, _applicationStoppingToken);
                 if (didProxyRequest)
                 {
                     return;
