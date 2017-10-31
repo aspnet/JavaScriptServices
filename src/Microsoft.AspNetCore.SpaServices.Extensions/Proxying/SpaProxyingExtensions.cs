@@ -54,14 +54,8 @@ namespace Microsoft.AspNetCore.Builder
             applicationBuilder.Use(async (context, next) =>
             {
                 var didProxyRequest = await ConditionalProxy.PerformProxyRequest(
-                    context, neverTimeOutHttpClient, baseUriTask, applicationStoppingToken);
-
-                // Since we are proxying everything, this is the end of the middleware pipeline.
-                // We won't call next().
-                if (!didProxyRequest)
-                {
-                    context.Response.StatusCode = 404;
-                }
+                    context, neverTimeOutHttpClient, baseUriTask, applicationStoppingToken,
+                    proxy404s: true);
             });
         }
 

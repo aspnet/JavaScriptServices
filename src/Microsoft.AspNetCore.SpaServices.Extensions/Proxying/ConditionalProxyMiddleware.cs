@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.SpaServices.Extensions.Proxy
             if (context.Request.Path.StartsWithSegments(_pathPrefix) || _pathPrefixIsRoot)
             {
                 var didProxyRequest = await ConditionalProxy.PerformProxyRequest(
-                    context, _httpClient, _baseUriTask, _applicationStoppingToken);
+                    context, _httpClient, _baseUriTask, _applicationStoppingToken, proxy404s: false);
                 if (didProxyRequest)
                 {
                     return;
