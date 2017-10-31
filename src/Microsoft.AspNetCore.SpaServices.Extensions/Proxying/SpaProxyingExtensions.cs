@@ -48,12 +48,12 @@ namespace Microsoft.AspNetCore.Builder
             // server-sent event endpoints or similar, where it's expected that the response
             // takes an unlimited time and never actually completes
             var neverTimeOutHttpClient =
-                ConditionalProxy.CreateHttpClientForProxy(Timeout.InfiniteTimeSpan);
+                SpaProxy.CreateHttpClientForProxy(Timeout.InfiniteTimeSpan);
 
             // Proxy all requests into the Angular CLI server
             applicationBuilder.Use(async (context, next) =>
             {
-                var didProxyRequest = await ConditionalProxy.PerformProxyRequest(
+                var didProxyRequest = await SpaProxy.PerformProxyRequest(
                     context, neverTimeOutHttpClient, baseUriTask, applicationStoppingToken,
                     proxy404s: true);
             });
