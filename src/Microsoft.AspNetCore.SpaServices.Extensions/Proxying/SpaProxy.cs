@@ -15,9 +15,9 @@ namespace Microsoft.AspNetCore.SpaServices.Extensions.Proxy
 {
     // This duplicates and updates the proxying logic in SpaServices so that we can update
     // the project templates without waiting for 2.1 to ship. When 2.1 is ready to ship,
-    // merge the additional proxying features (e.g., proxying websocket connections) back
-    // into the SpaServices proxying code. It's all internal.
-    internal static class ConditionalProxy
+    // remove the old ConditionalProxy.cs from SpaServices and replace its usages with this.
+    // Doesn't affect public API surface - it's all internal.
+    internal static class SpaProxy
     {
         private const int DefaultWebSocketBufferSize = 4096;
         private const int StreamCopyBufferSize = 81920;
