@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
                 throw new InvalidOperationException($"To use {nameof(UseAngularCliServer)}, you must supply a non-empty value for the {nameof(ISpaOptions.SourcePath)} property of {nameof(ISpaOptions)} when calling {nameof(SpaApplicationBuilderExtensions.UseSpa)}.");
             }
 
-            new AngularCliMiddleware(app, spaOptions.SourcePath, npmScript);
+            AngularCliMiddleware.Attach(app, spaOptions.SourcePath, npmScript);
         }
     }
 }
