@@ -43,7 +43,8 @@ namespace Microsoft.AspNetCore.SpaServices.Extensions.Proxy
             HttpContext context,
             HttpClient httpClient,
             Task<Uri> baseUriTask,
-            CancellationToken applicationStoppingToken)
+            CancellationToken applicationStoppingToken,
+            bool proxy404s)
         {
             // Stop proxying if either the server or client wants to disconnect
             var proxyCancellationToken = CancellationTokenSource.CreateLinkedTokenSource(
@@ -71,7 +72,18 @@ namespace Microsoft.AspNetCore.SpaServices.Extensions.Proxy
                     using (var requestMessage = CreateProxyHttpRequest(context, targetUri))
                     using (var responseMessage = await SendProxyHttpRequest(context, httpClient, requestMessage, proxyCancellationToken))
                     {
-                        return await CopyProxyHttpResponse(context, responseMessage, proxyCancellationToken);
+                        if (!proxy404s)
+                        {
+                            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
+                            {
+                                // We're not proxying 404s, i.e., we want to resume the middleware pipeline
+                                // and let some other middleware handle this.
+                                return false;
+                            }
+                        }
+
+                        await CopyProxyHttpResponse(context, responseMessage, proxyCancellationToken);
+                        return true;
                     }
                 }
             }
@@ -139,15 +151,8 @@ namespace Microsoft.AspNetCore.SpaServices.Extensions.Proxy
             return httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         }
 
-        private static async Task<bool> CopyProxyHttpResponse(HttpContext context, HttpResponseMessage responseMessage, CancellationToken cancellationToken)
+        private static async Task CopyProxyHttpResponse(HttpContext context, HttpResponseMessage responseMessage, CancellationToken cancellationToken)
         {
-            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
-            {
-                // Let some other middleware handle this
-                return false;
-            }
-
-            // We can handle this
             context.Response.StatusCode = (int)responseMessage.StatusCode;
             foreach (var header in responseMessage.Headers)
             {
@@ -166,8 +171,6 @@ namespace Microsoft.AspNetCore.SpaServices.Extensions.Proxy
             {
                 await responseStream.CopyToAsync(context.Response.Body, StreamCopyBufferSize, cancellationToken);
             }
-
-            return true;
         }
 
         private static Uri ToWebSocketScheme(Uri uri)
