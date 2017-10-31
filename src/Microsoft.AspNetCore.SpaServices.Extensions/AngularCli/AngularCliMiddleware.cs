@@ -15,6 +15,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Console;
 using System.Net.Sockets;
 using System.Net;
+using System.IO;
+using Microsoft.AspNetCore.NodeServices.Util;
 
 namespace Microsoft.AspNetCore.SpaServices.AngularCli
 {
@@ -126,9 +128,21 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
                 _sourcePath, npmScriptName, $"--port {portNumber}");
             npmScriptRunner.AttachToLogger(_logger);
 
-            var openBrowserLine = await npmScriptRunner.StdOut.WaitForMatch(
-                new Regex("open your browser on (http\\S+)"),
-                TimeoutMilliseconds);
+            Match openBrowserLine;
+            using (var stdErrReader = new EventedStreamStringReader(npmScriptRunner.StdErr))
+            {
+                try
+                {
+                    openBrowserLine = await npmScriptRunner.StdOut.WaitForMatch(
+                        new Regex("open your browser on (http\\S+)"),
+                        TimeoutMilliseconds);
+                }
+                catch (EndOfStreamException ex)
+                {
+                    throw new InvalidOperationException($"The NPM script '{npmScriptName}' exited without indicating that the Angular CLI was listening for requests. The error output was: {stdErrReader.ReadAsString()}", ex);
+                }
+            }
+
             var uri = new Uri(openBrowserLine.Groups[1].Value);
             var serverInfo = new AngularCliServerInfo { Port = uri.Port };
 

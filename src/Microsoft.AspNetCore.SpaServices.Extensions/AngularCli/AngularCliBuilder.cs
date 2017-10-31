@@ -3,9 +3,11 @@
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.NodeServices.Npm;
+using Microsoft.AspNetCore.NodeServices.Util;
 using Microsoft.AspNetCore.SpaServices.Prerendering;
 using Microsoft.Extensions.Logging;
 using System;
+using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -58,9 +60,19 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
                 "--watch");
             npmScriptRunner.AttachToLogger(logger);
 
-            return npmScriptRunner.StdOut.WaitForMatch(
-                new Regex("chunk"),
-                TimeoutMilliseconds);
+            using (var stdErrReader = new EventedStreamStringReader(npmScriptRunner.StdErr))
+            {
+                try
+                {
+                    return npmScriptRunner.StdOut.WaitForMatch(
+                        new Regex("chunk"),
+                        TimeoutMilliseconds);
+                }
+                catch (EndOfStreamException ex)
+                {
+                    throw new InvalidOperationException($"The NPM script '{npmScriptName}' exited without indicating success. Error output was: {stdErrReader.ReadAsString()}", ex);
+                }
+            }
         }
     }
 }

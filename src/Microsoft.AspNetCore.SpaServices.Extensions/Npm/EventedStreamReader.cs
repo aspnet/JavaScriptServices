@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -11,9 +14,11 @@ namespace Microsoft.AspNetCore.NodeServices.Util
     {
         public delegate void OnReceivedChunkHandler(ArraySegment<char> chunk);
         public delegate void OnReceivedLineHandler(string line);
+        public delegate void OnStreamClosedHandler();
 
         public event OnReceivedChunkHandler OnReceivedChunk;
         public event OnReceivedLineHandler OnReceivedLine;
+        public event OnStreamClosedHandler OnStreamClosed;
 
         private readonly StreamReader _streamReader;
         private readonly StringBuilder _linesBuffer;
@@ -31,6 +36,8 @@ namespace Microsoft.AspNetCore.NodeServices.Util
             var completionLock = new object();
 
             OnReceivedLineHandler onReceivedLineHandler = null;
+            OnStreamClosedHandler onStreamClosedHandler = null;
+
             onReceivedLineHandler = line =>
             {
                 var match = regex.Match(line);
@@ -41,13 +48,28 @@ namespace Microsoft.AspNetCore.NodeServices.Util
                         if (!tcs.Task.IsCompleted)
                         {
                             OnReceivedLine -= onReceivedLineHandler;
+                            OnStreamClosed -= onStreamClosedHandler;
                             tcs.SetResult(match);
                         }
                     }
                 }
             };
 
+            onStreamClosedHandler = () =>
+            {
+                lock (completionLock)
+                {
+                    if (!tcs.Task.IsCompleted)
+                    {
+                        OnReceivedLine -= onReceivedLineHandler;
+                        OnStreamClosed -= onStreamClosedHandler;
+                        tcs.SetException(new EndOfStreamException());
+                    }
+                }
+            };
+
             OnReceivedLine += onReceivedLineHandler;
+            OnStreamClosed += onStreamClosedHandler;
 
             if (timeoutMilliseconds > 0)
             {
@@ -59,6 +81,7 @@ namespace Microsoft.AspNetCore.NodeServices.Util
                         if (!tcs.Task.IsCompleted)
                         {
                             OnReceivedLine -= onReceivedLineHandler;
+                            OnStreamClosed -= onStreamClosedHandler;
                             tcs.SetCanceled();
                         }
                     }
@@ -76,6 +99,7 @@ namespace Microsoft.AspNetCore.NodeServices.Util
                 var chunkLength = await _streamReader.ReadAsync(buf, 0, buf.Length);
                 if (chunkLength == 0)
                 {
+                    OnClosed();
                     break;
                 }
 
@@ -106,6 +130,12 @@ namespace Microsoft.AspNetCore.NodeServices.Util
         {
             var dlg = OnReceivedLine;
             dlg?.Invoke(line);
+        }
+
+        private void OnClosed()
+        {
+            var dlg = OnStreamClosed;
+            dlg?.Invoke();
         }
     }
 }
