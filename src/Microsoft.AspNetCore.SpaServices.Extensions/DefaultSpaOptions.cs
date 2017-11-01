@@ -8,7 +8,9 @@ namespace Microsoft.AspNetCore.SpaServices
 {
     internal class DefaultSpaOptions : ISpaOptions
     {
-        public string DefaultPage { get; set; } = "index.html";
+        public const string DefaultDefaultPageValue = "index.html";
+
+        public string DefaultPage { get; set; } = DefaultDefaultPageValue;
 
         public string SourcePath { get; }
 
@@ -38,7 +40,9 @@ namespace Microsoft.AspNetCore.SpaServices
         {
             if (app.Properties.ContainsKey(_propertiesKey))
             {
-                throw new Exception($"Only one usage of {nameof(SpaApplicationBuilderExtensions.UseSpa)} is allowed in any single branch of the middleware pipeline. This is because one instance would handle all requests.");
+                throw new InvalidOperationException($"Only one usage of {nameof(SpaApplicationBuilderExtensions.UseSpa)} " +
+                    $"is allowed in any single branch of the middleware pipeline. This is because one " +
+                    $"instance would handle all requests.");
             }
 
             app.Properties[_propertiesKey] = this;

@@ -28,6 +28,11 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
         /// <param name="npmScript">The name of the script in your package.json file that builds the server-side bundle for your Angular application.</param>
         public AngularCliBuilder(string npmScript)
         {
+            if (string.IsNullOrEmpty(npmScript))
+            {
+                throw new ArgumentException("Cannot be null or empty.", nameof(npmScript));
+            }
+
             _npmScriptName = npmScript;
         }
 
@@ -45,18 +50,10 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
                 throw new InvalidOperationException($"To use {nameof(AngularCliBuilder)}, you must supply a non-empty value for the {nameof(ISpaOptions.SourcePath)} property of {nameof(ISpaOptions)} when calling {nameof(SpaApplicationBuilderExtensions.UseSpa)}.");
             }
 
-            return StartAngularCliBuilderAsync(
-                _npmScriptName,
-                spaOptions.SourcePath,
-                AngularCliMiddleware.GetOrCreateLogger(app));
-        }
-
-        internal Task StartAngularCliBuilderAsync(
-            string npmScriptName, string sourcePath, ILogger logger)
-        {
+            var logger = AngularCliMiddleware.GetOrCreateLogger(app);
             var npmScriptRunner = new NpmScriptRunner(
-                sourcePath,
-                npmScriptName,
+                spaOptions.SourcePath,
+                _npmScriptName,
                 "--watch");
             npmScriptRunner.AttachToLogger(logger);
 
@@ -70,7 +67,9 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
                 }
                 catch (EndOfStreamException ex)
                 {
-                    throw new InvalidOperationException($"The NPM script '{npmScriptName}' exited without indicating success. Error output was: {stdErrReader.ReadAsString()}", ex);
+                    throw new InvalidOperationException(
+                        $"The NPM script '{_npmScriptName}' exited without indicating success. " +
+                        $"Error output was: {stdErrReader.ReadAsString()}", ex);
                 }
             }
         }

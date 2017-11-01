@@ -27,8 +27,10 @@ namespace Microsoft.AspNetCore.SpaServices
         /// the SPA files are served.
         ///
         /// For example, if your SPA files are located in <c>wwwroot/dist</c>, then
-        /// the value should usually be <c>"dist"</c>, because that is the URL prefix
+        /// the value should usually be <c>"/dist"</c>, because that is the URL prefix
         /// from which browsers can request those files.
+        /// 
+        /// The value must begin with a <code>'/'</code> character.
         /// </summary>
         string UrlPrefix { get; }
     }

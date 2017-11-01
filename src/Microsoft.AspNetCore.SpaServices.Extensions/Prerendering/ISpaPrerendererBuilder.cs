@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace Microsoft.AspNetCore.SpaServices.Prerendering
 {
     /// <summary>
-    /// Represents the ability to build a Single Page Application application on demand
+    /// Represents the ability to build a Single Page Application (SPA) on demand
     /// so that it can be prerendered. This is only intended to be used at development
-    /// time. In production, a SPA should already be built during publishing.
+    /// time. In production, a SPA should already have been built during publishing.
     /// </summary>
     public interface ISpaPrerendererBuilder
     {

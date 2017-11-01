@@ -70,7 +70,10 @@ namespace Microsoft.AspNetCore.SpaServices.Extensions.Proxy
                 else
                 {
                     using (var requestMessage = CreateProxyHttpRequest(context, targetUri))
-                    using (var responseMessage = await SendProxyHttpRequest(context, httpClient, requestMessage, proxyCancellationToken))
+                    using (var responseMessage = await httpClient.SendAsync(
+                        requestMessage,
+                        HttpCompletionOption.ResponseHeadersRead,
+                        proxyCancellationToken))
                     {
                         if (!proxy404s)
                         {
@@ -141,16 +144,6 @@ namespace Microsoft.AspNetCore.SpaServices.Extensions.Proxy
             return requestMessage;
         }
 
-        private static Task<HttpResponseMessage> SendProxyHttpRequest(HttpContext context, HttpClient httpClient, HttpRequestMessage requestMessage, CancellationToken cancellationToken)
-        {
-            if (requestMessage == null)
-            {
-                throw new ArgumentNullException(nameof(requestMessage));
-            }
-
-            return httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-        }
-
         private static async Task CopyProxyHttpResponse(HttpContext context, HttpResponseMessage responseMessage, CancellationToken cancellationToken)
         {
             context.Response.StatusCode = (int)responseMessage.StatusCode;
@@ -199,13 +192,10 @@ namespace Microsoft.AspNetCore.SpaServices.Extensions.Proxy
             {
                 throw new ArgumentNullException(nameof(context));
             }
+
             if (destinationUri == null)
             {
                 throw new ArgumentNullException(nameof(destinationUri));
-            }
-            if (!context.WebSockets.IsWebSocketRequest)
-            {
-                throw new InvalidOperationException();
             }
 
             using (var client = new ClientWebSocket())
@@ -222,11 +212,14 @@ namespace Microsoft.AspNetCore.SpaServices.Extensions.Proxy
                 {
                     // Note that this is not really good enough to make Websockets work with
                     // Angular CLI middleware. For some reason, ConnectAsync takes over 1 second,
-                    // by which time the logic in SockJS has already timed out and made it fall
-                    // back on some other transport (xhr_streaming, usually). This is not a problem,
-                    // because the transport fallback logic works correctly and doesn't surface any
-                    // errors, but it would be better if ConnectAsync was fast enough and the
-                    // initial Websocket transport could actually be used.
+                    // on Windows, by which time the logic in SockJS has already timed out and made
+                    // it fall back on some other transport (xhr_streaming, usually). It's fine
+                    // on Linux though, completing almost instantly.
+                    // 
+                    // The slowness on Windows does not cause a problem though, because the transport
+                    // fallback logic works correctly and doesn't surface any errors, but it would be
+                    // better if ConnectAsync was fast enough and the initial Websocket transport
+                    // could actually be used.
                     await client.ConnectAsync(destinationUri, cancellationToken);
                 }
                 catch (WebSocketException)

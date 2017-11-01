@@ -38,7 +38,9 @@ namespace Microsoft.AspNetCore.SpaServices
             // was not present on disk), the SPA is definitely not going to work.
             app.Use((context, next) =>
             {
-                var message = $"The SPA default page middleware could not return the default page '{defaultPageUrl}' because it was not found on disk, and no other middleware handled the request.\n";
+                var message = "The SPA default page middleware could not return the default page " +
+                    $"'{defaultPageUrl}' because it was not found on disk, and no other middleware " +
+                    "handled the request.\n";
 
                 // Try to clarify the common scenario where someone runs an application in
                 // Production environment without first publishing the whole application
@@ -46,10 +48,12 @@ namespace Microsoft.AspNetCore.SpaServices
                 var hostEnvironment = (IHostingEnvironment)context.RequestServices.GetService(typeof(IHostingEnvironment));
                 if (hostEnvironment != null && hostEnvironment.IsProduction())
                 {
-                    message += "Your application is running in Production mode, so make sure it has been published, or that you have built your SPA manually. Alternatively you may wish to switch to the Development environment.\n";
+                    message += "Your application is running in Production mode, so make sure it has " +
+                        "been published, or that you have built your SPA manually. Alternatively you " +
+                        "may wish to switch to the Development environment.\n";
                 }
 
-                throw new Exception(message);
+                throw new InvalidOperationException(message);
             });
         }
 
@@ -57,7 +61,7 @@ namespace Microsoft.AspNetCore.SpaServices
         {
             if (string.IsNullOrEmpty(defaultPage))
             {
-                defaultPage = "index.html";
+                defaultPage = DefaultSpaOptions.DefaultDefaultPageValue;
             }
 
             return new PathString(urlPrefix).Add(new PathString("/" + defaultPage));

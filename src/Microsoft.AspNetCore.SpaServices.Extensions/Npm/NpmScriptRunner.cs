@@ -1,12 +1,19 @@
-﻿using Microsoft.AspNetCore.NodeServices.Util;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.NodeServices.Util;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Microsoft.Extensions.Logging;
 
 // This is under the NodeServices namespace because post 2.1 it will be moved to that package
 namespace Microsoft.AspNetCore.NodeServices.Npm
 {
+    /// <summary>
+    /// Executes the <c>script</c> entries defined in a <c>package.json</c> file,
+    /// capturing any output written to stdio.
+    /// </summary>
     internal class NpmScriptRunner
     {
         public EventedStreamReader StdOut { get; }
@@ -28,6 +35,9 @@ namespace Microsoft.AspNetCore.NodeServices.Npm
             var completeArguments = $"run {scriptName} -- {arguments ?? string.Empty}";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
+                // On Windows, the NPM executable is a .cmd file, so it can't be executed
+                // directly (except with UseShellExecute=true, but that's no good, because
+                // it prevents capturing stdio). So we need to invoke it via "cmd /c".
                 npmExe = "cmd";
                 completeArguments = $"/c npm {completeArguments}";
             }

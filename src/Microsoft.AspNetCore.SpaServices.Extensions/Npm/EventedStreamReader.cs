@@ -10,7 +10,11 @@ using System.Threading.Tasks;
 
 namespace Microsoft.AspNetCore.NodeServices.Util
 {
-    class EventedStreamReader
+    /// <summary>
+    /// Wraps a <see cref="StreamReader"/> to expose an evented API, issuing notifications
+    /// when the stream emits partial lines, completed lines, or finally closes.
+    /// </summary>
+    internal class EventedStreamReader
     {
         public delegate void OnReceivedChunkHandler(ArraySegment<char> chunk);
         public delegate void OnReceivedLineHandler(string line);
@@ -38,24 +42,7 @@ namespace Microsoft.AspNetCore.NodeServices.Util
             OnReceivedLineHandler onReceivedLineHandler = null;
             OnStreamClosedHandler onStreamClosedHandler = null;
 
-            onReceivedLineHandler = line =>
-            {
-                var match = regex.Match(line);
-                if (match.Success)
-                {
-                    lock (completionLock)
-                    {
-                        if (!tcs.Task.IsCompleted)
-                        {
-                            OnReceivedLine -= onReceivedLineHandler;
-                            OnStreamClosed -= onStreamClosedHandler;
-                            tcs.SetResult(match);
-                        }
-                    }
-                }
-            };
-
-            onStreamClosedHandler = () =>
+            void ResolveIfStillPending(Action applyResolution)
             {
                 lock (completionLock)
                 {
@@ -63,9 +50,23 @@ namespace Microsoft.AspNetCore.NodeServices.Util
                     {
                         OnReceivedLine -= onReceivedLineHandler;
                         OnStreamClosed -= onStreamClosedHandler;
-                        tcs.SetException(new EndOfStreamException());
+                        applyResolution();
                     }
                 }
+            }
+
+            onReceivedLineHandler = line =>
+            {
+                var match = regex.Match(line);
+                if (match.Success)
+                {
+                    ResolveIfStillPending(() => tcs.SetResult(match));
+                }
+            };
+
+            onStreamClosedHandler = () =>
+            {
+                ResolveIfStillPending(() => tcs.SetException(new EndOfStreamException()));
             };
 
             OnReceivedLine += onReceivedLineHandler;
@@ -76,15 +77,7 @@ namespace Microsoft.AspNetCore.NodeServices.Util
                 var timeoutToken = new CancellationTokenSource(timeoutMilliseconds);
                 timeoutToken.Token.Register(() =>
                 {
-                    lock (completionLock)
-                    {
-                        if (!tcs.Task.IsCompleted)
-                        {
-                            OnReceivedLine -= onReceivedLineHandler;
-                            OnStreamClosed -= onStreamClosedHandler;
-                            tcs.SetCanceled();
-                        }
-                    }
+                    ResolveIfStillPending(() => tcs.SetCanceled());
                 });
             }
 

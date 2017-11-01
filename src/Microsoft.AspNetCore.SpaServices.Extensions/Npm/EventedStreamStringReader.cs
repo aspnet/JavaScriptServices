@@ -6,7 +6,11 @@ using System.Text;
 
 namespace Microsoft.AspNetCore.NodeServices.Util
 {
-    class EventedStreamStringReader : IDisposable
+    /// <summary>
+    /// Captures the completed-line notifications from a <see cref="EventedStreamReader"/>,
+    /// combining the data into a single <see cref="string"/>.
+    /// </summary>
+    internal class EventedStreamStringReader : IDisposable
     {
         private EventedStreamReader _eventedStreamReader;
         private bool _isDisposed;
@@ -17,7 +21,6 @@ namespace Microsoft.AspNetCore.NodeServices.Util
             _eventedStreamReader = eventedStreamReader
                 ?? throw new ArgumentNullException(nameof(eventedStreamReader));
             _eventedStreamReader.OnReceivedLine += OnReceivedLine;
-
         }
 
         public string ReadAsString() => _stringBuilder.ToString();

@@ -25,6 +25,11 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
             this IApplicationBuilder app,
             string npmScript)
         {
+            if (app == null)
+            {
+                throw new ArgumentNullException(nameof(app));
+            }
+
             var spaOptions = DefaultSpaOptions.FindInPipeline(app);
             if (spaOptions == null)
             {

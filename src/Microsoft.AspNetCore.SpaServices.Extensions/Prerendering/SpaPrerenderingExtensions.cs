@@ -38,12 +38,17 @@ namespace Microsoft.AspNetCore.Builder
             string[] excludeUrls = null,
             Action<HttpContext, IDictionary<string, object>> supplyData = null)
         {
+            if (applicationBuilder == null)
+            {
+                throw new ArgumentNullException(nameof(applicationBuilder));
+            }
+
             if (string.IsNullOrEmpty(entryPoint))
             {
                 throw new ArgumentException("Cannot be null or empty", nameof(entryPoint));
             }
 
-            // If we're building on demand, start that process now
+            // If we're building on demand, start that process in the background now
             var buildOnDemandTask = buildOnDemand?.Build(applicationBuilder);
 
             // Get all the necessary context info that will be used for each prerendering call
@@ -58,13 +63,12 @@ namespace Microsoft.AspNetCore.Builder
                 .Select(url => new PathString(url))
                 .ToArray();
 
-            // Capture the non-prerendered responses, which in production will typically only
-            // be returning the default SPA index.html page (because other resources will be
-            // served statically from disk). We will use this as a template in which to inject
-            // the prerendered output.
             applicationBuilder.Use(async (context, next) =>
             {
-                // If this URL is excluded, skip prerendering
+                // If this URL is excluded, skip prerendering.
+                // This is typically used to ensure that static client-side resources
+                // (e.g., /dist/*.css) are served normally or through SPA development
+                // middleware, and don't return the prerendered index.html page.
                 foreach (var excludePathString in excludePathStrings)
                 {
                     if (context.Request.Path.StartsWithSegments(excludePathString))
@@ -74,7 +78,7 @@ namespace Microsoft.AspNetCore.Builder
                     }
                 }
 
-                // If we're building on demand, do that first
+                // If we're building on demand, wait for that to finish, or raise any build errors
                 if (buildOnDemandTask != null)
                 {
                     await buildOnDemandTask;
@@ -84,6 +88,10 @@ namespace Microsoft.AspNetCore.Builder
                 // HTML content so it can be passed as a template to the prerenderer.
                 RemoveConditionalRequestHeaders(context.Request);
 
+                // Capture the non-prerendered responses, which in production will typically only
+                // be returning the default SPA index.html page (because other resources will be
+                // served statically from disk). We will use this as a template in which to inject
+                // the prerendered output.
                 using (var outputBuffer = new MemoryStream())
                 {
                     var originalResponseStream = context.Response.Body;
@@ -103,10 +111,14 @@ namespace Microsoft.AspNetCore.Builder
                     // to pass to the prerenderer.
                     if (context.Response.StatusCode < 200 || context.Response.StatusCode >= 300)
                     {
-                        var message = $"Prerendering failed because no HTML template could be obtained. Check that your SPA is compiling without errors. The {nameof(SpaApplicationBuilderExtensions.UseSpa)}() middleware returned a response with status code {context.Response.StatusCode}";
+                        var message = $"Prerendering failed because no HTML template could be obtained. " +
+                            $"Check that your SPA is compiling without errors. " +
+                            $"The {nameof(SpaApplicationBuilderExtensions.UseSpa)}() middleware returned " +
+                            $"a response with status code {context.Response.StatusCode}.";
                         if (outputBuffer.Length > 0)
                         {
-                            message += " and the following content: " + Encoding.UTF8.GetString(outputBuffer.GetBuffer());
+                            message += " and the following content: "
+                                + Encoding.UTF8.GetString(outputBuffer.GetBuffer());
                         }
 
                         throw new InvalidOperationException(message);
@@ -120,9 +132,12 @@ namespace Microsoft.AspNetCore.Builder
                         { "originalHtml", Encoding.UTF8.GetString(outputBuffer.GetBuffer()) }
                     };
 
+                    // If the developer wants to use custom logic to pass arbitrary data to the
+                    // prerendering JS code (e.g., to pass through cookie data), now's their chance
                     supplyData?.Invoke(context, customData);
 
-                    var (unencodedAbsoluteUrl, unencodedPathAndQuery) = GetUnencodedUrlAndPathQuery(context);
+                    var (unencodedAbsoluteUrl, unencodedPathAndQuery)
+                        = GetUnencodedUrlAndPathQuery(context);
                     var renderResult = await Prerenderer.RenderToString(
                         applicationBasePath,
                         nodeServices,
@@ -134,7 +149,7 @@ namespace Microsoft.AspNetCore.Builder
                         timeoutMilliseconds: 0,
                         requestPathBase: context.Request.PathBase.ToString());
 
-                    await ApplyRenderResult(context, renderResult);
+                    await ServePrerenderResult(context, renderResult);
                 }
             });
         }
@@ -162,7 +177,7 @@ namespace Microsoft.AspNetCore.Builder
             return (unencodedAbsoluteUrl, unencodedPathAndQuery);
         }
 
-        private static async Task ApplyRenderResult(HttpContext context, RenderToStringResult renderResult)
+        private static async Task ServePrerenderResult(HttpContext context, RenderToStringResult renderResult)
         {
             context.Response.Clear();
 
@@ -176,20 +191,15 @@ namespace Microsoft.AspNetCore.Builder
                 // for prerendering that returns complete HTML pages
                 if (renderResult.Globals != null)
                 {
-                    throw new Exception($"{nameof(renderResult.Globals)} is not supported when prerendering via {nameof(UseSpaPrerendering)}(). Instead, your prerendering logic should return a complete HTML page, in which you embed any information you wish to return to the client.");
+                    throw new InvalidOperationException($"{nameof(renderResult.Globals)} is not " +
+                        $"supported when prerendering via {nameof(UseSpaPrerendering)}(). Instead, " +
+                        $"your prerendering logic should return a complete HTML page, in which you " +
+                        $"embed any information you wish to return to the client.");
                 }
 
                 context.Response.ContentType = "text/html";
                 await context.Response.WriteAsync(renderResult.Html);
             }
-        }
-
-        private static string GetDefaultFileAbsoluteUrl(HttpContext context, string defaultPageUrl)
-        {
-            var req = context.Request;
-            var defaultFileAbsoluteUrl = UriHelper.BuildAbsolute(
-                req.Scheme, req.Host, req.PathBase, defaultPageUrl);
-            return defaultFileAbsoluteUrl;
         }
 
         private static INodeServices GetNodeServices(IServiceProvider serviceProvider)
