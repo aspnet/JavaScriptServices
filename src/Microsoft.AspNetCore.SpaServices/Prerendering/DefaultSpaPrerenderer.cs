@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.NodeServices;
 using System.Threading.Tasks;
+using System;
 
 namespace Microsoft.AspNetCore.SpaServices.Prerendering
 {

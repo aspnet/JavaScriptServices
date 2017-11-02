@@ -17,6 +17,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.TagHelpers" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" />
+    <PackageReference Include="Microsoft.AspNetCore.StaticFiles" />
   </ItemGroup>
 
   <Target Name="PrepublishScript" BeforeTargets="PrepareForPublish" Condition=" '$(IsCrossTargetingBuild)' != 'true' ">

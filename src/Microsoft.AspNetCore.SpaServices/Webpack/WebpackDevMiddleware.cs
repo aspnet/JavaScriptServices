@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.NodeServices;
 using Microsoft.AspNetCore.SpaServices.Webpack;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using Microsoft.AspNetCore.SpaServices.Proxy;
+using System.Threading.Tasks;
 
 namespace Microsoft.AspNetCore.Builder
 {
@@ -128,9 +130,12 @@ namespace Microsoft.AspNetCore.Builder
             // because the HMR service has no need for HTTPS (the client doesn't see it directly - all traffic
             // to it is proxied), and the HMR service couldn't use HTTPS anyway (in general it wouldn't have
             // the necessary certificate).
-            var proxyOptions = new ConditionalProxyMiddlewareOptions(
-                "http", "localhost", proxyToPort.ToString(), requestTimeout);
-            appBuilder.UseMiddleware<ConditionalProxyMiddleware>(publicPath, proxyOptions);
+            var target = new ConditionalProxyMiddlewareTarget(
+                "http", "localhost", proxyToPort.ToString());
+            appBuilder.UseMiddleware<ConditionalProxyMiddleware>(
+                publicPath,
+                requestTimeout,
+                Task.FromResult(target));
         }
 
 #pragma warning disable CS0649
