@@ -22,10 +22,10 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
         private const int TimeoutMilliseconds = 50 * 1000;
 
         public static void Attach(
-            IApplicationBuilder appBuilder,
-            string sourcePath,
+            ISpaBuilder spaBuilder,
             string npmScriptName)
         {
+            var sourcePath = spaBuilder.Options.SourcePath;
             if (string.IsNullOrEmpty(sourcePath))
             {
                 throw new ArgumentException("Cannot be null or empty", nameof(sourcePath));
@@ -37,6 +37,7 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
             }
 
             // Start Angular CLI and attach to middleware pipeline
+            var appBuilder = spaBuilder.ApplicationBuilder;
             var logger = GetOrCreateLogger(appBuilder);
             var angularCliServerInfoTask = StartAngularCliServerAsync(sourcePath, npmScriptName, logger);
 
@@ -48,7 +49,7 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
             var targetUriTask = angularCliServerInfoTask.ContinueWith(
                 task => new UriBuilder("http", "localhost", task.Result.Port).Uri);
 
-            SpaProxyingExtensions.UseProxyToSpaDevelopmentServer(appBuilder, targetUriTask);
+            SpaProxyingExtensions.UseProxyToSpaDevelopmentServer(spaBuilder, targetUriTask);
         }
 
         internal static ILogger GetOrCreateLogger(IApplicationBuilder appBuilder)

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.SpaServices;
 using Microsoft.AspNetCore.SpaServices.Extensions.Proxy;
 using System;
 using System.Threading;
@@ -20,14 +21,14 @@ namespace Microsoft.AspNetCore.Builder
         /// Application (SPA) development server. This is only intended to be used during
         /// development. Do not enable this middleware in production applications.
         /// </summary>
-        /// <param name="applicationBuilder">The <see cref="IApplicationBuilder"/>.</param>
+        /// <param name="spaBuilder">The <see cref="ISpaBuilder"/>.</param>
         /// <param name="baseUri">The target base URI to which requests should be proxied.</param>
         public static void UseProxyToSpaDevelopmentServer(
-            this IApplicationBuilder applicationBuilder,
+            this ISpaBuilder spaBuilder,
             Uri baseUri)
         {
             UseProxyToSpaDevelopmentServer(
-                applicationBuilder,
+                spaBuilder,
                 Task.FromResult(baseUri));
         }
 
@@ -36,12 +37,13 @@ namespace Microsoft.AspNetCore.Builder
         /// Application (SPA) development server. This is only intended to be used during
         /// development. Do not enable this middleware in production applications.
         /// </summary>
-        /// <param name="applicationBuilder">The <see cref="IApplicationBuilder"/>.</param>
+        /// <param name="spaBuilder">The <see cref="ISpaBuilder"/>.</param>
         /// <param name="baseUriTask">A <see cref="Task"/> that resolves with the target base URI to which requests should be proxied.</param>
         public static void UseProxyToSpaDevelopmentServer(
-            this IApplicationBuilder applicationBuilder,
+            this ISpaBuilder spaBuilder,
             Task<Uri> baseUriTask)
         {
+            var applicationBuilder = spaBuilder.ApplicationBuilder;
             var applicationStoppingToken = GetStoppingToken(applicationBuilder);
 
             // It's important not to time out the requests, as some of them might be to

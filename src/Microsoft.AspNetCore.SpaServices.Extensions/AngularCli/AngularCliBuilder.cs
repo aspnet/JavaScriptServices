@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.NodeServices.Npm;
 using Microsoft.AspNetCore.NodeServices.Util;
 using Microsoft.AspNetCore.SpaServices.Prerendering;
-using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -37,22 +36,17 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
         }
 
         /// <inheritdoc />
-        public Task Build(IApplicationBuilder app)
+        public Task Build(ISpaBuilder spaBuilder)
         {
-            var spaOptions = DefaultSpaOptions.FindInPipeline(app);
-            if (spaOptions == null)
+            var sourcePath = spaBuilder.Options.SourcePath;
+            if (string.IsNullOrEmpty(sourcePath))
             {
-                throw new InvalidOperationException($"{nameof(AngularCliBuilder)} can only be used in an application configured with {nameof(SpaApplicationBuilderExtensions.UseSpa)}().");
+                throw new InvalidOperationException($"To use {nameof(AngularCliBuilder)}, you must supply a non-empty value for the {nameof(SpaOptions.SourcePath)} property of {nameof(SpaOptions)} when calling {nameof(SpaApplicationBuilderExtensions.UseSpa)}.");
             }
 
-            if (string.IsNullOrEmpty(spaOptions.SourcePath))
-            {
-                throw new InvalidOperationException($"To use {nameof(AngularCliBuilder)}, you must supply a non-empty value for the {nameof(ISpaOptions.SourcePath)} property of {nameof(ISpaOptions)} when calling {nameof(SpaApplicationBuilderExtensions.UseSpa)}.");
-            }
-
-            var logger = AngularCliMiddleware.GetOrCreateLogger(app);
+            var logger = AngularCliMiddleware.GetOrCreateLogger(spaBuilder.ApplicationBuilder);
             var npmScriptRunner = new NpmScriptRunner(
-                spaOptions.SourcePath,
+                sourcePath,
                 _npmScriptName,
                 "--watch");
             npmScriptRunner.AttachToLogger(logger);

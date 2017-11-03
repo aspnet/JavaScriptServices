@@ -19,29 +19,25 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
         /// This feature should only be used in development. For production deployments, be
         /// sure not to enable the Angular CLI server.
         /// </summary>
-        /// <param name="app">The <see cref="IApplicationBuilder"/>.</param>
+        /// <param name="spaBuilder">The <see cref="ISpaBuilder"/>.</param>
         /// <param name="npmScript">The name of the script in your package.json file that launches the Angular CLI process.</param>
         public static void UseAngularCliServer(
-            this IApplicationBuilder app,
+            this ISpaBuilder spaBuilder,
             string npmScript)
         {
-            if (app == null)
+            if (spaBuilder == null)
             {
-                throw new ArgumentNullException(nameof(app));
+                throw new ArgumentNullException(nameof(spaBuilder));
             }
 
-            var spaOptions = DefaultSpaOptions.FindInPipeline(app);
-            if (spaOptions == null)
-            {
-                throw new InvalidOperationException($"{nameof(UseAngularCliServer)} should be called inside the 'configure' callback of a call to {nameof(SpaApplicationBuilderExtensions.UseSpa)}.");
-            }
+            var spaOptions = spaBuilder.Options;
 
             if (string.IsNullOrEmpty(spaOptions.SourcePath))
             {
-                throw new InvalidOperationException($"To use {nameof(UseAngularCliServer)}, you must supply a non-empty value for the {nameof(ISpaOptions.SourcePath)} property of {nameof(ISpaOptions)} when calling {nameof(SpaApplicationBuilderExtensions.UseSpa)}.");
+                throw new InvalidOperationException($"To use {nameof(UseAngularCliServer)}, you must supply a non-empty value for the {nameof(SpaOptions.SourcePath)} property of {nameof(SpaOptions)} when calling {nameof(SpaApplicationBuilderExtensions.UseSpa)}.");
             }
 
-            AngularCliMiddleware.Attach(app, spaOptions.SourcePath, npmScript);
+            AngularCliMiddleware.Attach(spaBuilder, npmScript);
         }
     }
 }

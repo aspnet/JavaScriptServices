@@ -3,9 +3,9 @@
 
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.NodeServices;
+using Microsoft.AspNetCore.SpaServices;
 using Microsoft.AspNetCore.SpaServices.Prerendering;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
@@ -26,21 +26,21 @@ namespace Microsoft.AspNetCore.Builder
         /// <summary>
         /// Enables server-side prerendering middleware for a Single Page Application.
         /// </summary>
-        /// <param name="applicationBuilder">The <see cref="IApplicationBuilder"/>.</param>
+        /// <param name="spaBuilder">The <see cref="ISpaBuilder"/>.</param>
         /// <param name="entryPoint">The path, relative to your application root, of the JavaScript file containing prerendering logic.</param>
         /// <param name="buildOnDemand">Optional. If specified, executes the supplied <see cref="ISpaPrerendererBuilder"/> before looking for the <paramref name="entryPoint"/> file. This is only intended to be used during development.</param>
         /// <param name="excludeUrls">Optional. If specified, requests within these URL paths will bypass the prerenderer.</param>
         /// <param name="supplyData">Optional. If specified, this callback will be invoked during prerendering, allowing you to pass additional data to the prerendering entrypoint code.</param>
         public static void UseSpaPrerendering(
-            this IApplicationBuilder applicationBuilder,
+            this ISpaBuilder spaBuilder,
             string entryPoint,
             ISpaPrerendererBuilder buildOnDemand = null,
             string[] excludeUrls = null,
             Action<HttpContext, IDictionary<string, object>> supplyData = null)
         {
-            if (applicationBuilder == null)
+            if (spaBuilder == null)
             {
-                throw new ArgumentNullException(nameof(applicationBuilder));
+                throw new ArgumentNullException(nameof(spaBuilder));
             }
 
             if (string.IsNullOrEmpty(entryPoint))
@@ -49,9 +49,10 @@ namespace Microsoft.AspNetCore.Builder
             }
 
             // If we're building on demand, start that process in the background now
-            var buildOnDemandTask = buildOnDemand?.Build(applicationBuilder);
+            var buildOnDemandTask = buildOnDemand?.Build(spaBuilder);
 
             // Get all the necessary context info that will be used for each prerendering call
+            var applicationBuilder = spaBuilder.ApplicationBuilder;
             var serviceProvider = applicationBuilder.ApplicationServices;
             var nodeServices = GetNodeServices(serviceProvider);
             var applicationStoppingToken = serviceProvider.GetRequiredService<IApplicationLifetime>()

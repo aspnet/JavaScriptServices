@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Builder
         /// of the default page that hosts your SPA user interface.
         /// If not specified, the default value is <c>"index.html"</c>.
         /// </param>
-        /// <param name="configure">
+        /// <param name="configuration">
         /// Optional. If specified, this callback will be invoked so that additional middleware
         /// can be registered within the context of this SPA.
         /// </param>
@@ -49,16 +49,15 @@ namespace Microsoft.AspNetCore.Builder
             string urlPrefix,
             string sourcePath = null,
             string defaultPage = null,
-            Action<ISpaOptions> configure = null)
+            Action<ISpaBuilder> configuration = null)
         {
-            var spaOptions = new DefaultSpaOptions(sourcePath, urlPrefix);
-            spaOptions.RegisterSoleInstanceInPipeline(app);
+            var spaBuilder = new DefaultSpaBuilder(app, sourcePath, urlPrefix);
 
             // Invoke 'configure' to give the developer a chance to insert extra
             // middleware before the 'default page' pipeline entries
-            configure?.Invoke(spaOptions);
+            configuration?.Invoke(spaBuilder);
 
-            SpaDefaultPageMiddleware.Attach(app, spaOptions);
+            SpaDefaultPageMiddleware.Attach(spaBuilder);
         }
     }
 }

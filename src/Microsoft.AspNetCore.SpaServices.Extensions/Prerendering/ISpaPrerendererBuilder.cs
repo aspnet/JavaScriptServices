@@ -18,8 +18,8 @@ namespace Microsoft.AspNetCore.SpaServices.Prerendering
         /// exists on disk. Prerendering middleware can then execute that file in
         /// a Node environment.
         /// </summary>
-        /// <param name="appBuilder">The <see cref="IApplicationBuilder"/>.</param>
+        /// <param name="spaBuilder">The <see cref="ISpaBuilder"/>.</param>
         /// <returns>A <see cref="Task"/> representing completion of the build process.</returns>
-        Task Build(IApplicationBuilder appBuilder);
+        Task Build(ISpaBuilder spaBuilder);
     }
 }

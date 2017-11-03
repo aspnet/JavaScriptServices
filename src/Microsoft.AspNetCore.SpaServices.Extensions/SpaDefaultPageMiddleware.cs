@@ -10,19 +10,16 @@ namespace Microsoft.AspNetCore.SpaServices
 {
     internal class SpaDefaultPageMiddleware
     {
-        public static void Attach(IApplicationBuilder app, ISpaOptions spaOptions)
+        public static void Attach(ISpaBuilder spaBuilder)
         {
-            if (app == null)
+            if (spaBuilder == null)
             {
-                throw new ArgumentNullException(nameof(app));
+                throw new ArgumentNullException(nameof(spaBuilder));
             }
 
-            if (spaOptions == null)
-            {
-                throw new ArgumentNullException(nameof(spaOptions));
-            }
-
-            var defaultPageUrl = ConstructDefaultPageUrl(spaOptions.UrlPrefix, spaOptions.DefaultPage);
+            var app = spaBuilder.ApplicationBuilder;
+            var options = spaBuilder.Options;
+            var defaultPageUrl = ConstructDefaultPageUrl(options.UrlPrefix, options.DefaultPage);
 
             // Rewrite all requests to the default page
             app.Use((context, next) =>
@@ -61,7 +58,7 @@ namespace Microsoft.AspNetCore.SpaServices
         {
             if (string.IsNullOrEmpty(defaultPage))
             {
-                defaultPage = DefaultSpaOptions.DefaultDefaultPageValue;
+                defaultPage = SpaOptions.DefaultDefaultPageValue;
             }
 
             return new PathString(urlPrefix).Add(new PathString("/" + defaultPage));
