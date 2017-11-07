@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.SpaServices
         /// <summary>
         /// Gets or sets the URL, relative to <see cref="UrlPrefix"/>,
         /// of the default page that hosts your SPA user interface.
-        /// The typical value is <c>"index.html"</c>.
+        /// The default value is <c>"index.html"</c>.
         /// </summary>
         public string DefaultPage { get; set; } = DefaultDefaultPageValue;
 
