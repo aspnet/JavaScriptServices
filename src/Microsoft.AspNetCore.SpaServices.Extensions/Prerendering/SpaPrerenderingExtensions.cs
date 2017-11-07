@@ -28,15 +28,11 @@ namespace Microsoft.AspNetCore.Builder
         /// </summary>
         /// <param name="spaBuilder">The <see cref="ISpaBuilder"/>.</param>
         /// <param name="entryPoint">The path, relative to your application root, of the JavaScript file containing prerendering logic.</param>
-        /// <param name="buildOnDemand">Optional. If specified, executes the supplied <see cref="ISpaPrerendererBuilder"/> before looking for the <paramref name="entryPoint"/> file. This is only intended to be used during development.</param>
-        /// <param name="excludeUrls">Optional. If specified, requests within these URL paths will bypass the prerenderer.</param>
-        /// <param name="supplyData">Optional. If specified, this callback will be invoked during prerendering, allowing you to pass additional data to the prerendering entrypoint code.</param>
+        /// <param name="configuration">If specified, supplies additional options for the prerendering middleware.</param>
         public static void UseSpaPrerendering(
             this ISpaBuilder spaBuilder,
             string entryPoint,
-            ISpaPrerendererBuilder buildOnDemand = null,
-            string[] excludeUrls = null,
-            Action<HttpContext, IDictionary<string, object>> supplyData = null)
+            Action<SpaPrerenderingOptions> configuration = null)
         {
             if (spaBuilder == null)
             {
@@ -48,8 +44,11 @@ namespace Microsoft.AspNetCore.Builder
                 throw new ArgumentException("Cannot be null or empty", nameof(entryPoint));
             }
 
+            var options = new SpaPrerenderingOptions();
+            configuration?.Invoke(options);
+
             // If we're building on demand, start that process in the background now
-            var buildOnDemandTask = buildOnDemand?.Build(spaBuilder);
+            var buildOnDemandTask = options.BuildOnDemand?.Build(spaBuilder);
 
             // Get all the necessary context info that will be used for each prerendering call
             var applicationBuilder = spaBuilder.ApplicationBuilder;
@@ -60,7 +59,7 @@ namespace Microsoft.AspNetCore.Builder
             var applicationBasePath = serviceProvider.GetRequiredService<IHostingEnvironment>()
                 .ContentRootPath;
             var moduleExport = new JavaScriptModuleExport(entryPoint);
-            var excludePathStrings = (excludeUrls ?? Array.Empty<string>())
+            var excludePathStrings = (options.ExcludeUrls ?? Array.Empty<string>())
                 .Select(url => new PathString(url))
                 .ToArray();
 
@@ -135,7 +134,7 @@ namespace Microsoft.AspNetCore.Builder
 
                     // If the developer wants to use custom logic to pass arbitrary data to the
                     // prerendering JS code (e.g., to pass through cookie data), now's their chance
-                    supplyData?.Invoke(context, customData);
+                    options.SupplyData?.Invoke(context, customData);
 
                     var (unencodedAbsoluteUrl, unencodedPathAndQuery)
                         = GetUnencodedUrlAndPathQuery(context);
