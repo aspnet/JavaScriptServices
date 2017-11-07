@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Builder;
+using System;
 
 namespace Microsoft.AspNetCore.SpaServices
 {
@@ -14,7 +15,7 @@ namespace Microsoft.AspNetCore.SpaServices
         public DefaultSpaBuilder(IApplicationBuilder applicationBuilder, string sourcePath, string urlPrefix)
         {
             ApplicationBuilder = applicationBuilder 
-                ?? throw new System.ArgumentNullException(nameof(applicationBuilder));
+                ?? throw new ArgumentNullException(nameof(applicationBuilder));
 
             Options = new SpaOptions(sourcePath, urlPrefix);
         }
