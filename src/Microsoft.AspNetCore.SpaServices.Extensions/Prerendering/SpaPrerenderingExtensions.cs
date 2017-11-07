@@ -28,11 +28,11 @@ namespace Microsoft.AspNetCore.Builder
         /// </summary>
         /// <param name="spaBuilder">The <see cref="ISpaBuilder"/>.</param>
         /// <param name="entryPoint">The path, relative to your application root, of the JavaScript file containing prerendering logic.</param>
-        /// <param name="configuration">If specified, supplies additional options for the prerendering middleware.</param>
+        /// <param name="configuration">Supplies additional options for the prerendering middleware.</param>
         public static void UseSpaPrerendering(
             this ISpaBuilder spaBuilder,
             string entryPoint,
-            Action<SpaPrerenderingOptions> configuration = null)
+            Action<SpaPrerenderingOptions> configuration)
         {
             if (spaBuilder == null)
             {
@@ -44,8 +44,13 @@ namespace Microsoft.AspNetCore.Builder
                 throw new ArgumentException("Cannot be null or empty", nameof(entryPoint));
             }
 
+            if (configuration == null)
+            {
+                throw new ArgumentNullException(nameof(configuration));
+            }
+
             var options = new SpaPrerenderingOptions();
-            configuration?.Invoke(options);
+            configuration.Invoke(options);
 
             // If we're building on demand, start that process in the background now
             var buildOnDemandTask = options.BuildOnDemand?.Build(spaBuilder);
