@@ -35,11 +35,6 @@ namespace Microsoft.AspNetCore.Builder
         /// directory) of the directory that holds the SPA source files during development.
         /// The directory need not exist once the application is published.
         /// </param>
-        /// <param name="defaultPage">
-        /// Optional. If specified, configures the path (relative to <paramref name="urlPrefix"/>)
-        /// of the default page that hosts your SPA user interface.
-        /// If not specified, the default value is <c>"index.html"</c>.
-        /// </param>
         /// <param name="configuration">
         /// Optional. If specified, this callback will be invoked so that additional middleware
         /// can be registered within the context of this SPA.
@@ -48,7 +43,6 @@ namespace Microsoft.AspNetCore.Builder
             this IApplicationBuilder app,
             string urlPrefix,
             string sourcePath = null,
-            string defaultPage = null,
             Action<ISpaBuilder> configuration = null)
         {
             var spaBuilder = new DefaultSpaBuilder(app, sourcePath, urlPrefix);
