@@ -46,6 +46,10 @@ namespace Microsoft.AspNetCore.Builder
             var applicationBuilder = spaBuilder.ApplicationBuilder;
             var applicationStoppingToken = GetStoppingToken(applicationBuilder);
 
+            // Since we might want to proxy WebSockets requests (e.g., by default, AngularCliMiddleware
+            // requires it), enable it for the app
+            applicationBuilder.UseWebSockets();
+
             // It's important not to time out the requests, as some of them might be to
             // server-sent event endpoints or similar, where it's expected that the response
             // takes an unlimited time and never actually completes
