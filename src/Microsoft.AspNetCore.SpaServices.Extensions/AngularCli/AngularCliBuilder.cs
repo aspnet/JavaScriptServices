@@ -18,7 +18,9 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
     /// </summary>
     public class AngularCliBuilder : ISpaPrerendererBuilder
     {
-        private const int TimeoutMilliseconds = 50 * 1000;
+        private static TimeSpan RegexMatchTimeout = TimeSpan.FromSeconds(5); // This is a development-time only feature, so a very long timeout is fine
+        private static TimeSpan BuildTimeout = TimeSpan.FromSeconds(50); // Note that the HTTP request itself by default times out after 60s, so you only get useful error information if this is shorter
+
         private readonly string _npmScriptName;
 
         /// <summary>
@@ -56,8 +58,8 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
                 try
                 {
                     return npmScriptRunner.StdOut.WaitForMatch(
-                        new Regex("chunk"),
-                        TimeoutMilliseconds);
+                        new Regex("chunk", RegexOptions.None, RegexMatchTimeout),
+                        BuildTimeout);
                 }
                 catch (EndOfStreamException ex)
                 {

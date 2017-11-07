@@ -19,7 +19,8 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
     internal static class AngularCliMiddleware
     {
         private const string LogCategoryName = "Microsoft.AspNetCore.SpaServices";
-        private const int TimeoutMilliseconds = 50 * 1000;
+        private static TimeSpan RegexMatchTimeout = TimeSpan.FromSeconds(5); // This is a development-time only feature, so a very long timeout is fine
+        private static TimeSpan StartupTimeout = TimeSpan.FromSeconds(50); // Note that the HTTP request itself by default times out after 60s, so you only get useful error information if this is shorter
 
         public static void Attach(
             ISpaBuilder spaBuilder,
@@ -78,8 +79,8 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
                 try
                 {
                     openBrowserLine = await npmScriptRunner.StdOut.WaitForMatch(
-                        new Regex("open your browser on (http\\S+)"),
-                        TimeoutMilliseconds);
+                        new Regex("open your browser on (http\\S+)", RegexOptions.None, RegexMatchTimeout),
+                        StartupTimeout);
                 }
                 catch (EndOfStreamException ex)
                 {
@@ -92,7 +93,7 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
                 {
                     throw new InvalidOperationException(
                         $"The Angular CLI process did not start listening for requests " +
-                        $"within the timeout period of {TimeoutMilliseconds / 1000} seconds. " +
+                        $"within the timeout period of {StartupTimeout.Seconds} seconds. " +
                         $"Check the log output for error information.", ex);
                 }
             }
