@@ -123,11 +123,9 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
             }
         }
 
-#pragma warning disable CS0649
         class AngularCliServerInfo
         {
             public int Port { get; set; }
         }
     }
-#pragma warning restore CS0649
 }
