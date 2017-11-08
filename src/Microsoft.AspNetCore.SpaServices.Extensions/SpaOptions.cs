@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.AspNetCore.Http;
 using System;
 
 namespace Microsoft.AspNetCore.SpaServices
@@ -46,17 +47,15 @@ namespace Microsoft.AspNetCore.SpaServices
         /// For example, if your SPA files are located in <c>wwwroot/dist</c>, then
         /// the value should usually be <c>"/dist"</c>, because that is the URL prefix
         /// from which browsers can request those files.
-        /// 
-        /// The value must begin with a <code>'/'</code> character.
         /// </summary>
-        public string UrlPrefix
+        public PathString UrlPrefix
         {
             get => _urlPrefix;
             set
             {
-                if (value == null || !value.StartsWith("/", StringComparison.Ordinal))
+                if (string.IsNullOrEmpty(value.Value))
                 {
-                    throw new ArgumentException($"The value for {nameof(UrlPrefix)} must start with '/'");
+                    throw new ArgumentNullException($"The value for {nameof(UrlPrefix)} cannot be null or empty.");
                 }
 
                 _urlPrefix = value;

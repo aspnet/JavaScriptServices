@@ -19,12 +19,12 @@ namespace Microsoft.AspNetCore.SpaServices
 
             var app = spaBuilder.ApplicationBuilder;
             var options = spaBuilder.Options;
-            if (string.IsNullOrEmpty(options.UrlPrefix))
+            if (options.UrlPrefix == null)
             {
-                throw new InvalidOperationException($"To use SPA default page middleware, you must supply a non-empty value for the {nameof(SpaOptions.UrlPrefix)} property on the {nameof(ISpaBuilder)}'s {nameof(ISpaBuilder.Options)}.");
+                throw new InvalidOperationException($"To use SPA default page middleware, you must supply a value for the {nameof(SpaOptions.UrlPrefix)} property on the {nameof(ISpaBuilder)}'s {nameof(ISpaBuilder.Options)}.");
             }
 
-            var defaultPageUrl = ConstructDefaultPageUrl(options.UrlPrefix, options.DefaultPage);
+            var defaultPageUrl = options.UrlPrefix.Add(new PathString("/" + options.DefaultPage));
 
             // Rewrite all requests to the default page
             app.Use((context, next) =>
@@ -57,11 +57,6 @@ namespace Microsoft.AspNetCore.SpaServices
 
                 throw new InvalidOperationException(message);
             });
-        }
-
-        private static string ConstructDefaultPageUrl(string urlPrefix, string defaultPage)
-        {
-            return new PathString(urlPrefix).Add(new PathString("/" + defaultPage));
         }
     }
 }
