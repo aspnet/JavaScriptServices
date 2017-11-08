@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.NodeServices.Util;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 
 // This is under the NodeServices namespace because post 2.1 it will be moved to that package
 namespace Microsoft.AspNetCore.NodeServices.Npm
@@ -18,6 +19,8 @@ namespace Microsoft.AspNetCore.NodeServices.Npm
     {
         public EventedStreamReader StdOut { get; }
         public EventedStreamReader StdErr { get; }
+
+        private static Regex AnsiColorRegex = new Regex("\x001b\\[[0-9;]*m", RegexOptions.None, TimeSpan.FromSeconds(1));
 
         public NpmScriptRunner(string workingDirectory, string scriptName, string arguments)
         {
@@ -63,7 +66,9 @@ namespace Microsoft.AspNetCore.NodeServices.Npm
             {
                 if (!string.IsNullOrWhiteSpace(line))
                 {
-                    logger.LogInformation(line);
+                    // NPM tasks commonly emit ANSI colors, but it wouldn't make sense to forward
+                    // those to loggers (because a logger isn't necessarily any kind of terminal)
+                    logger.LogInformation(StripAnsiColors(line));
                 }
             };
 
@@ -71,7 +76,7 @@ namespace Microsoft.AspNetCore.NodeServices.Npm
             {
                 if (!string.IsNullOrWhiteSpace(line))
                 {
-                    logger.LogError(line);
+                    logger.LogError(StripAnsiColors(line));
                 }
             };
 
@@ -87,6 +92,9 @@ namespace Microsoft.AspNetCore.NodeServices.Npm
                 }
             };
         }
+
+        private static string StripAnsiColors(string line)
+            => AnsiColorRegex.Replace(line, string.Empty);
 
         private static Process LaunchNodeProcess(ProcessStartInfo startInfo)
         {
