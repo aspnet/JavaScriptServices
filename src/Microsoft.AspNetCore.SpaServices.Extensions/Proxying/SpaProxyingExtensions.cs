@@ -25,6 +25,22 @@ namespace Microsoft.AspNetCore.Builder
         /// <param name="baseUri">The target base URI to which requests should be proxied.</param>
         public static void UseProxyToSpaDevelopmentServer(
             this ISpaBuilder spaBuilder,
+            string baseUri)
+        {
+            UseProxyToSpaDevelopmentServer(
+                spaBuilder,
+                new Uri(baseUri));
+        }
+
+        /// <summary>
+        /// Configures the application to forward incoming requests to a local Single Page
+        /// Application (SPA) development server. This is only intended to be used during
+        /// development. Do not enable this middleware in production applications.
+        /// </summary>
+        /// <param name="spaBuilder">The <see cref="ISpaBuilder"/>.</param>
+        /// <param name="baseUri">The target base URI to which requests should be proxied.</param>
+        public static void UseProxyToSpaDevelopmentServer(
+            this ISpaBuilder spaBuilder,
             Uri baseUri)
         {
             UseProxyToSpaDevelopmentServer(
