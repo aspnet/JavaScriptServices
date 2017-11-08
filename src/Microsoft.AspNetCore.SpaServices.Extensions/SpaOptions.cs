@@ -15,6 +15,24 @@ namespace Microsoft.AspNetCore.SpaServices
         private string _defaultPageUrl = "index.html";
 
         /// <summary>
+        /// Constructs a new instance of <see cref="SpaOptions"/>.
+        /// </summary>
+        public SpaOptions()
+        {
+        }
+
+        /// <summary>
+        /// Constructs a new instance of <see cref="SpaOptions"/>.
+        /// </summary>
+        /// <param name="copyFromOptions">An instance of <see cref="SpaOptions"/> from which values should be copied.</param>
+        internal SpaOptions(SpaOptions copyFromOptions)
+        {
+            DefaultPage = copyFromOptions.DefaultPage;
+            SourcePath = copyFromOptions.SourcePath;
+            UrlPrefix = copyFromOptions.UrlPrefix;
+        }
+
+        /// <summary>
         /// Gets or sets the URL, relative to <see cref="UrlPrefix"/>,
         /// of the default page that hosts your SPA user interface.
         /// The default value is <c>"index.html"</c>.
@@ -60,12 +78,6 @@ namespace Microsoft.AspNetCore.SpaServices
 
                 _urlPrefix = value;
             }
-        }
-
-        // Currently there isn't a use case for constructing this in application code, but if that changes,
-        // this internal constructor will be removed.
-        internal SpaOptions()
-        {
         }
     }
 }

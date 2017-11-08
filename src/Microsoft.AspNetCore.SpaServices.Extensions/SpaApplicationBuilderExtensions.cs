@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.SpaServices;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using System;
 
 namespace Microsoft.AspNetCore.Builder
@@ -31,7 +33,12 @@ namespace Microsoft.AspNetCore.Builder
                 throw new ArgumentNullException(nameof(configuration));
             }
 
-            var spaBuilder = new DefaultSpaBuilder(app);
+            // Use the options configured in DI (or blank if none was configured). We have to clone it
+            // otherwise if you have multiple UseSpa calls, their configurations would interfere with one another.
+            var optionsProvider = app.ApplicationServices.GetService<IOptions<SpaOptions>>();
+            var options = new SpaOptions(optionsProvider.Value);
+
+            var spaBuilder = new DefaultSpaBuilder(app, options);
             configuration.Invoke(spaBuilder);
             SpaDefaultPageMiddleware.Attach(spaBuilder);
         }

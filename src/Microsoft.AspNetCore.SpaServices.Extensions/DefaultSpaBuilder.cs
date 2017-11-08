@@ -12,12 +12,13 @@ namespace Microsoft.AspNetCore.SpaServices
 
         public SpaOptions Options { get; }
 
-        public DefaultSpaBuilder(IApplicationBuilder applicationBuilder)
+        public DefaultSpaBuilder(IApplicationBuilder applicationBuilder, SpaOptions options)
         {
             ApplicationBuilder = applicationBuilder 
                 ?? throw new ArgumentNullException(nameof(applicationBuilder));
 
-            Options = new SpaOptions();
+            Options = options
+                ?? throw new ArgumentNullException(nameof(options));
         }
     }
 }
