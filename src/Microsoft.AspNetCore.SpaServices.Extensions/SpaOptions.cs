@@ -11,8 +11,8 @@ namespace Microsoft.AspNetCore.SpaServices
     /// </summary>
     public class SpaOptions
     {
-        private string _urlPrefix;
-        private string _defaultPageUrl = "index.html";
+        private PathString _urlPrefix;
+        private string _defaultPage = "index.html";
 
         /// <summary>
         /// Constructs a new instance of <see cref="SpaOptions"/>.
@@ -27,9 +27,9 @@ namespace Microsoft.AspNetCore.SpaServices
         /// <param name="copyFromOptions">An instance of <see cref="SpaOptions"/> from which values should be copied.</param>
         internal SpaOptions(SpaOptions copyFromOptions)
         {
-            DefaultPage = copyFromOptions.DefaultPage;
+            _defaultPage = copyFromOptions.DefaultPage;
             SourcePath = copyFromOptions.SourcePath;
-            UrlPrefix = copyFromOptions.UrlPrefix;
+            _urlPrefix = copyFromOptions.UrlPrefix;
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Microsoft.AspNetCore.SpaServices
         /// </summary>
         public string DefaultPage
         {
-            get => _defaultPageUrl;
+            get => _defaultPage;
             set
             {
                 if (string.IsNullOrEmpty(value))
@@ -47,7 +47,7 @@ namespace Microsoft.AspNetCore.SpaServices
                     throw new ArgumentException($"The value for {nameof(DefaultPage)} cannot be null or empty.");
                 }
 
-                _defaultPageUrl = value;
+                _defaultPage = value;
             }
         }
 
