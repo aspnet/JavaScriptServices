@@ -10,25 +10,38 @@ namespace Microsoft.AspNetCore.SpaServices
     /// </summary>
     public class SpaOptions
     {
-        internal const string DefaultDefaultPageValue = "index.html";
+        private string _urlPrefix;
+        private string _defaultPageUrl = "index.html";
 
         /// <summary>
         /// Gets or sets the URL, relative to <see cref="UrlPrefix"/>,
         /// of the default page that hosts your SPA user interface.
         /// The default value is <c>"index.html"</c>.
         /// </summary>
-        public string DefaultPage { get; set; } = DefaultDefaultPageValue;
+        public string DefaultPage
+        {
+            get => _defaultPageUrl;
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    throw new ArgumentException($"The value for {nameof(DefaultPage)} cannot be null or empty.");
+                }
+
+                _defaultPageUrl = value;
+            }
+        }
 
         /// <summary>
-        /// Gets the path, relative to the application working directory,
+        /// Gets or sets the path, relative to the application working directory,
         /// of the directory that contains the SPA source files during
         /// development. The directory may not exist in published applications.
         /// </summary>
-        public string SourcePath { get; }
+        public string SourcePath { get; set; }
 
         /// <summary>
-        /// Gets the URL path, relative to your application's <c>PathBase</c>, from which
-        /// the SPA files are served.
+        /// Gets or sets the URL path, relative to your application's <c>PathBase</c>, from
+        /// which the SPA files are served.
         ///
         /// For example, if your SPA files are located in <c>wwwroot/dist</c>, then
         /// the value should usually be <c>"/dist"</c>, because that is the URL prefix
@@ -36,17 +49,24 @@ namespace Microsoft.AspNetCore.SpaServices
         /// 
         /// The value must begin with a <code>'/'</code> character.
         /// </summary>
-        public string UrlPrefix { get; }
-
-        internal SpaOptions(string sourcePath, string urlPrefix)
+        public string UrlPrefix
         {
-            if (urlPrefix == null || !urlPrefix.StartsWith("/", StringComparison.Ordinal))
+            get => _urlPrefix;
+            set
             {
-                throw new ArgumentException("The value must start with '/'", nameof(urlPrefix));
-            }
+                if (value == null || !value.StartsWith("/", StringComparison.Ordinal))
+                {
+                    throw new ArgumentException($"The value for {nameof(UrlPrefix)} must start with '/'");
+                }
 
-            SourcePath = sourcePath;
-            UrlPrefix = urlPrefix;
+                _urlPrefix = value;
+            }
+        }
+
+        // Currently there isn't a use case for constructing this in application code, but if that changes,
+        // this internal constructor will be removed.
+        internal SpaOptions()
+        {
         }
     }
 }

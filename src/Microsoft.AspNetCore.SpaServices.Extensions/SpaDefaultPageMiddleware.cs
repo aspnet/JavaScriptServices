@@ -19,6 +19,11 @@ namespace Microsoft.AspNetCore.SpaServices
 
             var app = spaBuilder.ApplicationBuilder;
             var options = spaBuilder.Options;
+            if (string.IsNullOrEmpty(options.UrlPrefix))
+            {
+                throw new InvalidOperationException($"To use SPA default page middleware, you must supply a non-empty value for the {nameof(SpaOptions.UrlPrefix)} property on the {nameof(ISpaBuilder)}'s {nameof(ISpaBuilder.Options)}.");
+            }
+
             var defaultPageUrl = ConstructDefaultPageUrl(options.UrlPrefix, options.DefaultPage);
 
             // Rewrite all requests to the default page
@@ -56,11 +61,6 @@ namespace Microsoft.AspNetCore.SpaServices
 
         private static string ConstructDefaultPageUrl(string urlPrefix, string defaultPage)
         {
-            if (string.IsNullOrEmpty(defaultPage))
-            {
-                defaultPage = SpaOptions.DefaultDefaultPageValue;
-            }
-
             return new PathString(urlPrefix).Add(new PathString("/" + defaultPage));
         }
     }

@@ -20,37 +20,19 @@ namespace Microsoft.AspNetCore.Builder
         /// for serving static files, MVC actions, etc., takes precedence.
         /// </summary>
         /// <param name="app">The <see cref="IApplicationBuilder"/>.</param>
-        /// <param name="urlPrefix">
-        /// The URL path, relative to your application's <c>PathBase</c>, from which the
-        /// SPA files are served.
-        ///
-        /// For example, if your SPA files are located in <c>wwwroot/dist</c>, then
-        /// the value should usually be <c>"/dist"</c>, because that is the URL prefix
-        /// from which browsers can request those files.
-        /// 
-        /// The value must begin with a <code>'/'</code> character.
-        /// </param>
-        /// <param name="sourcePath">
-        /// Optional. If specified, configures the path (relative to the application working
-        /// directory) of the directory that holds the SPA source files during development.
-        /// The directory need not exist once the application is published.
-        /// </param>
         /// <param name="configuration">
-        /// Optional. If specified, this callback will be invoked so that additional middleware
-        /// can be registered within the context of this SPA.
+        /// This callback will be invoked so that additional middleware can be registered within
+        /// the context of this SPA.
         /// </param>
-        public static void UseSpa(
-            this IApplicationBuilder app,
-            string urlPrefix,
-            string sourcePath = null,
-            Action<ISpaBuilder> configuration = null)
+        public static void UseSpa(this IApplicationBuilder app, Action<ISpaBuilder> configuration)
         {
-            var spaBuilder = new DefaultSpaBuilder(app, sourcePath, urlPrefix);
+            if (configuration == null)
+            {
+                throw new ArgumentNullException(nameof(configuration));
+            }
 
-            // Invoke 'configure' to give the developer a chance to insert extra
-            // middleware before the 'default page' pipeline entries
-            configuration?.Invoke(spaBuilder);
-
+            var spaBuilder = new DefaultSpaBuilder(app);
+            configuration.Invoke(spaBuilder);
             SpaDefaultPageMiddleware.Attach(spaBuilder);
         }
     }
