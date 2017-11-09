@@ -27,21 +27,14 @@ namespace Microsoft.AspNetCore.Builder
         /// Enables server-side prerendering middleware for a Single Page Application.
         /// </summary>
         /// <param name="spaBuilder">The <see cref="ISpaBuilder"/>.</param>
-        /// <param name="entryPoint">The path, relative to your application root, of the JavaScript file containing prerendering logic.</param>
-        /// <param name="configuration">Supplies additional options for the prerendering middleware.</param>
+        /// <param name="configuration">Supplies configuration for the prerendering middleware.</param>
         public static void UseSpaPrerendering(
             this ISpaBuilder spaBuilder,
-            string entryPoint,
             Action<SpaPrerenderingOptions> configuration)
         {
             if (spaBuilder == null)
             {
                 throw new ArgumentNullException(nameof(spaBuilder));
-            }
-
-            if (string.IsNullOrEmpty(entryPoint))
-            {
-                throw new ArgumentException("Cannot be null or empty", nameof(entryPoint));
             }
 
             if (configuration == null)
@@ -51,6 +44,14 @@ namespace Microsoft.AspNetCore.Builder
 
             var options = new SpaPrerenderingOptions();
             configuration.Invoke(options);
+
+            var capturedBootModulePath = options.BootModulePath;
+            if (string.IsNullOrEmpty(capturedBootModulePath))
+            {
+                throw new InvalidOperationException($"To use {nameof(UseSpaPrerendering)}, you " +
+                    $"must set a nonempty value on the ${nameof(SpaPrerenderingOptions.BootModulePath)} " +
+                    $"property on the ${nameof(SpaPrerenderingOptions)}.");
+            }
 
             // If we're building on demand, start that process in the background now
             var buildOnDemandTask = options.BuildOnDemand?.Build(spaBuilder);
@@ -63,7 +64,7 @@ namespace Microsoft.AspNetCore.Builder
                 .ApplicationStopping;
             var applicationBasePath = serviceProvider.GetRequiredService<IHostingEnvironment>()
                 .ContentRootPath;
-            var moduleExport = new JavaScriptModuleExport(entryPoint);
+            var moduleExport = new JavaScriptModuleExport(capturedBootModulePath);
             var excludePathStrings = (options.ExcludeUrls ?? Array.Empty<string>())
                 .Select(url => new PathString(url))
                 .ToArray();
