@@ -3,7 +3,6 @@
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using System;
 
 namespace Microsoft.AspNetCore.SpaServices
@@ -19,29 +18,26 @@ namespace Microsoft.AspNetCore.SpaServices
 
             var app = spaBuilder.ApplicationBuilder;
             var options = spaBuilder.Options;
-            if (options.UrlPrefix == null)
-            {
-                throw new InvalidOperationException($"To use SPA default page middleware, you must supply a value for the {nameof(SpaOptions.UrlPrefix)} property on the {nameof(ISpaBuilder)}'s {nameof(ISpaBuilder.Options)}.");
-            }
-
-            var defaultPageUrl = options.UrlPrefix.Add(new PathString("/" + options.DefaultPage));
 
             // Rewrite all requests to the default page
             app.Use((context, next) =>
             {
-                context.Request.Path = defaultPageUrl;
+                context.Request.Path = options.DefaultPage;
                 return next();
             });
 
-            // Serve it as file from disk
-            app.UseStaticFiles();
+            // Serve it as file from wwwroot (by default), or any other configured file provider
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = options.DefaultPageFileProvider
+            });
 
-            // If the default file didn't get served as a static file (because it
-            // was not present on disk), the SPA is definitely not going to work.
+            // If the default file didn't get served as a static file (usually because it was not
+            // present on disk), the SPA is definitely not going to work.
             app.Use((context, next) =>
             {
                 var message = "The SPA default page middleware could not return the default page " +
-                    $"'{defaultPageUrl}' because it was not found on disk, and no other middleware " +
+                    $"'{options.DefaultPage}' because it was not found, and no other middleware " +
                     "handled the request.\n";
 
                 // Try to clarify the common scenario where someone runs an application in
