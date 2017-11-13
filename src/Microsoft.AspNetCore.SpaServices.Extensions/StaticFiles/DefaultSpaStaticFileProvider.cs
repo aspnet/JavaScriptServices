@@ -10,14 +10,14 @@ using System.IO;
 namespace Microsoft.AspNetCore.SpaServices.StaticFiles
 {
     /// <summary>
-    /// Provides an implementation of <see cref="ISpaStaticFiles"/> that supplies
+    /// Provides an implementation of <see cref="ISpaStaticFileProvider"/> that supplies
     /// physical files at a location configured using <see cref="SpaStaticFilesOptions"/>.
     /// </summary>
-    internal class DefaultSpaStaticFiles : ISpaStaticFiles
+    internal class DefaultSpaStaticFileProvider : ISpaStaticFileProvider
     {
         private IFileProvider _fileProvider;
 
-        public DefaultSpaStaticFiles(
+        public DefaultSpaStaticFileProvider(
             IServiceProvider serviceProvider,
             SpaStaticFilesOptions options)
         {
@@ -47,10 +47,6 @@ namespace Microsoft.AspNetCore.SpaServices.StaticFiles
             }
         }
 
-        public bool TryGetFileProvider(out IFileProvider fileProvider)
-        {
-            fileProvider = _fileProvider;
-            return fileProvider != null;
-        }
+        public IFileProvider FileProvider => _fileProvider;
     }
 }

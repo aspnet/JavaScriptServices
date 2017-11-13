@@ -9,13 +9,12 @@ namespace Microsoft.AspNetCore.SpaServices.StaticFiles
     /// Represents a service that can provide static files to be served for a Single Page
     /// Application (SPA).
     /// </summary>
-    public interface ISpaStaticFiles
+    public interface ISpaStaticFileProvider
     {
         /// <summary>
         /// Gets the file provider, if available, that supplies the static files for the SPA.
+        /// The value is <c>null</c> if no file provider is available.
         /// </summary>
-        /// <param name="fileProvider">The <see cref="IFileProvider"/></param>
-        /// <returns>A flag indicating whether a file provider could be supplied.</returns>
-        bool TryGetFileProvider(out IFileProvider fileProvider);
+        IFileProvider FileProvider { get; }
     }
 }

@@ -3,9 +3,7 @@
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.SpaServices.StaticFiles;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.FileProviders;
 using System;
 
 namespace Microsoft.AspNetCore.SpaServices
@@ -32,7 +30,7 @@ namespace Microsoft.AspNetCore.SpaServices
             // Serve it as a static file
             // Developers who need to host more than one SPA with distinct default pages can
             // override the file provider
-            app.UseSpaStaticFiles(
+            app.UseSpaStaticFilesInternal(
                 overrideFileProvider: options.DefaultPageFileProvider,
                 allowFallbackOnServingWebRootFiles: true);
 
