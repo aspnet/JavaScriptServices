@@ -1,4 +1,10 @@
-﻿using Microsoft.AspNetCore.SpaServices.Prerendering;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.NodeServices;
+using Microsoft.AspNetCore.SpaServices.Prerendering;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -14,7 +20,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="serviceCollection">The <see cref="IServiceCollection"/>.</param>
         public static void AddSpaPrerenderer(this IServiceCollection serviceCollection)
         {
-            serviceCollection.AddHttpContextAccessor();
+            serviceCollection.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             serviceCollection.AddSingleton<ISpaPrerenderer, DefaultSpaPrerenderer>();
         }
     }
