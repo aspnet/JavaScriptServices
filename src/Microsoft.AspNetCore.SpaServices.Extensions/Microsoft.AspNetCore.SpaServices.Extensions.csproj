@@ -6,7 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.AspNetCore.SpaServices\Microsoft.AspNetCore.SpaServices.csproj" />
+    <!-- In the rel/2.0.1-extensions branch, we use a PackageReference here even though the SpaServices source
+         is in the same repo, because SpaServices.Extensions will ship OOB and must depend on the existing
+         published 2.0.1 version of SpaServices -->
+    <PackageReference Include="Microsoft.AspNetCore.SpaServices" Version="$(MicrosoftAspNetCoreSpaServicesPackageVersion)" />
   </ItemGroup>
 
   <ItemGroup>

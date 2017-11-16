@@ -12,6 +12,7 @@
     <MicrosoftAspNetCoreMvcViewFeaturesPackageVersion>2.0.1</MicrosoftAspNetCoreMvcViewFeaturesPackageVersion>
     <MicrosoftAspNetCoreServerIISIntegrationPackageVersion>2.0.1</MicrosoftAspNetCoreServerIISIntegrationPackageVersion>
     <MicrosoftAspNetCoreServerKestrelPackageVersion>2.0.1</MicrosoftAspNetCoreServerKestrelPackageVersion>
+    <MicrosoftAspNetCoreSpaServicesPackageVersion>2.0.1</MicrosoftAspNetCoreSpaServicesPackageVersion>
     <MicrosoftAspNetCoreStaticFilesPackageVersion>2.0.1</MicrosoftAspNetCoreStaticFilesPackageVersion>
     <MicrosoftAspNetCoreWebSocketsPackageVersion>2.0.1</MicrosoftAspNetCoreWebSocketsPackageVersion>
     <MicrosoftExtensionsDependencyInjectionPackageVersion>2.0.0</MicrosoftExtensionsDependencyInjectionPackageVersion>
