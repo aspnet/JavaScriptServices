@@ -8,12 +8,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{27304DDE-AFB
 		src\Directory.Build.props = src\Directory.Build.props
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.NodeServices", "src\Microsoft.AspNetCore.NodeServices\Microsoft.AspNetCore.NodeServices.csproj", "{66B77203-1469-41DF-92F2-2BE6900BD36F}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.NodeServices.Sockets", "src\Microsoft.AspNetCore.NodeServices.Sockets\Microsoft.AspNetCore.NodeServices.Sockets.csproj", "{F46DEF99-6FAA-4406-B5D8-6FF34EF669E3}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.SpaServices", "src\Microsoft.AspNetCore.SpaServices\Microsoft.AspNetCore.SpaServices.csproj", "{66B071A8-EFC8-4A06-BEF6-06B99AE27EEC}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "misc", "misc", "{99EAF1FE-22C8-4526-BE78-74B24125D37F}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
@@ -35,18 +29,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{66B77203-1469-41DF-92F2-2BE6900BD36F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{66B77203-1469-41DF-92F2-2BE6900BD36F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{66B77203-1469-41DF-92F2-2BE6900BD36F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{66B77203-1469-41DF-92F2-2BE6900BD36F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F46DEF99-6FAA-4406-B5D8-6FF34EF669E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F46DEF99-6FAA-4406-B5D8-6FF34EF669E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F46DEF99-6FAA-4406-B5D8-6FF34EF669E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F46DEF99-6FAA-4406-B5D8-6FF34EF669E3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{66B071A8-EFC8-4A06-BEF6-06B99AE27EEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{66B071A8-EFC8-4A06-BEF6-06B99AE27EEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{66B071A8-EFC8-4A06-BEF6-06B99AE27EEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{66B071A8-EFC8-4A06-BEF6-06B99AE27EEC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D40BD1C4-6A6F-4213-8535-1057F3EB3400}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D40BD1C4-6A6F-4213-8535-1057F3EB3400}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D40BD1C4-6A6F-4213-8535-1057F3EB3400}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -56,9 +38,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{66B77203-1469-41DF-92F2-2BE6900BD36F} = {27304DDE-AFB2-4F8B-B765-E3E2F11E886C}
-		{F46DEF99-6FAA-4406-B5D8-6FF34EF669E3} = {27304DDE-AFB2-4F8B-B765-E3E2F11E886C}
-		{66B071A8-EFC8-4A06-BEF6-06B99AE27EEC} = {27304DDE-AFB2-4F8B-B765-E3E2F11E886C}
 		{D40BD1C4-6A6F-4213-8535-1057F3EB3400} = {27304DDE-AFB2-4F8B-B765-E3E2F11E886C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
