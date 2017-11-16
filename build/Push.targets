@@ -1,0 +1,15 @@
+<Project>
+  <Target Name="Push" DependsOnTargets="_PushNuGet" />
+
+  <ItemGroup>
+    <PackagesToPush Include="$(BuildDir)*.nupkg" />
+  </ItemGroup>
+
+  <Target Name="_PushNuGet" Condition="@(PackagesToPush->Count()) != 0">
+    <Error Text="Missing required property: NuGetPublishFeed"  Condition=" '$(NuGetPublishFeed)' == '' "/>
+    <PushNuGetPackages
+      Packages="@(PackagesToPush)"
+      Feed="$(NuGetPublishFeed)"
+      ApiKey="$(APIKey)" />
+  </Target>
+</Project>
