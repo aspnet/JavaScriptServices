@@ -19,6 +19,7 @@ export interface CreateDevServerCallback {
 // These are the options passed by WebpackDevMiddleware.cs
 interface CreateDevServerOptions {
     webpackConfigPath: string;
+    useTypeScriptConfig: boolean;
     suppliedOptions: DevServerOptions;
     hotModuleReplacementEndpointUrl: string;
 }
@@ -254,6 +255,10 @@ export function createWebpackDevServer(callback: CreateDevServerCallback, option
             PublicPaths: []
         });
         return;
+    }
+
+    if (options.useTypeScriptConfig) {
+      require('ts-node/register');
     }
 
     // Read the webpack config's export, and normalize it into the more general 'array of configs' format
