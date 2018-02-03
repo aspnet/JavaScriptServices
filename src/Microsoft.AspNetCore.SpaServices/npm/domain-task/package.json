@@ -17,9 +17,9 @@
     "url": "https://github.com/aspnet/JavaScriptServices.git"
   },
   "dependencies": {
+    "cross-fetch": "^1.1.0",
     "domain-context": "^0.5.1",
-    "is-absolute-url": "^2.1.0",
-    "isomorphic-fetch": "^2.2.1"
+    "is-absolute-url": "^2.1.0"
   },
   "devDependencies": {
     "@types/node": "^6.0.42",

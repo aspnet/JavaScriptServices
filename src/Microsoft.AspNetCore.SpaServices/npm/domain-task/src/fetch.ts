@@ -3,7 +3,7 @@ import * as domain from 'domain';
 import * as domainContext from 'domain-context';
 import * as isAbsoluteUrl from 'is-absolute-url';
 import { baseUrl } from './main';
-const isomorphicFetch = require('isomorphic-fetch');
+const crossFetch = require('cross-fetch');
 const isNode = typeof process === 'object' && process.versions && !!process.versions.node;
 const nodeHttps = isNode && require('https');
 const isHttpsRegex = /^https\:/;
@@ -32,7 +32,7 @@ function issueRequest(baseUrl: string, req: string | Request, init?: RequestInit
     }
 
     init = applyHttpsAgentPolicy(init, isRelativeUrl, baseUrl);
-    return isomorphicFetch(req, init);
+    return crossFetch(req, init);
 }
 
 function applyHttpsAgentPolicy(init: RequestInit, isRelativeUrl: boolean, baseUrl: string): RequestInit {
