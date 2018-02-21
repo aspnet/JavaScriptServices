@@ -21,7 +21,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection"/>.</param>
         /// <param name="configuration">If specified, this callback will be invoked to set additional configuration options.</param>
-        public static void AddSpaStaticFiles(
+        public static IServiceCollection AddSpaStaticFiles(
             this IServiceCollection services,
             Action<SpaStaticFilesOptions> configuration = null)
         {
@@ -42,6 +42,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 return new DefaultSpaStaticFileProvider(serviceProvider, options);
             });
+            return services;
         }
 
         /// <summary>
@@ -49,9 +50,9 @@ namespace Microsoft.Extensions.DependencyInjection
         /// The files will be located using the registered <see cref="ISpaStaticFileProvider"/> service.
         /// </summary>
         /// <param name="applicationBuilder">The <see cref="IApplicationBuilder"/>.</param>
-        public static void UseSpaStaticFiles(this IApplicationBuilder applicationBuilder)
+        public static IApplicationBuilder UseSpaStaticFiles(this IApplicationBuilder applicationBuilder)
         {
-            UseSpaStaticFiles(applicationBuilder, new StaticFileOptions());
+            return UseSpaStaticFiles(applicationBuilder, new StaticFileOptions());
         }
 
         /// <summary>
@@ -60,7 +61,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <param name="applicationBuilder">The <see cref="IApplicationBuilder"/>.</param>
         /// <param name="options">Specifies options for serving the static files.</param>
-        public static void UseSpaStaticFiles(this IApplicationBuilder applicationBuilder, StaticFileOptions options)
+        public static IApplicationBuilder UseSpaStaticFiles(this IApplicationBuilder applicationBuilder, StaticFileOptions options)
         {
             if (applicationBuilder == null)
             {
@@ -72,12 +73,12 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(options));
             }
 
-            UseSpaStaticFilesInternal(applicationBuilder,
-                staticFileOptions: options,
-                allowFallbackOnServingWebRootFiles: false);
+            return UseSpaStaticFilesInternal(applicationBuilder,
+                  staticFileOptions: options,
+                  allowFallbackOnServingWebRootFiles: false);
         }
 
-        internal static void UseSpaStaticFilesInternal(
+        internal static IApplicationBuilder UseSpaStaticFilesInternal(
             this IApplicationBuilder app,
             StaticFileOptions staticFileOptions,
             bool allowFallbackOnServingWebRootFiles)
@@ -106,12 +107,12 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     // The registered ISpaStaticFileProvider says we shouldn't
                     // serve static files
-                    return;
+                    return app;
                 }
             }
 
-            
-            app.UseStaticFiles(staticFileOptions);
+
+            return app.UseStaticFiles(staticFileOptions);
         }
 
         private static bool ShouldServeStaticFiles(

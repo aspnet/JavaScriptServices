@@ -26,7 +26,7 @@ namespace Microsoft.AspNetCore.Builder
         /// This callback will be invoked so that additional middleware can be registered within
         /// the context of this SPA.
         /// </param>
-        public static void UseSpa(this IApplicationBuilder app, Action<ISpaBuilder> configuration)
+        public static IApplicationBuilder UseSpa(this IApplicationBuilder app, Action<ISpaBuilder> configuration)
         {
             if (configuration == null)
             {
@@ -41,6 +41,8 @@ namespace Microsoft.AspNetCore.Builder
             var spaBuilder = new DefaultSpaBuilder(app, options);
             configuration.Invoke(spaBuilder);
             SpaDefaultPageMiddleware.Attach(spaBuilder);
+
+            return app;
         }
     }
 }

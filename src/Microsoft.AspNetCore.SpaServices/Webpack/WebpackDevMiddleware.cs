@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Builder
         /// </summary>
         /// <param name="appBuilder">The <see cref="IApplicationBuilder"/>.</param>
         /// <param name="options">Options for configuring the Webpack compiler instance.</param>
-        public static void UseWebpackDevMiddleware(
+        public static IApplicationBuilder UseWebpackDevMiddleware(
             this IApplicationBuilder appBuilder,
             WebpackDevMiddlewareOptions options = null)
         {
@@ -114,9 +114,10 @@ namespace Microsoft.AspNetCore.Builder
                 appBuilder.UseProxyToLocalWebpackDevMiddleware(publicPath + hmrEndpoint, devServerInfo.Port, Timeout.InfiniteTimeSpan);
                 appBuilder.UseProxyToLocalWebpackDevMiddleware(publicPath, devServerInfo.Port, TimeSpan.FromSeconds(100));
             }
+            return appBuilder;
         }
 
-        private static void UseProxyToLocalWebpackDevMiddleware(this IApplicationBuilder appBuilder, string publicPath, int proxyToPort, TimeSpan requestTimeout)
+        private static IApplicationBuilder UseProxyToLocalWebpackDevMiddleware(this IApplicationBuilder appBuilder, string publicPath, int proxyToPort, TimeSpan requestTimeout)
         {
             // Note that this is hardcoded to make requests to "localhost" regardless of the hostname of the
             // server as far as the client is concerned. This is because ConditionalProxyMiddlewareOptions is
@@ -131,6 +132,7 @@ namespace Microsoft.AspNetCore.Builder
             var proxyOptions = new ConditionalProxyMiddlewareOptions(
                 "http", "localhost", proxyToPort.ToString(), requestTimeout);
             appBuilder.UseMiddleware<ConditionalProxyMiddleware>(publicPath, proxyOptions);
+            return appBuilder;
         }
 
 #pragma warning disable CS0649
