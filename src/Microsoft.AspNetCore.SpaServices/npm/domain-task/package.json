@@ -22,6 +22,7 @@
     "isomorphic-fetch": "^2.2.1"
   },
   "devDependencies": {
+    "@types/isomorphic-fetch": "^0.0.34",
     "@types/node": "^6.0.42",
     "rimraf": "^2.5.4",
     "typescript": "^2.2.1"

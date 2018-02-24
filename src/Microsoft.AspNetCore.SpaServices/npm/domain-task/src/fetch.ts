@@ -3,12 +3,12 @@ import * as domain from 'domain';
 import * as domainContext from 'domain-context';
 import * as isAbsoluteUrl from 'is-absolute-url';
 import { baseUrl } from './main';
-const isomorphicFetch = require('isomorphic-fetch');
+import * as isomorphicFetch from 'isomorphic-fetch';
 const isNode = typeof process === 'object' && process.versions && !!process.versions.node;
 const nodeHttps = isNode && require('https');
 const isHttpsRegex = /^https\:/;
 
-function issueRequest(baseUrl: string, req: string | Request, init?: RequestInit): Promise<any> {
+function issueRequest(baseUrl: string, req: string | Request, init?: RequestInit): Promise<Response> {
     const reqUrl = (req instanceof Request) ? req.url : req;
     const isRelativeUrl = reqUrl && !isAbsoluteUrl(reqUrl);
 
@@ -70,7 +70,7 @@ function applyHttpsAgentPolicy(init: RequestInit, isRelativeUrl: boolean, baseUr
     return init;
 }
 
-export function fetch(url: string | Request, init?: RequestInit): Promise<any> {
+export function fetch(url: string | Request, init?: RequestInit): Promise<Response> {
     // As of domain-task 2.0.0, we no longer auto-add the 'fetch' promise to the current domain task list.
     // This is because it's misleading to do so, and can result in race-condition bugs, e.g.,
     // https://github.com/aspnet/JavaScriptServices/issues/166
