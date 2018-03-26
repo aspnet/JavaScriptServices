@@ -23,13 +23,14 @@ namespace Microsoft.AspNetCore.Builder
         /// </summary>
         /// <param name="spaBuilder">The <see cref="ISpaBuilder"/>.</param>
         /// <param name="baseUri">The target base URI to which requests should be proxied.</param>
-        public static void UseProxyToSpaDevelopmentServer(
+        /// <returns>A reference to this instance after the operation has completed.</returns>
+        public static ISpaBuilder UseProxyToSpaDevelopmentServer(
             this ISpaBuilder spaBuilder,
             string baseUri)
         {
-            UseProxyToSpaDevelopmentServer(
-                spaBuilder,
-                new Uri(baseUri));
+            return UseProxyToSpaDevelopmentServer(
+                 spaBuilder,
+                 new Uri(baseUri));
         }
 
         /// <summary>
@@ -39,13 +40,14 @@ namespace Microsoft.AspNetCore.Builder
         /// </summary>
         /// <param name="spaBuilder">The <see cref="ISpaBuilder"/>.</param>
         /// <param name="baseUri">The target base URI to which requests should be proxied.</param>
-        public static void UseProxyToSpaDevelopmentServer(
+        /// <returns>A reference to this instance after the operation has completed.</returns>
+        public static ISpaBuilder UseProxyToSpaDevelopmentServer(
             this ISpaBuilder spaBuilder,
             Uri baseUri)
         {
-            UseProxyToSpaDevelopmentServer(
-                spaBuilder,
-                () => Task.FromResult(baseUri));
+            return UseProxyToSpaDevelopmentServer(
+                  spaBuilder,
+                  () => Task.FromResult(baseUri));
         }
 
         /// <summary>
@@ -55,7 +57,8 @@ namespace Microsoft.AspNetCore.Builder
         /// </summary>
         /// <param name="spaBuilder">The <see cref="ISpaBuilder"/>.</param>
         /// <param name="baseUriTaskFactory">A callback that will be invoked on each request to supply a <see cref="Task"/> that resolves with the target base URI to which requests should be proxied.</param>
-        public static void UseProxyToSpaDevelopmentServer(
+        /// <returns>A reference to this instance after the operation has completed.</returns>
+        public static ISpaBuilder UseProxyToSpaDevelopmentServer(
             this ISpaBuilder spaBuilder,
             Func<Task<Uri>> baseUriTaskFactory)
         {
@@ -79,6 +82,8 @@ namespace Microsoft.AspNetCore.Builder
                     context, neverTimeOutHttpClient, baseUriTaskFactory(), applicationStoppingToken,
                     proxy404s: true);
             });
+
+            return spaBuilder;
         }
 
         private static CancellationToken GetStoppingToken(IApplicationBuilder appBuilder)

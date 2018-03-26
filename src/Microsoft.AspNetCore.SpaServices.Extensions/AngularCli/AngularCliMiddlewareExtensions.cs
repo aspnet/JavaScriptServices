@@ -21,7 +21,8 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
         /// </summary>
         /// <param name="spaBuilder">The <see cref="ISpaBuilder"/>.</param>
         /// <param name="npmScript">The name of the script in your package.json file that launches the Angular CLI process.</param>
-        public static void UseAngularCliServer(
+        /// <returns>A reference to this instance after the operation has completed.</returns>
+        public static ISpaBuilder UseAngularCliServer(
             this ISpaBuilder spaBuilder,
             string npmScript)
         {
@@ -38,6 +39,7 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
             }
 
             AngularCliMiddleware.Attach(spaBuilder, npmScript);
+            return spaBuilder;
         }
     }
 }

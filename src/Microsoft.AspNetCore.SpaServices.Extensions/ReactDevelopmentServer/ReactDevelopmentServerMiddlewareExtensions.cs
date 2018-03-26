@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer
         /// </summary>
         /// <param name="spaBuilder">The <see cref="ISpaBuilder"/>.</param>
         /// <param name="npmScript">The name of the script in your package.json file that launches the create-react-app server.</param>
-        public static void UseReactDevelopmentServer(
+        public static ISpaBuilder UseReactDevelopmentServer(
             this ISpaBuilder spaBuilder,
             string npmScript)
         {
@@ -38,6 +38,8 @@ namespace Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer
             }
 
             ReactDevelopmentServerMiddleware.Attach(spaBuilder, npmScript);
+
+            return spaBuilder;
         }
     }
 }

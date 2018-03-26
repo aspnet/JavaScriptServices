@@ -29,7 +29,8 @@ namespace Microsoft.AspNetCore.Builder
         /// </summary>
         /// <param name="spaBuilder">The <see cref="ISpaBuilder"/>.</param>
         /// <param name="configuration">Supplies configuration for the prerendering middleware.</param>
-        public static void UseSpaPrerendering(
+        /// <returns>A reference to this instance after the operation has completed.</returns>
+        public static ISpaBuilder UseSpaPrerendering(
             this ISpaBuilder spaBuilder,
             Action<SpaPrerenderingOptions> configuration)
         {
@@ -174,6 +175,7 @@ namespace Microsoft.AspNetCore.Builder
                     await ServePrerenderResult(context, renderResult);
                 }
             });
+            return spaBuilder;
         }
 
         private static bool IsHtmlContentType(string contentType)

@@ -12,6 +12,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// Adds NodeServices support to the <paramref name="serviceCollection"/>.
         /// </summary>
         /// <param name="serviceCollection">The <see cref="IServiceCollection"/>.</param>
+        /// <returns>A reference to this instance after the operation has completed.</returns>
         public static IServiceCollection AddNodeServices(this IServiceCollection serviceCollection)
             => AddNodeServices(serviceCollection, _ => {});
 
@@ -20,6 +21,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <param name="serviceCollection">The <see cref="IServiceCollection"/>.</param>
         /// <param name="setupAction">A callback that will be invoked to populate the <see cref="NodeServicesOptions"/>.</param>
+        /// <returns>A reference to this instance after the operation has completed.</returns>
         public static IServiceCollection AddNodeServices(this IServiceCollection serviceCollection, Action<NodeServicesOptions> setupAction)
         {
             if (setupAction == null)

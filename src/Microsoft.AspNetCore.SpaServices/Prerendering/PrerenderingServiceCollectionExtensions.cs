@@ -12,6 +12,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// of <see cref="ISpaPrerenderer"/>.
         /// </summary>
         /// <param name="serviceCollection">The <see cref="IServiceCollection"/>.</param>
+        /// <returns>A reference to this instance after the operation has completed.</returns>
         public static IServiceCollection AddSpaPrerenderer(this IServiceCollection serviceCollection)
         {
             serviceCollection.AddHttpContextAccessor();

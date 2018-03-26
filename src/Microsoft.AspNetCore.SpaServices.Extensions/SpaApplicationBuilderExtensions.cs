@@ -26,6 +26,7 @@ namespace Microsoft.AspNetCore.Builder
         /// This callback will be invoked so that additional middleware can be registered within
         /// the context of this SPA.
         /// </param>
+        /// <returns>A reference to this instance after the operation has completed.</returns>
         public static IApplicationBuilder UseSpa(this IApplicationBuilder app, Action<ISpaBuilder> configuration)
         {
             if (configuration == null)

@@ -21,6 +21,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection"/>.</param>
         /// <param name="configuration">If specified, this callback will be invoked to set additional configuration options.</param>
+        /// <returns>A reference to this instance after the operation has completed.</returns>
         public static IServiceCollection AddSpaStaticFiles(
             this IServiceCollection services,
             Action<SpaStaticFilesOptions> configuration = null)
@@ -50,6 +51,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// The files will be located using the registered <see cref="ISpaStaticFileProvider"/> service.
         /// </summary>
         /// <param name="applicationBuilder">The <see cref="IApplicationBuilder"/>.</param>
+        /// <returns>A reference to this instance after the operation has completed.</returns>
         public static IApplicationBuilder UseSpaStaticFiles(this IApplicationBuilder applicationBuilder)
         {
             return UseSpaStaticFiles(applicationBuilder, new StaticFileOptions());
@@ -61,6 +63,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <param name="applicationBuilder">The <see cref="IApplicationBuilder"/>.</param>
         /// <param name="options">Specifies options for serving the static files.</param>
+        /// <returns>A reference to this instance after the operation has completed.</returns>
         public static IApplicationBuilder UseSpaStaticFiles(this IApplicationBuilder applicationBuilder, StaticFileOptions options)
         {
             if (applicationBuilder == null)

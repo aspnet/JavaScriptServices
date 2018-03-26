@@ -23,14 +23,15 @@ namespace Microsoft.AspNetCore.Builder
         /// <param name="defaults">Default route parameters.</param>
         /// <param name="constraints">Route constraints.</param>
         /// <param name="dataTokens">Route data tokens.</param>
-        public static void MapSpaFallbackRoute(
+        /// <returns>A reference to this instance after the operation has completed.</returns>
+        public static IRouteBuilder MapSpaFallbackRoute(
             this IRouteBuilder routeBuilder,
             string name,
             object defaults,
             object constraints = null,
             object dataTokens = null)
         {
-            MapSpaFallbackRoute(
+           return MapSpaFallbackRoute(
                 routeBuilder,
                 name,
                 /* templatePrefix */ null,
@@ -49,7 +50,8 @@ namespace Microsoft.AspNetCore.Builder
         /// <param name="defaults">Default route parameters.</param>
         /// <param name="constraints">Route constraints.</param>
         /// <param name="dataTokens">Route data tokens.</param>
-        public static void MapSpaFallbackRoute(
+        /// <returns>A reference to this instance after the operation has completed.</returns>
+        public static IRouteBuilder MapSpaFallbackRoute(
             this IRouteBuilder routeBuilder,
             string name,
             string templatePrefix,
@@ -61,7 +63,7 @@ namespace Microsoft.AspNetCore.Builder
             var constraintsDict = ObjectToDictionary(constraints);
             constraintsDict.Add(ClientRouteTokenName, new SpaRouteConstraint(ClientRouteTokenName));
 
-            routeBuilder.MapRoute(name, template, defaults, constraintsDict, dataTokens);
+            return routeBuilder.MapRoute(name, template, defaults, constraintsDict, dataTokens);
         }
 
         private static string CreateRouteTemplate(string templatePrefix)
