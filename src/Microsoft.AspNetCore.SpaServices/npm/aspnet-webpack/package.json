@@ -21,7 +21,6 @@
     "es6-promise": "^3.1.2",
     "memory-fs": "^0.3.0",
     "require-from-string": "^1.1.0",
-    "webpack-dev-middleware": "^1.8.4",
     "webpack-node-externals": "^1.4.3"
   },
   "devDependencies": {
@@ -29,10 +28,10 @@
     "@types/node": "^6.0.42",
     "@types/webpack": "^2.2.0",
     "rimraf": "^2.5.4",
-    "typescript": "^2.0.0",
-    "webpack": "^1.13.2"
+    "typescript": "^2.0.0"
   },
   "peerDependencies": {
-    "webpack": "^1.13.2 || ^2.1.0-beta || ^3.0.0"
+    "webpack": "^1.13.2 || ^2.1.0-beta || ^3.0.0 || ^4.0.0",
+    "webpack-dev-middleware": "^1.8.4 || ^3.0.0"
   }
 }
