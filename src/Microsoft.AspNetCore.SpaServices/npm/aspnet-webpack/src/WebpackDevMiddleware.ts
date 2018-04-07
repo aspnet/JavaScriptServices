@@ -135,10 +135,10 @@ function attachWebpackDevMiddleware(app: any, webpackConfig: webpack.Configurati
     // file on disk wouldn't match the file served to the browser, and the source map line numbers wouldn't
     // match up. Breakpoints would either not be hit, or would hit the wrong lines.
     const copy = stats => copyRecursiveToRealFsSync(compiler.outputFileSystem, '/', [/\.hot-update\.(js|json|js\.map)$/]);
-    if ((compiler as any).hooks) {
-        (compiler as any).hooks.done.tap('aspnet-webpack', copy);
+    if (compiler.hooks) {
+        compiler.hooks.done.tap('aspnet-webpack', copy);
     } else {
-        (compiler as any).plugin('done', copy);
+        compiler.plugin('done', copy);
     }
 
     if (enableHotModuleReplacement) {
