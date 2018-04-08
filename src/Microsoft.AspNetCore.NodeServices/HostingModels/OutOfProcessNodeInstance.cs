@@ -234,7 +234,9 @@ namespace Microsoft.AspNetCore.NodeServices.HostingModels
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
-                WorkingDirectory = projectPath
+                WorkingDirectory = projectPath,
+                StandardOutputEncoding = System.Text.Encoding.UTF8,
+                StandardErrorEncoding = System.Text.Encoding.UTF8
             };
 
             // Append environment vars
