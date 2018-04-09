@@ -121,7 +121,7 @@ function attachWebpackDevMiddleware(app: any, webpackConfig: webpack.Configurati
     const compiler = webpack(webpackConfig);
     app.use(require('webpack-dev-middleware')(compiler, {
         noInfo: true,
-        stats: false,
+        stats: webpackConfig.stats,
         publicPath: ensureLeadingSlash(webpackConfig.output.publicPath),
         watchOptions: webpackConfig.watchOptions
     }));
