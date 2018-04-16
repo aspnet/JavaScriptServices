@@ -94,7 +94,7 @@ namespace Microsoft.AspNetCore.Builder
                     // underlying build task so that subsequent requests could still work.
                     await buildOnDemandTask.WithTimeout(buildTimeout,
                         $"The prerendering build process did not complete within the " +
-                        $"timeout period of {buildTimeout.Seconds} seconds. " +
+                        $"timeout period of {buildTimeout.TotalSeconds} seconds. " +
                         $"Check the log output for error information.");
                 }
 
