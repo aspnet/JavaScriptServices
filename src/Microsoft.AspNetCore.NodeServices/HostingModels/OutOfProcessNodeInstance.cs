@@ -44,7 +44,35 @@ namespace Microsoft.AspNetCore.NodeServices.HostingModels
         /// <param name="entryPointScript">The path to the entry point script that the Node instance should load and execute.</param>
         /// <param name="projectPath">The root path of the current project. This is used when resolving Node.js module paths relative to the project root.</param>
         /// <param name="watchFileExtensions">The filename extensions that should be watched within the project root. The Node instance will automatically shut itself down if any matching file changes.</param>
-        /// <param name="scriptArguments">Command-line arguments to be passed to the Node.js entry script (see HttpNodeInstanceEntryPoints.ts).</param>
+        /// <param name="commandLineArguments">Command-line arguments to be passed to the Node.js entry script (see HttpNodeInstanceEntryPoints.ts).</param>
+        /// <param name="applicationStoppingToken">A token that indicates when the host application is stopping.</param>
+        /// <param name="nodeOutputLogger">The <see cref="ILogger"/> to which the Node.js instance's stdout/stderr (and other log information) should be written.</param>
+        /// <param name="environmentVars">Environment variables to be set on the Node.js process.</param>
+        /// <param name="invocationTimeoutMilliseconds">The maximum duration, in milliseconds, to wait for RPC calls to complete.</param>
+        /// <param name="launchWithDebugging">If true, passes a flag to the Node.js process telling it to accept V8 debugger connections.</param>
+        /// <param name="debuggingPort">If debugging is enabled, the Node.js process should listen for V8 debugger connections on this port.</param>
+        public OutOfProcessNodeInstance(
+            string entryPointScript,
+            string projectPath,
+            string[] watchFileExtensions,
+            string commandLineArguments,
+            CancellationToken applicationStoppingToken,
+            ILogger nodeOutputLogger,
+            IDictionary<string, string> environmentVars,
+            int invocationTimeoutMilliseconds,
+            bool launchWithDebugging,
+            int debuggingPort) : 
+            this(entryPointScript, projectPath, watchFileExtensions, commandLineArguments, applicationStoppingToken, nodeOutputLogger, environmentVars, invocationTimeoutMilliseconds, launchWithDebugging, debuggingPort, null)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="OutOfProcessNodeInstance"/>.
+        /// </summary>
+        /// <param name="entryPointScript">The path to the entry point script that the Node instance should load and execute.</param>
+        /// <param name="projectPath">The root path of the current project. This is used when resolving Node.js module paths relative to the project root.</param>
+        /// <param name="watchFileExtensions">The filename extensions that should be watched within the project root. The Node instance will automatically shut itself down if any matching file changes.</param>
+        /// <param name="commandLineArguments">Command-line arguments to be passed to the Node.js entry script (see HttpNodeInstanceEntryPoints.ts).</param>
         /// <param name="applicationStoppingToken">A token that indicates when the host application is stopping.</param>
         /// <param name="nodeOutputLogger">The <see cref="ILogger"/> to which the Node.js instance's stdout/stderr (and other log information) should be written.</param>
         /// <param name="environmentVars">Environment variables to be set on the Node.js process.</param>
@@ -56,14 +84,14 @@ namespace Microsoft.AspNetCore.NodeServices.HostingModels
             string entryPointScript,
             string projectPath,
             string[] watchFileExtensions,
-            string scriptArguments,
+            string commandLineArguments,
             CancellationToken applicationStoppingToken,
             ILogger nodeOutputLogger,
             IDictionary<string, string> environmentVars,
             int invocationTimeoutMilliseconds,
             bool launchWithDebugging,
             int debuggingPort,
-            string nodeOptions = null)
+            string nodeOptions)
         {
             if (nodeOutputLogger == null)
             {
@@ -75,7 +103,7 @@ namespace Microsoft.AspNetCore.NodeServices.HostingModels
             _invocationTimeoutMilliseconds = invocationTimeoutMilliseconds;
             _launchWithDebugging = launchWithDebugging;
 
-            var startInfo = PrepareNodeProcessStartInfo(_entryPointScript.FileName, projectPath, scriptArguments,
+            var startInfo = PrepareNodeProcessStartInfo(_entryPointScript.FileName, projectPath, commandLineArguments,
                 environmentVars, _launchWithDebugging, debuggingPort, nodeOptions);
             _nodeProcess = LaunchNodeProcess(startInfo);
             _watchFileExtensions = watchFileExtensions;
@@ -207,15 +235,32 @@ namespace Microsoft.AspNetCore.NodeServices.HostingModels
         /// </summary>
         /// <param name="entryPointFilename">The entrypoint JavaScript file that the Node.js process should execute.</param>
         /// <param name="projectPath">The root path of the project. This is used when locating Node.js modules relative to the project root.</param>
-        /// <param name="scriptArguments">Command-line arguments to be passed to the Node.js entry script (see HttpNodeInstanceEntryPoints.ts).</param>
+        /// <param name="commandLineArguments">Command-line arguments to be passed to the Node.js entry script (see HttpNodeInstanceEntryPoints.ts).</param>
+        /// <param name="environmentVars">Environment variables to be set on the Node.js process.</param>
+        /// <param name="launchWithDebugging">If true, passes a flag to the Node.js process telling it to accept V8 Inspector connections.</param>
+        /// <param name="debuggingPort">If debugging is enabled, the Node.js process should listen for V8 Inspector connections on this port.</param>
+        /// <returns></returns>
+        protected virtual ProcessStartInfo PrepareNodeProcessStartInfo(
+            string entryPointFilename, string projectPath, string commandLineArguments,
+            IDictionary<string, string> environmentVars, bool launchWithDebugging, int debuggingPort)
+        {
+            return PrepareNodeProcessStartInfo(entryPointFilename, projectPath, commandLineArguments, environmentVars, launchWithDebugging, debuggingPort);
+        }
+
+        /// <summary>
+        /// Configures a <see cref="ProcessStartInfo"/> instance describing how to launch the Node.js process.
+        /// </summary>
+        /// <param name="entryPointFilename">The entrypoint JavaScript file that the Node.js process should execute.</param>
+        /// <param name="projectPath">The root path of the project. This is used when locating Node.js modules relative to the project root.</param>
+        /// <param name="commandLineArguments">Command-line arguments to be passed to the Node.js entry script (see HttpNodeInstanceEntryPoints.ts).</param>
         /// <param name="environmentVars">Environment variables to be set on the Node.js process.</param>
         /// <param name="launchWithDebugging">If true, passes a flag to the Node.js process telling it to accept V8 Inspector connections.</param>
         /// <param name="debuggingPort">If debugging is enabled, the Node.js process should listen for V8 Inspector connections on this port.</param>
         /// <param name="nodeOptions">Command-line arguments to be passed to the Node.js process.</param>
         /// <returns></returns>
         protected virtual ProcessStartInfo PrepareNodeProcessStartInfo(
-            string entryPointFilename, string projectPath, string scriptArguments,
-            IDictionary<string, string> environmentVars, bool launchWithDebugging, int debuggingPort, string nodeOptions = null)
+            string entryPointFilename, string projectPath, string commandLineArguments,
+            IDictionary<string, string> environmentVars, bool launchWithDebugging, int debuggingPort, string nodeOptions)
         {
             // This method is virtual, as it provides a way to override the NODE_PATH or the path to node.exe
             string nodeDebuggingOptions;
@@ -234,7 +279,7 @@ namespace Microsoft.AspNetCore.NodeServices.HostingModels
             var startInfo = new ProcessStartInfo("node")
             {
                 // Syntactically consistent with the syntax specified in the Node.js documentation: "node [options] [V8 options] [script.js | -e "script" | -] [--] [arguments]" (see https://nodejs.org/api/cli.html#cli_synopsis).
-                Arguments = $"{nodeDebuggingOptions} {nodeOptions ?? string.Empty} \"{entryPointFilename}\" -- --parentPid {thisProcessPid} {scriptArguments ?? string.Empty}",
+                Arguments = $"{nodeDebuggingOptions} {nodeOptions ?? string.Empty} \"{entryPointFilename}\" -- --parentPid {thisProcessPid} {commandLineArguments ?? string.Empty}",
                 UseShellExecute = false,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
