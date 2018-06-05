@@ -207,7 +207,7 @@ namespace Microsoft.AspNetCore.NodeServices.HostingModels
         /// </summary>
         /// <param name="entryPointFilename">The entrypoint JavaScript file that the Node.js process should execute.</param>
         /// <param name="projectPath">The root path of the project. This is used when locating Node.js modules relative to the project root.</param>
-        /// <param name="scriptArguments"></param>
+        /// <param name="scriptArguments">Command-line arguments to be passed to the Node.js entry script (see HttpNodeInstanceEntryPoints.ts).</param>
         /// <param name="environmentVars">Environment variables to be set on the Node.js process.</param>
         /// <param name="launchWithDebugging">If true, passes a flag to the Node.js process telling it to accept V8 Inspector connections.</param>
         /// <param name="debuggingPort">If debugging is enabled, the Node.js process should listen for V8 Inspector connections on this port.</param>
