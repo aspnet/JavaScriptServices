@@ -47,13 +47,14 @@ namespace Microsoft.AspNetCore.NodeServices.Sockets
                     "/Content/Node/entrypoint-socket.js"),
                 options.ProjectPath,
                 options.WatchFileExtensions,
-                MakeNewCommandLineOptions(socketAddress),
+                MakeSocketAddressArgument(socketAddress),
                 options.ApplicationStoppingToken,
                 options.NodeInstanceOutputLogger,
                 options.EnvironmentVariables,
                 options.InvocationTimeoutMilliseconds,
                 options.LaunchWithDebugging,
-                options.DebuggingPort)
+                options.DebuggingPort,
+                options.NodeOptions)
         {
             _socketAddress = socketAddress;
         }
@@ -212,7 +213,7 @@ namespace Microsoft.AspNetCore.NodeServices.Sockets
             }
         }
 
-        private static string MakeNewCommandLineOptions(string listenAddress)
+        private static string MakeSocketAddressArgument(string listenAddress)
         {
             return $"--listenAddress {listenAddress}";
         }

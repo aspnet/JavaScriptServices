@@ -44,24 +44,26 @@ namespace Microsoft.AspNetCore.NodeServices.HostingModels
         /// <param name="entryPointScript">The path to the entry point script that the Node instance should load and execute.</param>
         /// <param name="projectPath">The root path of the current project. This is used when resolving Node.js module paths relative to the project root.</param>
         /// <param name="watchFileExtensions">The filename extensions that should be watched within the project root. The Node instance will automatically shut itself down if any matching file changes.</param>
-        /// <param name="commandLineArguments">Additional command-line arguments to be passed to the Node.js instance.</param>
+        /// <param name="scriptArguments">Command-line arguments to be passed to the Node.js entry script (see HttpNodeInstanceEntryPoints.ts).</param>
         /// <param name="applicationStoppingToken">A token that indicates when the host application is stopping.</param>
         /// <param name="nodeOutputLogger">The <see cref="ILogger"/> to which the Node.js instance's stdout/stderr (and other log information) should be written.</param>
         /// <param name="environmentVars">Environment variables to be set on the Node.js process.</param>
         /// <param name="invocationTimeoutMilliseconds">The maximum duration, in milliseconds, to wait for RPC calls to complete.</param>
         /// <param name="launchWithDebugging">If true, passes a flag to the Node.js process telling it to accept V8 debugger connections.</param>
         /// <param name="debuggingPort">If debugging is enabled, the Node.js process should listen for V8 debugger connections on this port.</param>
+        /// <param name="nodeOptions">Command-line options to be passed to the Node.js instance (see https://nodejs.org/api/cli.html#cli_options).</param>
         public OutOfProcessNodeInstance(
             string entryPointScript,
             string projectPath,
             string[] watchFileExtensions,
-            string commandLineArguments,
+            string scriptArguments,
             CancellationToken applicationStoppingToken,
             ILogger nodeOutputLogger,
             IDictionary<string, string> environmentVars,
             int invocationTimeoutMilliseconds,
             bool launchWithDebugging,
-            int debuggingPort)
+            int debuggingPort,
+            string nodeOptions = null)
         {
             if (nodeOutputLogger == null)
             {
@@ -73,8 +75,8 @@ namespace Microsoft.AspNetCore.NodeServices.HostingModels
             _invocationTimeoutMilliseconds = invocationTimeoutMilliseconds;
             _launchWithDebugging = launchWithDebugging;
 
-            var startInfo = PrepareNodeProcessStartInfo(_entryPointScript.FileName, projectPath, commandLineArguments,
-                environmentVars, _launchWithDebugging, debuggingPort);
+            var startInfo = PrepareNodeProcessStartInfo(_entryPointScript.FileName, projectPath, scriptArguments,
+                environmentVars, _launchWithDebugging, debuggingPort, nodeOptions);
             _nodeProcess = LaunchNodeProcess(startInfo);
             _watchFileExtensions = watchFileExtensions;
             _fileSystemWatcher = BeginFileWatcher(projectPath);
@@ -205,31 +207,34 @@ namespace Microsoft.AspNetCore.NodeServices.HostingModels
         /// </summary>
         /// <param name="entryPointFilename">The entrypoint JavaScript file that the Node.js process should execute.</param>
         /// <param name="projectPath">The root path of the project. This is used when locating Node.js modules relative to the project root.</param>
-        /// <param name="commandLineArguments">Command-line arguments to be passed to the Node.js process.</param>
+        /// <param name="scriptArguments"></param>
         /// <param name="environmentVars">Environment variables to be set on the Node.js process.</param>
         /// <param name="launchWithDebugging">If true, passes a flag to the Node.js process telling it to accept V8 Inspector connections.</param>
         /// <param name="debuggingPort">If debugging is enabled, the Node.js process should listen for V8 Inspector connections on this port.</param>
+        /// <param name="nodeOptions">Command-line arguments to be passed to the Node.js process.</param>
         /// <returns></returns>
         protected virtual ProcessStartInfo PrepareNodeProcessStartInfo(
-            string entryPointFilename, string projectPath, string commandLineArguments,
-            IDictionary<string, string> environmentVars, bool launchWithDebugging, int debuggingPort)
+            string entryPointFilename, string projectPath, string scriptArguments,
+            IDictionary<string, string> environmentVars, bool launchWithDebugging, int debuggingPort, string nodeOptions = null)
         {
             // This method is virtual, as it provides a way to override the NODE_PATH or the path to node.exe
-            string debuggingArgs;
+            string nodeDebuggingOptions;
             if (launchWithDebugging)
             {
-                debuggingArgs = debuggingPort != default(int) ? $"--inspect={debuggingPort} " : "--inspect ";
+                nodeDebuggingOptions = debuggingPort != default(int) ? $"--inspect={debuggingPort} " : "--inspect ";
                 _nodeDebuggingPort = debuggingPort;
             }
             else
             {
-                debuggingArgs = string.Empty;
+                nodeDebuggingOptions = string.Empty;
             }
 
             var thisProcessPid = Process.GetCurrentProcess().Id;
+
             var startInfo = new ProcessStartInfo("node")
             {
-                Arguments = $"{debuggingArgs}\"{entryPointFilename}\" --parentPid {thisProcessPid} {commandLineArguments ?? string.Empty}",
+                // Syntactically consistent with the syntax specified in the Node.js documentation: "node [options] [V8 options] [script.js | -e "script" | -] [--] [arguments]" (see https://nodejs.org/api/cli.html#cli_synopsis).
+                Arguments = $"{nodeDebuggingOptions} {nodeOptions ?? string.Empty} \"{entryPointFilename}\" -- --parentPid {thisProcessPid} {scriptArguments ?? string.Empty}",
                 UseShellExecute = false,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,

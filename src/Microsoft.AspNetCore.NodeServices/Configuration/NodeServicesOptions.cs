@@ -110,5 +110,10 @@ namespace Microsoft.AspNetCore.NodeServices
         /// A token that indicates when the host application is stopping.
         /// </summary>
         public CancellationToken ApplicationStoppingToken { get; set; }
+
+        /// <summary>
+        /// Node.js command line options, e.g "--inspect-brk".
+        /// </summary>
+        public string NodeOptions { get; set; }
     }
 }
