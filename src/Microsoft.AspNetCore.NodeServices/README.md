@@ -19,7 +19,7 @@ It is the underlying mechanism supporting the following packages:
   * Note: If you're deploying to an Azure web site, you don't need to do anything here - Node is already installed and available in the server environments
 * [.NET](https://dot.net)
   * For .NET Core (e.g., ASP.NET Core apps), you need at least 1.0 RC2
-  * For .NET Framework, you need at least version 4.5.1.
+  * For .NET Framework, you need at least version 4.6.1.
 
 ### Installation
 
