@@ -9,9 +9,12 @@ using Microsoft.AspNetCore.SpaServices.Util;
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SpaServices.Extensions.Util;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer
 {
@@ -24,7 +27,7 @@ namespace Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer
             ISpaBuilder spaBuilder,
             string npmScriptName)
         {
-            var sourcePath = spaBuilder.Options.SourcePath;
+            var sourcePath = GetAbsolutSourcePath(spaBuilder);
             if (string.IsNullOrEmpty(sourcePath))
             {
                 throw new ArgumentException("Cannot be null or empty", nameof(sourcePath));
@@ -58,6 +61,25 @@ namespace Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer
                     $"within the timeout period of {timeout.Seconds} seconds. " +
                     $"Check the log output for error information.");
             });
+        }
+
+        private static string GetAbsolutSourcePath(ISpaBuilder spaBuilder)
+        {
+          var spaSourcePath = spaBuilder.Options.SourcePath;
+
+          if (!Path.IsPathRooted(spaSourcePath))
+          {
+              var hostingEnvironment = spaBuilder.ApplicationBuilder.ApplicationServices.GetService<IHostingEnvironment>();
+              var rootPath = hostingEnvironment?.ContentRootPath ?? Directory.GetCurrentDirectory();
+              spaSourcePath = Path.Combine(rootPath, spaSourcePath);
+          }
+
+          if (!Directory.Exists(spaSourcePath))
+          {
+              throw new DirectoryNotFoundException($"Unable to start React Development Server, the source path '{spaSourcePath}' does not exist.");
+          }
+
+          return spaSourcePath;
         }
 
         private static async Task<int> StartCreateReactAppServerAsync(
