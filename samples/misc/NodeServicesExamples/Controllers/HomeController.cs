@@ -19,14 +19,16 @@ namespace NodeServicesExamples.Controllers
             return View();
         }
 
-		public IActionResult Stream([FromServices] INodeServices nodeServices)
+		public FileStreamResult Stream([FromServices] INodeServices nodeServices)
 		{
-			Console.WriteLine("start");
 			var d = nodeServices.InvokeAsync<Stream>("./addNumbers");
+			var a = d.Result;
 
-			Console.WriteLine(d);
-			 
-            return View();
+			// byte[] bytes = new byte[10];
+                
+            //a.ReadAsync(bytes, 0, 10);
+
+			return new FileStreamResult(a, "text/plain");
         }
 
         public async Task<IActionResult> Chart([FromServices] INodeServices nodeServices)

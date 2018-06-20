@@ -10,7 +10,7 @@ rstream.on("end", () => {
     setTimeout(() => {
 
     result.stream.end();
-    }, 2000);
+    }, 20000);
 });
 
     //rstream.pipe(result.stream);

@@ -63,9 +63,9 @@ namespace Microsoft.AspNetCore.NodeServices.Sockets.VirtualConnections
                 {
                     Buffer.BlockCopy(_receivedDataNotYetUsed.Array, _receivedDataNotYetUsed.Offset, buffer, bytesRead, bytesToExtract);
                     _receivedDataNotYetUsed = new ArraySegment<byte>(_receivedDataNotYetUsed.Array, _receivedDataNotYetUsed.Offset + bytesToExtract, _receivedDataNotYetUsed.Count - bytesToExtract);
+                    Console.WriteLine(_receivedDataNotYetUsed);
                     bytesRead += bytesToExtract;
                 }
-
                 // If we've completely filled the output buffer, we're done
                 if (bytesRead == count)
                 {

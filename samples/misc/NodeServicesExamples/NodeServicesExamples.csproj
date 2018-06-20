@@ -27,7 +27,7 @@
     <Compile Remove="Views\Home\Stream.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Views\Home\Stream.cshtml" />
+    <Content Remove="Views\Home\Stream.cshtml" />
   </ItemGroup>
   <Target Name="PrepublishScript" BeforeTargets="PrepareForPublish">
     <Exec Command="npm install" />
