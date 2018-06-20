@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.NodeServices;
+using Microsoft.AspNetCore.NodeServices.Sockets;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.IO;
@@ -16,7 +17,9 @@ namespace NodeServicesExamples
             services.AddMvc();
 
             // Enable Node Services
-            services.AddNodeServices();
+			services.AddNodeServices(options => {
+                options.UseSocketHosting();
+            });
             services.AddSpaPrerenderer();
         }
 

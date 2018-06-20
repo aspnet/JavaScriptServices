@@ -1,7 +1,9 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.NodeServices;
 using Microsoft.AspNetCore.SpaServices.Prerendering;
+using System.IO;
 
 namespace NodeServicesExamples.Controllers
 {
@@ -15,6 +17,18 @@ namespace NodeServicesExamples.Controllers
         public IActionResult ES2015Transpilation()
         {
             return View();
+        }
+
+		public FileStreamResult Stream([FromServices] INodeServices nodeServices)
+		{
+			var d = nodeServices.InvokeAsync<Stream>("./addNumbers");
+			var a = d.Result;
+
+			// byte[] bytes = new byte[10];
+                
+            //a.ReadAsync(bytes, 0, 10);
+
+			return new FileStreamResult(a, "text/plain");
         }
 
         public async Task<IActionResult> Chart([FromServices] INodeServices nodeServices)

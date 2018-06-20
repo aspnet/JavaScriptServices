@@ -4,10 +4,13 @@
     <TargetFrameworks>netcoreapp2.2;net461</TargetFrameworks>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
     <IsPackable>false</IsPackable>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Microsoft.AspNetCore.SpaServices\Microsoft.AspNetCore.SpaServices.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.AspNetCore.NodeServices.Sockets\Microsoft.AspNetCore.NodeServices.Sockets.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.AspNetCore.NodeServices\Microsoft.AspNetCore.NodeServices.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,6 +23,12 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="$(MicrosoftExtensionsLoggingDebugPackageVersion)" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Views\Home\Stream.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Remove="Views\Home\Stream.cshtml" />
+  </ItemGroup>
   <Target Name="PrepublishScript" BeforeTargets="PrepareForPublish">
     <Exec Command="npm install" />
   </Target>
