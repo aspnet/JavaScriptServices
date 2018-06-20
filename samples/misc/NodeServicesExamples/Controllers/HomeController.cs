@@ -1,7 +1,9 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.NodeServices;
 using Microsoft.AspNetCore.SpaServices.Prerendering;
+using System.IO;
 
 namespace NodeServicesExamples.Controllers
 {
@@ -14,6 +16,16 @@ namespace NodeServicesExamples.Controllers
 
         public IActionResult ES2015Transpilation()
         {
+            return View();
+        }
+
+		public IActionResult Stream([FromServices] INodeServices nodeServices)
+		{
+			Console.WriteLine("start");
+			var d = nodeServices.InvokeAsync<Stream>("./addNumbers");
+
+			Console.WriteLine(d);
+			 
             return View();
         }
 
