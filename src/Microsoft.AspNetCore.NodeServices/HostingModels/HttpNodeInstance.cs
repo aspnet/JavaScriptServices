@@ -41,19 +41,20 @@ namespace Microsoft.AspNetCore.NodeServices.HostingModels
                     "/Content/Node/entrypoint-http.js"),
                 options.ProjectPath,
                 options.WatchFileExtensions,
-                MakeCommandLineOptions(port),
+                MakePortArgument(port),
                 options.ApplicationStoppingToken,
                 options.NodeInstanceOutputLogger,
                 options.EnvironmentVariables,
                 options.InvocationTimeoutMilliseconds,
                 options.LaunchWithDebugging,
-                options.DebuggingPort)
+                options.DebuggingPort,
+                options.NodeOptions)
         {
             _client = new HttpClient();
             _client.Timeout = TimeSpan.FromMilliseconds(options.InvocationTimeoutMilliseconds + 1000);
         }
 
-        private static string MakeCommandLineOptions(int port)
+        private static string MakePortArgument(int port)
         {
             return $"--port {port}";
         }
