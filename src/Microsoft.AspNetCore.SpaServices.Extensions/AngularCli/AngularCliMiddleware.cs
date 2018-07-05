@@ -23,7 +23,8 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
 
         public static void Attach(
             ISpaBuilder spaBuilder,
-            string npmScriptName)
+            string npmScriptName,
+            string regEx)
         {
             var sourcePath = spaBuilder.Options.SourcePath;
             if (string.IsNullOrEmpty(sourcePath))
@@ -39,7 +40,7 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
             // Start Angular CLI and attach to middleware pipeline
             var appBuilder = spaBuilder.ApplicationBuilder;
             var logger = LoggerFinder.GetOrCreateLogger(appBuilder, LogCategoryName);
-            var angularCliServerInfoTask = StartAngularCliServerAsync(sourcePath, npmScriptName, logger);
+            var angularCliServerInfoTask = StartAngularCliServerAsync(sourcePath, npmScriptName, regEx, logger);
 
             // Everything we proxy is hardcoded to target http://localhost because:
             // - the requests are always from the local machine (we're not accepting remote
@@ -62,7 +63,7 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
         }
 
         private static async Task<AngularCliServerInfo> StartAngularCliServerAsync(
-            string sourcePath, string npmScriptName, ILogger logger)
+            string sourcePath, string npmScriptName, string regEx, ILogger logger)
         {
             var portNumber = TcpPortFinder.FindAvailablePort();
             logger.LogInformation($"Starting @angular/cli on port {portNumber}...");
@@ -77,7 +78,7 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
                 try
                 {
                     openBrowserLine = await npmScriptRunner.StdOut.WaitForMatch(
-                        new Regex("open your browser on (http\\S+)", RegexOptions.None, RegexMatchTimeout));
+                        new Regex(regEx, RegexOptions.None, RegexMatchTimeout));
                 }
                 catch (EndOfStreamException ex)
                 {

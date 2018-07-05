@@ -21,14 +21,18 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
         /// </summary>
         /// <param name="spaBuilder">The <see cref="ISpaBuilder"/>.</param>
         /// <param name="npmScript">The name of the script in your package.json file that launches the Angular CLI process.</param>
+        /// <param name="regEx">RegEx used to detect that the cli is up and running. For Angular Cli "open your browser on (http\\S+)", For VueJs CLI "- Local:   (.*)".</param>
         public static void UseAngularCliServer(
             this ISpaBuilder spaBuilder,
-            string npmScript)
+            string npmScript,
+            string regEx = null)
         {
             if (spaBuilder == null)
             {
                 throw new ArgumentNullException(nameof(spaBuilder));
             }
+            if (string.IsNullOrEmpty(regEx))
+                regEx = "open your browser on (http\\S+)";
 
             var spaOptions = spaBuilder.Options;
 
@@ -37,7 +41,7 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
                 throw new InvalidOperationException($"To use {nameof(UseAngularCliServer)}, you must supply a non-empty value for the {nameof(SpaOptions.SourcePath)} property of {nameof(SpaOptions)} when calling {nameof(SpaApplicationBuilderExtensions.UseSpa)}.");
             }
 
-            AngularCliMiddleware.Attach(spaBuilder, npmScript);
+            AngularCliMiddleware.Attach(spaBuilder, npmScript, regEx);
         }
     }
 }
