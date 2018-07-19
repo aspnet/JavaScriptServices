@@ -10,7 +10,6 @@ This NuGet package provides a fast and robust way to invoke Node.js code from a 
 It is the underlying mechanism supporting the following packages:
 
  * [`Microsoft.AspNetCore.SpaServices`](https://github.com/aspnet/JavaScriptServices/tree/master/src/Microsoft.AspNetCore.SpaServices) - builds on NodeServices, adding functionality commonly used in Single Page Applications, such as server-side prerendering, webpack middleware, and integration between server-side and client-side routing.
- * [`Microsoft.AspNetCore.AngularServices`](https://github.com/aspnet/JavaScriptServices/tree/master/src/Microsoft.AspNetCore.AngularServices) and [`Microsoft.AspNetCore.ReactServices`](https://github.com/aspnet/JavaScriptServices/tree/master/src/Microsoft.AspNetCore.ReactServices) - these build on `SpaServices`, adding helpers specific to Angular and React, such as cache priming and integrating server-side and client-side validation
 
 ### Requirements
 
