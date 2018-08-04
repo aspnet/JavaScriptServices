@@ -2,7 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.SpaServices.NpmCommandDevelopmentServer;
 using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer
 {
@@ -11,6 +14,8 @@ namespace Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer
     /// </summary>
     public static class ReactDevelopmentServerMiddlewareExtensions
     {
+        private static TimeSpan RegexMatchTimeout = TimeSpan.FromSeconds(5); // This is a development-time only feature, so a very long timeout is fine
+
         /// <summary>
         /// Handles requests by passing them through to an instance of the create-react-app server.
         /// This means you can always serve up-to-date CLI-built resources without having
@@ -37,7 +42,17 @@ namespace Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer
                 throw new InvalidOperationException($"To use {nameof(UseReactDevelopmentServer)}, you must supply a non-empty value for the {nameof(SpaOptions.SourcePath)} property of {nameof(SpaOptions)} when calling {nameof(SpaApplicationBuilderExtensions.UseSpa)}.");
             }
 
-            ReactDevelopmentServerMiddleware.Attach(spaBuilder, npmScript);
+            var startRegex = new Regex("Starting the development server", RegexOptions.None, RegexMatchTimeout);
+            NpmCommandDevelopmentServerMiddleware.Attach(spaBuilder, npmScript, p => null, CreateEnvVars, startRegex, null);
+        }
+
+        private static Dictionary<string, string> CreateEnvVars(PreStartNpmServerInfo info)
+        {
+            return new Dictionary<string, string>
+            {
+                { "PORT", info.Port.ToString() },
+                { "BROWSER", "none" }, // We don't want create-react-app to open its own extra browser window pointing to the internal dev server port
+            };
         }
     }
 }
