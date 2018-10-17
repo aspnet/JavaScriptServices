@@ -21,9 +21,11 @@ namespace Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer
         /// </summary>
         /// <param name="spaBuilder">The <see cref="ISpaBuilder"/>.</param>
         /// <param name="npmScript">The name of the script in your package.json file that launches the create-react-app server.</param>
+        /// <param name="spaPort">The port which the create-react-app server should listen to (optional).</param>
         public static void UseReactDevelopmentServer(
             this ISpaBuilder spaBuilder,
-            string npmScript)
+            string npmScript,
+            int? spaPort = null)
         {
             if (spaBuilder == null)
             {
@@ -37,7 +39,7 @@ namespace Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer
                 throw new InvalidOperationException($"To use {nameof(UseReactDevelopmentServer)}, you must supply a non-empty value for the {nameof(SpaOptions.SourcePath)} property of {nameof(SpaOptions)} when calling {nameof(SpaApplicationBuilderExtensions.UseSpa)}.");
             }
 
-            ReactDevelopmentServerMiddleware.Attach(spaBuilder, npmScript);
+            ReactDevelopmentServerMiddleware.Attach(spaBuilder, npmScript, spaPort);
         }
     }
 }

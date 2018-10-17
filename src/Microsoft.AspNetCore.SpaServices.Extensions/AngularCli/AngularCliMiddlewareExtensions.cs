@@ -21,9 +21,11 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
         /// </summary>
         /// <param name="spaBuilder">The <see cref="ISpaBuilder"/>.</param>
         /// <param name="npmScript">The name of the script in your package.json file that launches the Angular CLI process.</param>
+        /// <param name="spaPort">The port which the create-react-app server should listen to (optional).</param>
         public static void UseAngularCliServer(
             this ISpaBuilder spaBuilder,
-            string npmScript)
+            string npmScript,
+            int? spaPort = null)
         {
             if (spaBuilder == null)
             {
@@ -37,7 +39,7 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
                 throw new InvalidOperationException($"To use {nameof(UseAngularCliServer)}, you must supply a non-empty value for the {nameof(SpaOptions.SourcePath)} property of {nameof(SpaOptions)} when calling {nameof(SpaApplicationBuilderExtensions.UseSpa)}.");
             }
 
-            AngularCliMiddleware.Attach(spaBuilder, npmScript);
+            AngularCliMiddleware.Attach(spaBuilder, npmScript, spaPort);
         }
     }
 }
