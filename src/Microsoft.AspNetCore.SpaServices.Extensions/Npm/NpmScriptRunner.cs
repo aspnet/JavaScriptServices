@@ -22,9 +22,15 @@ namespace Microsoft.AspNetCore.NodeServices.Npm
         public EventedStreamReader StdErr { get; }
 
         private static Regex AnsiColorRegex = new Regex("\x001b\\[[0-9;]*m", RegexOptions.None, TimeSpan.FromSeconds(1));
+        private static string PackageManagerName;
 
-        public NpmScriptRunner(string workingDirectory, string scriptName, string arguments, IDictionary<string, string> envVars)
+        public NpmScriptRunner(string workingDirectory, string pkgManagerName, string scriptName, string arguments, IDictionary<string, string> envVars)
         {
+            if (string.IsNullOrEmpty(pkgManagerName))
+            {
+                throw new ArgumentException("Cannot be null or empty.", nameof(pkgManagerName));
+            }
+
             if (string.IsNullOrEmpty(workingDirectory))
             {
                 throw new ArgumentException("Cannot be null or empty.", nameof(workingDirectory));
@@ -35,18 +41,19 @@ namespace Microsoft.AspNetCore.NodeServices.Npm
                 throw new ArgumentException("Cannot be null or empty.", nameof(scriptName));
             }
 
-            var npmExe = "npm";
+            PackageManagerName = pkgManagerName;
+
             var completeArguments = $"run {scriptName} -- {arguments ?? string.Empty}";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                // On Windows, the NPM executable is a .cmd file, so it can't be executed
+                // On Windows, the NPM/Yarn executable is a .cmd file, so it can't be executed
                 // directly (except with UseShellExecute=true, but that's no good, because
                 // it prevents capturing stdio). So we need to invoke it via "cmd /c".
-                npmExe = "cmd";
-                completeArguments = $"/c npm {completeArguments}";
+                pkgManagerName = "cmd";
+                completeArguments = $"/c {PackageManagerName} {completeArguments}";
             }
 
-            var processStartInfo = new ProcessStartInfo(npmExe)
+            var processStartInfo = new ProcessStartInfo(pkgManagerName)
             {
                 Arguments = completeArguments,
                 UseShellExecute = false,
@@ -119,8 +126,8 @@ namespace Microsoft.AspNetCore.NodeServices.Npm
             }
             catch (Exception ex)
             {
-                var message = $"Failed to start 'npm'. To resolve this:.\n\n"
-                            + "[1] Ensure that 'npm' is installed and can be found in one of the PATH directories.\n"
+                var message = $"Failed to start '{ PackageManagerName }'. To resolve this:.\n\n"
+                            + $"[1] Ensure that '{ PackageManagerName }' is installed and can be found in one of the PATH directories.\n"
                             + $"    Current PATH enviroment variable is: { Environment.GetEnvironmentVariable("PATH") }\n"
                             + "    Make sure the executable is in one of those directories, or update your PATH.\n\n"
                             + "[2] See the InnerException for further details of the cause.";

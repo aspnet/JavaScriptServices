@@ -25,9 +25,15 @@ namespace Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer
             string npmScriptName)
         {
             var sourcePath = spaBuilder.Options.SourcePath;
+            var pkgManagerName = spaBuilder.Options.PackageManagerName;
             if (string.IsNullOrEmpty(sourcePath))
             {
                 throw new ArgumentException("Cannot be null or empty", nameof(sourcePath));
+            }
+
+            if (string.IsNullOrEmpty(sourcePath))
+            {
+                throw new ArgumentException("Cannot be null or empty", nameof(pkgManagerName));
             }
 
             if (string.IsNullOrEmpty(npmScriptName))
@@ -38,7 +44,7 @@ namespace Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer
             // Start create-react-app and attach to middleware pipeline
             var appBuilder = spaBuilder.ApplicationBuilder;
             var logger = LoggerFinder.GetOrCreateLogger(appBuilder, LogCategoryName);
-            var portTask = StartCreateReactAppServerAsync(sourcePath, npmScriptName, logger);
+            var portTask = StartCreateReactAppServerAsync(sourcePath, pkgManagerName, npmScriptName, logger);
 
             // Everything we proxy is hardcoded to target http://localhost because:
             // - the requests are always from the local machine (we're not accepting remote
@@ -61,7 +67,7 @@ namespace Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer
         }
 
         private static async Task<int> StartCreateReactAppServerAsync(
-            string sourcePath, string npmScriptName, ILogger logger)
+            string sourcePath, string pkgManagerName, string npmScriptName, ILogger logger)
         {
             var portNumber = TcpPortFinder.FindAvailablePort();
             logger.LogInformation($"Starting create-react-app server on port {portNumber}...");
@@ -72,7 +78,7 @@ namespace Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer
                 { "BROWSER", "none" }, // We don't want create-react-app to open its own extra browser window pointing to the internal dev server port
             };
             var npmScriptRunner = new NpmScriptRunner(
-                sourcePath, npmScriptName, null, envVars);
+                sourcePath, pkgManagerName, npmScriptName, null, envVars);
             npmScriptRunner.AttachToLogger(logger);
 
             using (var stdErrReader = new EventedStreamStringReader(npmScriptRunner.StdErr))

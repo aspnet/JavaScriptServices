@@ -15,6 +15,7 @@ namespace Microsoft.AspNetCore.SpaServices
     public class SpaOptions
     {
         private PathString _defaultPage = "/index.html";
+        private static string _defaultPackageManagerName = "npm";
 
         /// <summary>
         /// Constructs a new instance of <see cref="SpaOptions"/>.
@@ -32,6 +33,7 @@ namespace Microsoft.AspNetCore.SpaServices
             _defaultPage = copyFromOptions.DefaultPage;
             DefaultPageStaticFileOptions = copyFromOptions.DefaultPageStaticFileOptions;
             SourcePath = copyFromOptions.SourcePath;
+            _defaultPackageManagerName = copyFromOptions.PackageManagerName;
         }
 
         /// <summary>
@@ -68,6 +70,15 @@ namespace Microsoft.AspNetCore.SpaServices
         /// development. The directory may not exist in published applications.
         /// </summary>
         public string SourcePath { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name of the package manager executible, (e.g npm,
+        /// yarn) to run the SPA.
+        /// 
+        /// If not set, npm will be assumed as the default package manager 
+        /// executable
+        /// </summary>
+        public string PackageManagerName { get; set; }
 
         /// <summary>
         /// Gets or sets the maximum duration that a request will wait for the SPA

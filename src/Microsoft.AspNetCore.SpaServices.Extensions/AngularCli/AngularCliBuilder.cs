@@ -41,6 +41,7 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
         public async Task Build(ISpaBuilder spaBuilder)
         {
             var sourcePath = spaBuilder.Options.SourcePath;
+            var pkgManagerName = spaBuilder.Options.PackageManagerName;
             if (string.IsNullOrEmpty(sourcePath))
             {
                 throw new InvalidOperationException($"To use {nameof(AngularCliBuilder)}, you must supply a non-empty value for the {nameof(SpaOptions.SourcePath)} property of {nameof(SpaOptions)} when calling {nameof(SpaApplicationBuilderExtensions.UseSpa)}.");
@@ -51,6 +52,7 @@ namespace Microsoft.AspNetCore.SpaServices.AngularCli
                 nameof(AngularCliBuilder));
             var npmScriptRunner = new NpmScriptRunner(
                 sourcePath,
+                pkgManagerName,
                 _npmScriptName,
                 "--watch",
                 null);
