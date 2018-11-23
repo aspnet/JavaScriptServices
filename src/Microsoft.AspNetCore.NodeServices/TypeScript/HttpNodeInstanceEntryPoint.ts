@@ -12,8 +12,14 @@ import { AddressInfo } from 'net';
 // reference to Node's runtime 'require' function.
 const dynamicRequire: (name: string) => any = eval('require');
 
+interface NodeInvocationInfo {
+    moduleName: string;
+    exportedFunctionName: string;
+    args: any[];
+}
+
 const server = http.createServer((req, res) => {
-    readRequestBodyAsJson(req, bodyJson => {
+    readRequestBodyAsJson(req, (bodyJson: NodeInvocationInfo) => {
         let hasSentResult = false;
         const callback = (errorValue, successValue) => {
             if (!hasSentResult) {
