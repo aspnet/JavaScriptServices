@@ -1,8 +1,8 @@
-# JavaScriptServices
+# JavaScriptServices [Archived]
 
-AppVeyor: [![AppVeyor](https://ci.appveyor.com/api/projects/status/gprilrckx116vc9m/branch/dev?svg=true)](https://ci.appveyor.com/project/aspnetci/javascriptservices/branch/dev)
+**This GitHub project has been archived.** Ongoing development on this project can be found in <https://github.com/aspnet/AspNetCore>.
 
-This project is part of ASP.NET Core. You can find samples, documentation and getting started instructions for ASP.NET Core at the [Home](https://github.com/aspnet/home) repo.
+This project is part of ASP.NET Core. You can find samples, documentation and getting started instructions for ASP.NET Core at the [AspNetCore](https://github.com/aspnet/AspNetCore) repo.
 
 ## What is this?
 
@@ -88,9 +88,3 @@ The [`samples` directory](/samples) contains examples of:
    * If you're trying to run the Angular "Music Store" sample, then also run `gulp` (which you need to have installed globally). None of the other samples require this.
  * Run the application (`dotnet run`)
  * Browse to [http://localhost:5000](http://localhost:5000)
-
-## Contributing
-
-If you're interested in contributing to the various packages, samples, and project templates in this repo, that's great!
-
-Before working on a pull request, especially if it's more than a trivial fix (for example, for a typo), it's usually a good idea first to file an issue describing what you're proposing to do and how it will work. Then you can find out if it's likely that such a pull request will be accepted, and how it fits into wider ongoing plans.
